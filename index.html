@@ -2,35 +2,87 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8" />
-  <title>Mini POS – Tea Neko V5.1 (Multi-Page)</title>
+  <title>Mini POS – Tea Neko (Realtime Multi-Page)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- =============== CSS =============== -->
   <style>
     * { box-sizing: border-box; }
 
     body {
       margin: 0;
       font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif;
-      background: #1f1f23;
-      color: #f5f5f5;
+      background: #222;
+      color: #111;
     }
 
+    /* Khung chính */
+    .app-shell {
+      max-width: 900px;
+      margin: 0 auto;
+      min-height: 100vh;
+      background: #2c2c2c;
+      padding-bottom: 40px;
+    }
+
+    /* ================= TAB BAR ================= */
+    #tabBar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: space-around;
+      gap: 4px;
+      padding: 10px 10px 0;
+      background: #2c2c2c;
+      border-bottom: 1px solid #444;
+    }
+
+    .tab-btn {
+      flex: 1;
+      text-align: center;
+      padding: 6px 0 10px;
+      color: #ccc;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 600;
+      border: none;
+      background: transparent;
+      position: relative;
+    }
+
+    .tab-btn.active {
+      color: #fff;
+    }
+
+    #tabUnderline {
+      height: 3px;
+      background: #0a84ff;
+      width: 33.33%;
+      transform: translateX(0);
+      transition: transform 0.2s ease;
+    }
+
+    /* ================= PAGES ================= */
     .page {
-      max-width: 480px;
-      margin: 70px auto 24px;
+      display: none;
       padding: 12px;
     }
-
-    .box {
-      max-width: 480px;
-      margin: 0 auto;
-      background: #2b2b31;
-      border-radius: 16px;
-      padding: 14px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    .page.active {
+      display: block;
     }
 
-    h2 {
-      margin: 0 0 10px;
+    .page-inner {
+      max-width: 480px;
+      margin: 0 auto;
+      background: #fff;
+      border-radius: 16px;
+      padding: 14px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+    }
+
+    h1 {
+      margin: 0 0 8px;
       text-align: center;
       font-size: 20px;
     }
@@ -43,22 +95,16 @@
       font-size: 13px;
     }
 
-    .device-row span {
-      white-space: nowrap;
-    }
-
     .device-row input {
       flex: 1;
-      padding: 6px 10px;
-      border-radius: 10px;
-      border: 1px solid #555;
-      background: #1f1f23;
-      color: #f5f5f5;
+      padding: 4px 8px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
       font-size: 13px;
     }
 
     .menu-section-title {
-      margin-top: 8px;
+      margin-top: 6px;
       font-size: 15px;
       font-weight: 600;
       border-left: 4px solid #0a84ff;
@@ -75,7 +121,7 @@
     .menu-item {
       border-radius: 12px;
       padding: 8px;
-      background: #3a3a41;
+      background: #f5f5f5;
       cursor: pointer;
       border: 1px solid transparent;
       font-size: 14px;
@@ -84,8 +130,8 @@
 
     .menu-item:active {
       transform: translateY(1px) scale(0.98);
-      box-shadow: 0 1px 3px rgba(0,0,0,0.5) inset;
-      background: #4b4b55;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.25) inset;
+      background: #e8f2ff;
     }
 
     .menu-item-name {
@@ -94,13 +140,11 @@
 
     .menu-item-price {
       font-size: 12px;
-      color: #ccc;
+      color: #555;
       margin-top: 2px;
     }
 
-    .size-row,
-    .qty-row,
-    .cash-row {
+    .size-row, .qty-row, .cash-row {
       display: flex;
       gap: 8px;
       margin-top: 8px;
@@ -112,11 +156,10 @@
       flex: 1;
       padding: 6px 0;
       border-radius: 999px;
-      border: 1px solid #666;
-      background: #3a3a41;
+      border: 1px solid #ccc;
+      background: #f5f5f5;
       cursor: pointer;
       font-size: 13px;
-      color: #f5f5f5;
       transition: background 0.08s ease, box-shadow 0.08s ease;
     }
 
@@ -124,18 +167,15 @@
       background: #0a84ff;
       color: #fff;
       border-color: #0a84ff;
-      box-shadow: 0 0 0 1px rgba(10,132,255,0.6);
+      box-shadow: 0 0 0 1px rgba(10,132,255,0.4);
     }
 
-    .qty-row input,
-    .cash-row input {
+    .qty-row input, .cash-row input {
       flex: 1;
       padding: 6px 8px;
       border-radius: 8px;
-      border: 1px solid #666;
+      border: 1px solid #ccc;
       font-size: 14px;
-      background: #1f1f23;
-      color: #f5f5f5;
     }
 
     .qty-row button {
@@ -143,10 +183,9 @@
       height: 32px;
       border-radius: 50%;
       border: none;
-      background: #3a3a41;
+      background: #eee;
       cursor: pointer;
       font-size: 18px;
-      color: #f5f5f5;
     }
 
     .btn-row {
@@ -170,30 +209,34 @@
     .btn:active {
       opacity: 0.85;
       transform: translateY(1px);
-      box-shadow: 0 1px 3px rgba(0,0,0,0.5) inset;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.25) inset;
     }
 
-    .btn-undo   { background: #8e8e93; }
-    .btn-clear  { background: #ff3b30; }
-    .btn-save   { background: #5856d6; }
-    .btn-print  { background: #34c759; }
-    .btn-small  {
-      padding: 4px 10px;
+    .btn-undo { background: #8e8e93; }
+    .btn-clear { background: #ff3b30; }
+    .btn-save { background: #5856d6; }
+    .btn-print { background: #34c759; }
+    .btn-sm {
+      padding: 3px 8px;
       font-size: 11px;
       border-radius: 999px;
-      border: none;
-      background: #444;
+    }
+    .btn-danger {
+      background: #ff3b30;
       color: #fff;
-      cursor: pointer;
+    }
+    .btn-outline {
+      background: transparent;
+      border: 1px solid #888;
+      color: #333;
     }
 
     .list-box {
       margin-top: 10px;
       padding: 10px;
       border-radius: 12px;
-      background: #1f1f23;
+      background: #fafafa;
       font-size: 14px;
-      border: 1px solid #3a3a41;
     }
 
     ul {
@@ -208,15 +251,14 @@
       margin-top: 6px;
       font-size: 14px;
     }
-
     .summary strong { font-size: 15px; }
 
     .history-box {
       margin-top: 10px;
       padding: 10px;
       border-radius: 12px;
-      background: #1f1f23;
-      border: 1px solid #3a3a41;
+      background: #ffffff;
+      border: 1px solid #e0e0e0;
       font-size: 13px;
     }
 
@@ -228,13 +270,13 @@
     }
 
     .history-list {
-      max-height: 220px;
+      max-height: 200px;
       overflow-y: auto;
       margin-top: 4px;
     }
 
     .history-item {
-      border-bottom: 1px dashed #444;
+      border-bottom: 1px dashed #ddd;
       padding: 4px 0;
       display: flex;
       justify-content: space-between;
@@ -246,24 +288,6 @@
       flex: 1;
     }
 
-    .history-item-code {
-      font-family: Menlo, Monaco, Consolas, monospace;
-      font-size: 11px;
-      color: #ffcc00;
-    }
-
-    .history-delete-btn {
-      border: none;
-      background: #ff3b30;
-      color: #fff;
-      border-radius: 50%;
-      width: 22px;
-      height: 22px;
-      font-size: 14px;
-      cursor: pointer;
-      flex-shrink: 0;
-    }
-
     .history-total {
       margin-top: 4px;
       font-weight: 600;
@@ -273,163 +297,84 @@
       margin-top: 10px;
       text-align: center;
       font-size: 12px;
-      color: #aaa;
+      color: #777;
     }
 
-    .stat-row {
-      display: flex;
-      justify-content: space-between;
-      padding: 6px 0;
-      border-bottom: 1px dashed #444;
+    /* ============ REVENUE PAGE ============ */
+    .rev-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .rev-card {
+      background: #f5f5f5;
+      border-radius: 12px;
+      padding: 8px;
+      text-align: center;
+    }
+
+    .rev-title {
+      font-size: 12px;
+      color: #555;
+      margin-bottom: 4px;
+    }
+
+    .rev-value {
       font-size: 14px;
+      font-weight: 700;
     }
 
-    .stat-row strong {
-      font-size: 15px;
-    }
-
-    .stat-label {
-      color: #ddd;
-    }
-
-    .stat-value {
-      font-weight: 600;
-      color: #0fd976;
-    }
-
-    .section-title {
-      margin-top: 10px;
-      margin-bottom: 6px;
-      font-weight: 600;
-      border-left: 4px solid #34c759;
-      padding-left: 6px;
-      font-size: 15px;
-    }
-
-    .deleted-item {
-      border-bottom: 1px dashed #444;
-      padding: 4px 0;
-      font-size: 13px;
-    }
-
-    .deleted-actions {
-      margin-top: 4px;
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-    }
-
-    .btn-restore {
-      border-radius: 999px;
-      border: none;
-      padding: 4px 10px;
-      cursor: pointer;
-      font-size: 12px;
-      background: #0a84ff;
-      color: #fff;
-    }
-
-    .btn-restore-all {
-      border-radius: 999px;
-      border: none;
-      padding: 4px 12px;
-      cursor: pointer;
-      font-size: 12px;
-      background: #ff9f0a;
-      color: #fff;
+    .rev-note {
+      font-size: 11px;
+      color: #666;
       margin-top: 6px;
     }
 
-    .filter-row {
-      display: flex;
-      gap: 6px;
-      margin-top: 4px;
-      flex-wrap: wrap;
-      font-size: 11px;
-    }
-
-    .filter-row button {
+    /* ============ HISTORY PAGE ============ */
+    .tag {
+      display: inline-block;
+      padding: 2px 6px;
       border-radius: 999px;
-      border: none;
-      padding: 4px 10px;
-      cursor: pointer;
-      background: #3a3a41;
-      color: #fff;
+      font-size: 11px;
+      background: #eee;
+      margin-left: 4px;
     }
 
-    .filter-row button.active {
-      background: #0a84ff;
+    .tag-deleted {
+      background: #ffe2e0;
+      color: #c0392b;
     }
 
-    .label {
-      font-size: 12px;
-      color: #ccc;
-    }
-
-    #tabBar {
-      display: flex;
-      justify-content: space-around;
-      background: #2b2b31;
-      padding: 12px 0;
-      border-bottom: 1px solid #3a3a41;
-      position: sticky;
-      top: 0;
-      z-index: 999;
-    }
-
-    .tab-btn {
-      padding: 6px 10px;
-      cursor: pointer;
-      font-size: 15px;
-      font-weight: 500;
-      color: #aaa;
-    }
-
-    .tab-btn.active {
-      color: #0a84ff;
-    }
-
-    #tabUnderline {
-      width: 33.33%;
-      height: 3px;
-      background: #007aff;
-      transition: transform .2s ease;
-      position: fixed;
-      top: 52px;
-      left: 0;
-    }
-
-    @media (max-width: 600px) {
-      .page {
-        margin-top: 65px;
-      }
-      #tabUnderline {
-        top: 52px;
-      }
+    .tag-restored {
+      background: #e0f7e9;
+      color: #1e7e34;
     }
   </style>
 
+  <!-- Supabase JS v2 (UMD) -->
   <script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 </head>
-
 <body>
+<div class="app-shell">
 
-  <!-- TAB MENU -->
+  <!-- =============== TAB BAR =============== -->
   <div id="tabBar">
-    <div class="tab-btn active" data-page="page-pos">POS</div>
-    <div class="tab-btn" data-page="page-revenue">Doanh thu</div>
-    <div class="tab-btn" data-page="page-history">Lịch sử</div>
+    <button class="tab-btn active" data-tab="page-pos">POS</button>
+    <button class="tab-btn" data-tab="page-revenue">Doanh thu</button>
+    <button class="tab-btn" data-tab="page-history">Lịch sử</button>
   </div>
   <div id="tabUnderline"></div>
 
-  <!-- PAGE 1 – POS -->
-  <div id="page-pos" class="page" style="display:block;">
-    <div class="box">
-      <h2>Tea Neko – POS</h2>
+  <!-- =============== PAGE 1 – POS =============== -->
+  <section id="page-pos" class="page active">
+    <div class="page-inner">
+      <h1>Mini POS – Tea Neko</h1>
 
       <div class="device-row">
         <span>Máy:</span>
-        <input id="deviceName" placeholder="VD: Thu ngân 1" />
+        <input id="deviceName" placeholder="VD: Mac Quầy 1, iPhone Thu Ngân" />
       </div>
 
       <div class="menu-section-title">LATTE / COFFEE / TRÀ SỮA</div>
@@ -472,549 +417,600 @@
       <div class="history-box">
         <div class="history-header">
           <span><strong>Lịch sử đơn (Realtime)</strong></span>
-          <button class="btn-small" id="btnRefreshHistory">↻ Tải lại</button>
+          <button class="btn btn-undo btn-sm" id="btnRefreshHistory">↻ Tải lại</button>
         </div>
-        <div class="history-list" id="historyList"></div>
-        <div class="history-total" id="historyTotal">Tổng doanh thu: 0 VND</div>
+        <div class="history-list" id="posHistoryList"></div>
+        <div class="history-total" id="posHistoryTotal">Tổng doanh thu: 0 VND</div>
+        <div class="rev-note">
+          * Xem doanh thu theo ngày / tuần / tháng ở tab <b>Doanh thu</b>.<br />
+          * Xem chi tiết lịch sử xoá / khôi phục ở tab <b>Lịch sử</b>.
+        </div>
       </div>
 
       <div class="footer">Cảm ơn quý khách đã ghé Tea Neko 💜</div>
     </div>
-  </div>
+  </section>
 
-  <!-- PAGE 2 – DOANH THU -->
-  <div id="page-revenue" class="page" style="display:none;">
-    <div class="box">
-      <h2>Doanh thu</h2>
+  <!-- =============== PAGE 2 – REVENUE =============== -->
+  <section id="page-revenue" class="page">
+    <div class="page-inner">
+      <h1>Doanh thu – Tea Neko</h1>
 
-      <div class="section-title">Chọn khoảng thời gian</div>
-      <div class="filter-row">
-        <button class="filter-btn active" data-range="day">Hôm nay</button>
-        <button class="filter-btn" data-range="week">7 ngày</button>
-        <button class="filter-btn" data-range="month">30 ngày</button>
-        <button class="filter-btn" data-range="all">Tất cả</button>
-      </div>
-
-      <div class="section-title">Tổng hợp</div>
-      <div id="revenueSummary">
-        <div class="stat-row">
-          <span class="stat-label">Tổng doanh thu</span>
-          <span class="stat-value" id="revTotal">0 VND</span>
+      <div class="rev-grid">
+        <div class="rev-card">
+          <div class="rev-title">Hôm nay</div>
+          <div class="rev-value" id="revToday">0 VND</div>
         </div>
-        <div class="stat-row">
-          <span class="stat-label">Số đơn</span>
-          <span class="stat-value" id="revCount">0</span>
+        <div class="rev-card">
+          <div class="rev-title">Tuần này</div>
+          <div class="rev-value" id="revWeek">0 VND</div>
         </div>
-        <div class="stat-row">
-          <span class="stat-label">Đơn trung bình</span>
-          <span class="stat-value" id="revAvg">0 VND</span>
+        <div class="rev-card">
+          <div class="rev-title">Tháng này</div>
+          <div class="rev-value" id="revMonth">0 VND</div>
         </div>
       </div>
 
-      <div class="section-title">Theo ngày</div>
-      <div id="revenueByDay" style="font-size:13px;"></div>
-
-      <div class="footer">Xem nhanh doanh thu POS Tea Neko 📈</div>
+      <div class="rev-note">
+        • Số liệu tính từ bảng <b>orders</b> hiện tại.<br />
+        • Đơn đã xoá (nằm trong <b>deleted_orders</b>) không tính vào doanh thu.<br />
+        • Muốn xem từng đơn và thao tác xoá/khôi phục → sang tab <b>Lịch sử</b>.
+      </div>
     </div>
-  </div>
+  </section>
 
-  <!-- PAGE 3 – LỊCH SỬ & XOÁ -->
-  <div id="page-history" class="page" style="display:none;">
-    <div class="box">
-      <h2>Lịch sử & Xoá</h2>
+  <!-- =============== PAGE 3 – HISTORY =============== -->
+  <section id="page-history" class="page">
+    <div class="page-inner">
+      <h1>Lịch sử đơn & xoá</h1>
 
-      <div class="section-title">Lịch sử đơn (toàn bộ)</div>
-      <div class="label">Tìm theo mã đơn (#0001):</div>
-      <input id="searchOrder" placeholder="Nhập mã..." style="width:100%; padding:8px; border-radius:10px; border:1px solid #555; background:#1f1f23; color:#f5f5f5;">
+      <h3 style="margin-top:4px;">Lịch sử đơn (đang hoạt động)</h3>
+      <div id="historyActive"></div>
 
-      <div id="historyListFull" style="margin-top:10px;"></div>
+      <h3 style="margin-top:18px;">Lịch sử xoá (không xoá, chỉ có thể khôi phục)</h3>
+      <div id="historyDeleted"></div>
 
-      <div class="section-title">Lịch sử xoá (không xoá được)</div>
-      <div class="label">Có thể khôi phục đơn bị xoá.</div>
-      <div id="deletedList" style="margin-top:8px;"></div>
-      <button id="btnRestoreAll" class="btn-restore-all">⤴ Khôi phục tất cả đơn đã xoá</button>
-
-      <div class="footer">Lịch sử xoá được giữ riêng, chỉ có thể khôi phục 💾</div>
+      <div class="rev-note" style="margin-top:10px;">
+        • Khi bấm <b>Xoá đơn</b>, đơn sẽ chuyển sang phần <b>Lịch sử xoá</b> và không còn tính vào doanh thu.<br />
+        • Từ <b>Lịch sử xoá</b> có thể <b>Khôi phục</b>, nhưng không xoá vĩnh viễn log xoá.
+      </div>
     </div>
-  </div>
+  </section>
 
-  <script>
-    // ========= SUPABASE =========
-    const SUPABASE_URL = "https://kcrchwedlrettpkucoct.supabase.co";
-    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtjcmNod2VkbHJldHRwa3Vjb2N0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM4ODQ0MjgsImV4cCI6MjA3OTQ2MDQyOH0.g4WA9tci2zm4MIa6EvOe6tH_EhaoicdrdiP6swgjRgw";
-    const supa = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+</div><!-- .app-shell -->
 
-    // ========= STATE =========
-    const MENU = [
-      { name: "Matcha Latte",      price: 25000 },
-      { name: "Coffee",            price: 25000 },
-      { name: "Trà sữa trân châu", price: 30000 },
-      { name: "Hồng trà sữa",      price: 28000 },
-      { name: "Cacao đá",          price: 22000 },
-      { name: "Bạc xỉu",           price: 20000 }
-    ];
+<!-- =============== SCRIPT =============== -->
+<script>
+  // ============ SUPABASE CONFIG ============
+  const SUPABASE_URL = "https://kcrchwedlrettpkucoct.supabase.co";
+  const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtjcmNod2VkbHJldHRwa3Vjb2N0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM4ODQ0MjgsImV4cCI6MjA3OTQ2MDQyOH0.g4WA9tci2zm4MIa6EvOe6tH_EhaoicdrdiP6swgjRgw";
+  const supa = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    let currentOrder = [];
-    let currentSize  = "M";
-    let historyOrders = [];
-    let deletedOrders = [];
+  // ============ STATE ============
+  const MENU = [
+    { name: "Matcha Latte",       price: 25000 },
+    { name: "Coffee",             price: 25000 },
+    { name: "Trà sữa trân châu",  price: 30000 },
+    { name: "Hồng trà sữa",       price: 28000 },
+    { name: "Cacao đá",           price: 22000 },
+    { name: "Bạc xỉu",            price: 20000 }
+  ];
 
-    // ========= DOM =========
-    const menuMain = document.getElementById("menuMain");
-    const sizeMBtn = document.getElementById("sizeM");
-    const sizeLBtn = document.getElementById("sizeL");
-    const qtyInput = document.getElementById("qtyInput");
-    const qtyMinus = document.getElementById("qtyMinus");
-    const qtyPlus  = document.getElementById("qtyPlus");
-    const cashInput = document.getElementById("cashInput");
-    const currentList = document.getElementById("currentList");
-    const currentSummary = document.getElementById("currentSummary");
-    const cashSummary = document.getElementById("cashSummary");
-    const btnUndo = document.getElementById("btnUndo");
-    const btnClear = document.getElementById("btnClear");
-    const btnSave = document.getElementById("btnSave");
-    const btnPrint = document.getElementById("btnPrint");
-    const btnRefreshHistory = document.getElementById("btnRefreshHistory");
-    const historyList = document.getElementById("historyList");
-    const historyTotal = document.getElementById("historyTotal");
-    const deviceNameInput = document.getElementById("deviceName");
+  let currentOrder = [];
+  let currentSize = "M";
 
-    const tabBar = document.getElementById("tabBar");
-    const tabUnderline = document.getElementById("tabUnderline");
-    const pages = {
-      "page-pos": document.getElementById("page-pos"),
-      "page-revenue": document.getElementById("page-revenue"),
-      "page-history": document.getElementById("page-history"),
-    };
+  let activeOrders = [];   // từ bảng orders
+  let deletedOrders = [];  // từ bảng deleted_orders
 
-    const filterButtons = document.querySelectorAll(".filter-btn");
-    const revTotalEl = document.getElementById("revTotal");
-    const revCountEl = document.getElementById("revCount");
-    const revAvgEl = document.getElementById("revAvg");
-    const revenueByDayEl = document.getElementById("revenueByDay");
+  // ============ DOM ============
 
-    const historyListFull = document.getElementById("historyListFull");
-    const deletedListEl = document.getElementById("deletedList");
-    const searchOrderInput = document.getElementById("searchOrder");
-    const btnRestoreAll = document.getElementById("btnRestoreAll");
+  // Tabs
+  const tabButtons = document.querySelectorAll(".tab-btn");
+  const pages = document.querySelectorAll(".page");
+  const tabUnderline = document.getElementById("tabUnderline");
 
-    function formatVND(x) {
-      return x.toLocaleString("vi-VN") + " VND";
+  // POS DOM
+  const menuMain = document.getElementById("menuMain");
+  const sizeMBtn = document.getElementById("sizeM");
+  const sizeLBtn = document.getElementById("sizeL");
+  const qtyInput = document.getElementById("qtyInput");
+  const qtyMinus = document.getElementById("qtyMinus");
+  const qtyPlus = document.getElementById("qtyPlus");
+  const cashInput = document.getElementById("cashInput");
+  const currentList = document.getElementById("currentList");
+  const currentSummary = document.getElementById("currentSummary");
+  const cashSummary = document.getElementById("cashSummary");
+  const btnUndo = document.getElementById("btnUndo");
+  const btnClear = document.getElementById("btnClear");
+  const btnSave = document.getElementById("btnSave");
+  const btnPrint = document.getElementById("btnPrint");
+  const btnRefreshHistory = document.getElementById("btnRefreshHistory");
+  const posHistoryList = document.getElementById("posHistoryList");
+  const posHistoryTotal = document.getElementById("posHistoryTotal");
+  const deviceNameInput = document.getElementById("deviceName");
+
+  // Revenue page DOM
+  const revToday = document.getElementById("revToday");
+  const revWeek = document.getElementById("revWeek");
+  const revMonth = document.getElementById("revMonth");
+
+  // History page DOM
+  const historyActive = document.getElementById("historyActive");
+  const historyDeleted = document.getElementById("historyDeleted");
+
+  // ============ UTIL ============
+  function formatVND(x) {
+    return (x || 0).toLocaleString("vi-VN") + " VND";
+  }
+
+  function getStartOfDay(d = new Date()) {
+    const x = new Date(d);
+    x.setHours(0, 0, 0, 0);
+    return x;
+  }
+
+  function getStartOfWeek(d = new Date()) {
+    // Tuần bắt đầu từ Thứ 2
+    const x = getStartOfDay(d);
+    const day = x.getDay(); // 0=CN
+    const diff = (day + 6) % 7; // 0 nếu Mon
+    x.setDate(x.getDate() - diff);
+    return x;
+  }
+
+  function getStartOfMonth(d = new Date()) {
+    const x = getStartOfDay(d);
+    x.setDate(1);
+    return x;
+  }
+
+  // ============ TAB LOGIC ============
+  tabButtons.forEach((btn, index) => {
+    btn.addEventListener("click", () => {
+      tabButtons.forEach(b => b.classList.remove("active"));
+      pages.forEach(p => p.classList.remove("active"));
+
+      btn.classList.add("active");
+      const tabId = btn.getAttribute("data-tab");
+      document.getElementById(tabId).classList.add("active");
+
+      tabUnderline.style.transform = `translateX(${index * 100}%)`;
+    });
+  });
+
+  // ============ MENU UI ============
+  function renderMenu() {
+    menuMain.innerHTML = "";
+    MENU.forEach(item => {
+      const div = document.createElement("div");
+      div.className = "menu-item";
+      div.innerHTML = `
+        <div class="menu-item-name">${item.name}</div>
+        <div class="menu-item-price">${item.price.toLocaleString("vi-VN")} VND (Size M)</div>
+      `;
+      div.addEventListener("click", () => addItem(item));
+      menuMain.appendChild(div);
+    });
+  }
+
+  function addItem(item) {
+    const qty = Math.max(1, parseInt(qtyInput.value || "1", 10));
+    const isL = currentSize === "L";
+    const unitPrice = item.price + (isL ? 5000 : 0);
+    const lineTotal = unitPrice * qty;
+
+    currentOrder.push({
+      name: item.name,
+      size: currentSize,
+      qty,
+      unitPrice,
+      lineTotal
+    });
+
+    renderCurrentOrder();
+  }
+
+  // ============ CURRENT ORDER ============
+  function renderCurrentOrder() {
+    currentList.innerHTML = "";
+    let total = 0;
+    currentOrder.forEach(line => {
+      total += line.lineTotal;
+      const li = document.createElement("li");
+      li.textContent = `${line.qty} x ${line.name} (Size ${line.size}) – ${formatVND(line.lineTotal)}`;
+      currentList.appendChild(li);
+    });
+    currentSummary.innerHTML = `<strong>Tổng:</strong> ${formatVND(total)}`;
+
+    const cashThousand = parseInt(cashInput.value || "0", 10);
+    const cash = cashThousand * 1000;
+    if (cash > 0) {
+      const diff = cash - total;
+      cashSummary.textContent =
+        `Khách đưa: ${formatVND(cash)} – ` +
+        `Thối lại: ${formatVND(Math.max(diff, 0))}`;
+    } else {
+      cashSummary.textContent = "";
     }
+  }
 
-    function formatOrderCode(id) {
-      if (!id) return "#????";
-      const tail = id.replace(/-/g, "").slice(-4);
-      const num = parseInt(tail, 16) % 10000;
-      return "#" + num.toString().padStart(4, "0");
+  function clearCurrentOrder() {
+    currentOrder = [];
+    cashInput.value = "";
+    renderCurrentOrder();
+  }
+
+  // ============ LOAD DATA ============
+  async function loadActiveOrders() {
+    const { data, error } = await supa
+      .from("orders")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(500);
+
+    if (error) {
+      console.error("loadActiveOrders error:", error);
+      return;
     }
+    activeOrders = data || [];
+  }
 
-    // ========= RENDER MENU =========
-    function renderMenu() {
-      menuMain.innerHTML = "";
-      MENU.forEach(item => {
-        const div = document.createElement("div");
-        div.className = "menu-item";
-        div.innerHTML = `
-          <div class="menu-item-name">${item.name}</div>
-          <div class="menu-item-price">${item.price.toLocaleString("vi-VN")} VND (Size M)</div>
-        `;
-        div.addEventListener("click", () => addItem(item));
-        menuMain.appendChild(div);
-      });
+  async function loadDeletedOrders() {
+    const { data, error } = await supa
+      .from("deleted_orders")
+      .select("*")
+      .order("deleted_at", { ascending: false })
+      .limit(500);
+
+    if (error) {
+      console.error("loadDeletedOrders error:", error);
+      return;
     }
+    deletedOrders = data || [];
+  }
 
-    function addItem(item) {
-      const qty = Math.max(1, parseInt(qtyInput.value || "1", 10));
-      const isL = currentSize === "L";
-      const unitPrice = item.price + (isL ? 5000 : 0);
-      const lineTotal = unitPrice * qty;
+  // ============ POS HISTORY (TRÊN TRANG POS) ============
+  function renderPosHistory() {
+    posHistoryList.innerHTML = "";
+    let revenue = 0;
 
-      currentOrder.push({
-        name: item.name,
-        size: currentSize,
-        qty,
-        unitPrice,
-        lineTotal
-      });
+    activeOrders.forEach(order => {
+      revenue += order.total || 0;
 
-      renderCurrentOrder();
-    }
+      const div = document.createElement("div");
+      div.className = "history-item";
 
-    // ========= CURRENT ORDER =========
-    function renderCurrentOrder() {
-      currentList.innerHTML = "";
-      let total = 0;
-      currentOrder.forEach(line => {
-        total += line.lineTotal;
-        const li = document.createElement("li");
-        li.textContent = `${line.qty} x ${line.name} (Size ${line.size}) – ${formatVND(line.lineTotal)}`;
-        currentList.appendChild(li);
-      });
-      currentSummary.innerHTML = `<strong>Tổng:</strong> ${formatVND(total)}`;
+      const main = document.createElement("div");
+      main.className = "history-item-main";
 
-      const cashThousand = parseInt(cashInput.value || "0", 10);
-      const cash = cashThousand * 1000;
-      if (cash > 0) {
-        const diff = cash - total;
-        cashSummary.textContent =
-          `Khách đưa: ${formatVND(cash)} – ` +
-          `Thối lại: ${formatVND(Math.max(diff, 0))}`;
-      } else {
-        cashSummary.textContent = "";
-      }
-    }
+      const timeStr = order.created_at
+        ? new Date(order.created_at).toLocaleString("vi-VN")
+        : "";
 
-    function clearCurrentOrder() {
-      currentOrder = [];
-      cashInput.value = "";
-      renderCurrentOrder();
-    }
+      const itemsText = (order.items || [])
+        .map(it => `${it.qty}x ${it.name} (${it.size})`)
+        .join(", ");
 
-    // ========= LOAD HISTORY =========
-    async function loadHistory() {
-      const { data, error } = await supa
-        .from("orders")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(500);
+      main.textContent =
+        `[${order.order_code || ""}] ${timeStr} → ${itemsText} = ${formatVND(order.total || 0)}`;
 
-      if (error) {
-        console.error(error);
-        alert("Không tải được lịch sử từ Supabase");
-        return;
-      }
-      historyOrders = data || [];
-      renderHistoryShort();
-      renderHistoryFull();
-      updateRevenueView();
-    }
+      div.appendChild(main);
+      posHistoryList.appendChild(div);
+    });
 
-    function renderHistoryShort() {
-      historyList.innerHTML = "";
-      let revenue = 0;
-      historyOrders.forEach(order => {
-        revenue += order.total || 0;
-        const div = document.createElement("div");
-        div.className = "history-item";
+    posHistoryTotal.textContent = `Tổng doanh thu: ${formatVND(revenue)}`;
+  }
 
-        const timeStr = order.created_at
-          ? new Date(order.created_at).toLocaleTimeString("vi-VN")
-          : "";
-        const codeStr = formatOrderCode(order.id);
+  // ============ REVENUE PAGE ============
+  function updateRevenueMetrics() {
+    const now = new Date();
+    const startDay = getStartOfDay(now);
+    const startWeek = getStartOfWeek(now);
+    const startMonth = getStartOfMonth(now);
 
-        const itemsText = (order.items || [])
-          .map(it => `${it.qty}x ${it.name} (${it.size})`)
-          .join(", ");
+    let dayTotal = 0;
+    let weekTotal = 0;
+    let monthTotal = 0;
+
+    activeOrders.forEach(order => {
+      if (!order.created_at) return;
+      const t = new Date(order.created_at);
+      if (t >= startMonth) monthTotal += order.total || 0;
+      if (t >= startWeek) weekTotal += order.total || 0;
+      if (t >= startDay) dayTotal += order.total || 0;
+    });
+
+    revToday.textContent = formatVND(dayTotal);
+    revWeek.textContent = formatVND(weekTotal);
+    revMonth.textContent = formatVND(monthTotal);
+  }
+
+  // ============ HISTORY PAGE RENDER ============
+  function renderHistoryPage() {
+    // Active orders
+    historyActive.innerHTML = "";
+    if (!activeOrders.length) {
+      historyActive.textContent = "Chưa có đơn nào.";
+    } else {
+      activeOrders.forEach(order => {
+        const wrap = document.createElement("div");
+        wrap.className = "history-item";
 
         const main = document.createElement("div");
         main.className = "history-item-main";
-        main.innerHTML =
-          `<div><span class="history-item-code">${codeStr}</span> ` +
-          `[${timeStr}] (${order.device || "N/A"})</div>` +
-          `<div>${itemsText}</div>` +
-          `<div><strong>${formatVND(order.total || 0)}</strong></div>`;
-
-        div.appendChild(main);
-
-        const xBtn = document.createElement("button");
-        xBtn.className = "history-delete-btn";
-        xBtn.textContent = "×";
-        xBtn.title = "Xoá đơn (vẫn lưu trong Lịch sử xoá)";
-        xBtn.onclick = () => softDeleteOrder(order);
-        div.appendChild(xBtn);
-
-        historyList.appendChild(div);
-      });
-
-      historyTotal.textContent = `Tổng doanh thu: ${formatVND(revenue)}`;
-    }
-
-    function renderHistoryFull() {
-      historyListFull.innerHTML = "";
-      const keyword = (searchOrderInput.value || "").trim().replace("#", "");
-      let list = historyOrders;
-
-      if (keyword) {
-        list = list.filter(o => {
-          const code = formatOrderCode(o.id).replace("#", "");
-          return code.includes(keyword);
-        });
-      }
-
-      if (!list.length) {
-        historyListFull.textContent = "Không có đơn nào.";
-        return;
-      }
-
-      list.forEach(order => {
-        const div = document.createElement("div");
-        div.className = "history-item";
 
         const timeStr = order.created_at
           ? new Date(order.created_at).toLocaleString("vi-VN")
           : "";
-        const codeStr = formatOrderCode(order.id);
+
         const itemsText = (order.items || [])
           .map(it => `${it.qty}x ${it.name} (${it.size})`)
           .join(", ");
+
+        main.textContent =
+          `[${order.order_code || ""}] ${timeStr} – ${order.device || "N/A"} → ${itemsText} = ${formatVND(order.total || 0)}`;
+
+        const btnDel = document.createElement("button");
+        btnDel.className = "btn btn-danger btn-sm";
+        btnDel.textContent = "Xoá đơn";
+        btnDel.onclick = () => handleDeleteOrder(order.id);
+
+        wrap.appendChild(main);
+        wrap.appendChild(btnDel);
+        historyActive.appendChild(wrap);
+      });
+    }
+
+    // Deleted orders
+    historyDeleted.innerHTML = "";
+    if (!deletedOrders.length) {
+      historyDeleted.textContent = "Chưa có lịch sử xoá.";
+    } else {
+      deletedOrders.forEach(row => {
+        const wrap = document.createElement("div");
+        wrap.className = "history-item";
 
         const main = document.createElement("div");
         main.className = "history-item-main";
-        main.innerHTML =
-          `<div><span class="history-item-code">${codeStr}</span> ` +
-          `[${timeStr}] (${order.device || "N/A"})</div>` +
-          `<div>${itemsText}</div>` +
-          `<div><strong>${formatVND(order.total || 0)}</strong></div>`;
 
-        const xBtn = document.createElement("button");
-        xBtn.className = "history-delete-btn";
-        xBtn.textContent = "×";
-        xBtn.title = "Xoá đơn (vẫn lưu trong Lịch sử xoá)";
-        xBtn.onclick = () => softDeleteOrder(order);
-
-        div.appendChild(main);
-        div.appendChild(xBtn);
-        historyListFull.appendChild(div);
-      });
-    }
-
-    // ========= SOFT DELETE / DELETED HISTORY =========
-    function softDeleteOrder(order) {
-      if (!confirm("Xoá đơn này khỏi danh sách lịch sử?\nĐơn sẽ chuyển sang mục Lịch sử xoá và có thể khôi phục.")) {
-        return;
-      }
-      historyOrders = historyOrders.filter(o => o.id !== order.id);
-
-      deletedOrders.unshift({
-        ...order,
-        deleted_at_local: new Date().toISOString()
-      });
-
-      renderHistoryShort();
-      renderHistoryFull();
-      renderDeletedList();
-      updateRevenueView();
-    }
-
-    function renderDeletedList() {
-      deletedListEl.innerHTML = "";
-      if (!deletedOrders.length) {
-        deletedListEl.textContent = "Chưa có đơn nào bị xoá.";
-        return;
-      }
-
-      deletedOrders.forEach((order, idx) => {
-        const div = document.createElement("div");
-        div.className = "deleted-item";
-
-        const codeStr = formatOrderCode(order.id);
-        const timeStr = order.deleted_at_local
-          ? new Date(order.deleted_at_local).toLocaleString("vi-VN")
+        const timeStr = row.deleted_at
+          ? new Date(row.deleted_at).toLocaleString("vi-VN")
           : "";
-        const itemsText = (order.items || [])
+
+        const itemsText = (row.items || [])
           .map(it => `${it.qty}x ${it.name} (${it.size})`)
           .join(", ");
 
-        div.innerHTML =
-          `<div><span class="history-item-code">${codeStr}</span> – đã xoá lúc ${timeStr}</div>` +
-          `<div>(${order.device || "N/A"}) → ${itemsText}</div>` +
-          `<div><strong>${formatVND(order.total || 0)}</strong></div>`;
+        main.innerHTML =
+          `[${row.order_code || ""}] ${timeStr} – ${row.device || "N/A"} → ${itemsText} = ${formatVND(row.total || 0)}
+           <span class="tag tag-deleted">Đã xoá</span>`;
 
-        const actions = document.createElement("div");
-        actions.className = "deleted-actions";
+        const btnRestore = document.createElement("button");
+        btnRestore.className = "btn btn-outline btn-sm";
+        btnRestore.textContent = "Khôi phục";
+        btnRestore.onclick = () => handleRestoreOrder(row.id);
 
-        const restoreBtn = document.createElement("button");
-        restoreBtn.className = "btn-restore";
-        restoreBtn.textContent = "⤴ Khôi phục đơn này";
-        restoreBtn.onclick = () => {
-          historyOrders.unshift(order);
-          deletedOrders.splice(idx, 1);
-          renderHistoryShort();
-          renderHistoryFull();
-          renderDeletedList();
-          updateRevenueView();
-        };
-
-        actions.appendChild(restoreBtn);
-        div.appendChild(actions);
-        deletedListEl.appendChild(div);
+        wrap.appendChild(main);
+        wrap.appendChild(btnRestore);
+        historyDeleted.appendChild(wrap);
       });
     }
+  }
 
-    btnRestoreAll.onclick = () => {
-      if (!deletedOrders.length) {
-        alert("Không có đơn nào để khôi phục.");
-        return;
-      }
-      if (!confirm("Khôi phục TẤT CẢ đơn đã xoá?")) return;
-      deletedOrders.forEach(o => historyOrders.unshift(o));
-      deletedOrders = [];
-      renderHistoryShort();
-      renderHistoryFull();
-      renderDeletedList();
-      updateRevenueView();
+  // ============ DELETE & RESTORE LOGIC ============
+  async function deleteOrder(order) {
+    // 1. chép sang deleted_orders
+    const payloadDeleted = {
+      original_id: order.id,
+      device: order.device,
+      items: order.items,
+      total: order.total,
+      cash_given: order.cash_given,
+      change: order.change,
+      order_code: order.order_code
     };
 
-    searchOrderInput.addEventListener("input", () => {
-      renderHistoryFull();
-    });
+    const { data: deletedRow, error: insErr } = await supa
+      .from("deleted_orders")
+      .insert([payloadDeleted])
+      .select()
+      .single();
 
-    // ========= REVENUE =========
-    function updateRevenueView() {
-      const rangeBtn = document.querySelector(".filter-btn.active");
-      const range = rangeBtn ? rangeBtn.getAttribute("data-range") : "day";
-      const now = new Date();
-      const start = new Date(now);
-
-      if (range === "day") {
-        start.setHours(0, 0, 0, 0);
-      } else if (range === "week") {
-        start.setDate(start.getDate() - 6);
-        start.setHours(0, 0, 0, 0);
-      } else if (range === "month") {
-        start.setDate(start.getDate() - 29);
-        start.setHours(0, 0, 0, 0);
-      } else {
-        start.setTime(0);
-      }
-
-      const inRange = historyOrders.filter(o => {
-        if (!o.created_at) return false;
-        const t = new Date(o.created_at);
-        return t >= start && t <= now;
-      });
-
-      const total = inRange.reduce((s, o) => s + (o.total || 0), 0);
-      const count = inRange.length;
-      const avg = count ? Math.round(total / count) : 0;
-
-      revTotalEl.textContent = formatVND(total);
-      revCountEl.textContent = count.toString();
-      revAvgEl.textContent = formatVND(avg);
-
-      const byDay = {};
-      inRange.forEach(o => {
-        const d = new Date(o.created_at);
-        const key = d.toLocaleDateString("vi-VN");
-        if (!byDay[key]) byDay[key] = 0;
-        byDay[key] += o.total || 0;
-      });
-
-      const entries = Object.entries(byDay).sort((a,b) => {
-        const da = a[0].split("/").reverse().join("-");
-        const db = b[0].split("/").reverse().join("-");
-        return da.localeCompare(db);
-      });
-
-      revenueByDayEl.innerHTML = "";
-      if (!entries.length) {
-        revenueByDayEl.textContent = "Không có đơn trong khoảng thời gian này.";
-      } else {
-        entries.forEach(([day, sum]) => {
-          const row = document.createElement("div");
-          row.className = "stat-row";
-          row.innerHTML =
-            `<span class="stat-label">${day}</span>` +
-            `<span class="stat-value">${formatVND(sum)}</span>`;
-          revenueByDayEl.appendChild(row);
-        });
-      }
+    if (insErr) {
+      console.error("insert deleted_orders error:", insErr);
+      alert("Lưu lịch sử xoá thất bại.");
+      return;
     }
 
-    filterButtons.forEach(btn => {
-      btn.addEventListener("click", () => {
-        filterButtons.forEach(b => b.classList.remove("active"));
-        btn.classList.add("active");
-        updateRevenueView();
-      });
-    });
+    // 2. xoá khỏi orders
+    const { error: delErr } = await supa
+      .from("orders")
+      .delete()
+      .eq("id", order.id);
 
-    // ========= SAVE + REALTIME =========
-    async function saveOrder(printAfter) {
-      if (!currentOrder.length) {
-        alert("Đơn hiện tại đang trống.");
-        return;
-      }
-
-      const total = currentOrder.reduce((s, l) => s + l.lineTotal, 0);
-      const cashThousand = parseInt(cashInput.value || "0", 10);
-      const cash = cashThousand * 1000;
-      const change = cash > 0 ? cash - total : null;
-      const device = deviceNameInput.value.trim() || "Không đặt tên";
-
-      const payload = {
-        device,
-        items: currentOrder,
-        total,
-        cash_given: cash || null,
-        change
-      };
-
-      const { data, error } = await supa
-        .from("orders")
-        .insert([payload])
-        .select()
-        .single();
-
-      if (error) {
-        console.error(error);
-        alert("Lưu đơn lên Supabase thất bại.");
-        return;
-      }
-
-      historyOrders.unshift(data);
-      renderHistoryShort();
-      renderHistoryFull();
-      updateRevenueView();
-
-      if (printAfter) {
-        printBill(data);
-      }
-
-      clearCurrentOrder();
+    if (delErr) {
+      console.error("delete orders error:", delErr);
+      alert("Xoá đơn thất bại.");
+      return;
     }
 
-    function initRealtime() {
-      supa
-        .channel("orders-realtime")
-        .on(
-          "postgres_changes",
-          { event: "INSERT", schema: "public", table: "orders" },
-          payload => {
-            const newOrder = payload.new;
-            historyOrders.unshift(newOrder);
-            renderHistoryShort();
-            renderHistoryFull();
-            updateRevenueView();
+    // 3. cập nhật local
+    activeOrders = activeOrders.filter(o => o.id !== order.id);
+    if (deletedRow && !deletedOrders.some(d => d.id === deletedRow.id)) {
+      deletedOrders.unshift(deletedRow);
+    }
+
+    renderPosHistory();
+    updateRevenueMetrics();
+    renderHistoryPage();
+  }
+
+  async function restoreOrder(deletedRow) {
+    if (!confirm(`Khôi phục đơn ${deletedRow.order_code || ""}?`)) return;
+
+    const payloadOrder = {
+      device: deletedRow.device,
+      items: deletedRow.items,
+      total: deletedRow.total,
+      cash_given: deletedRow.cash_given,
+      change: deletedRow.change,
+      order_code: deletedRow.order_code // nếu DB có default sequence thì có thể bỏ
+    };
+
+    const { data, error } = await supa
+      .from("orders")
+      .insert([payloadOrder])
+      .select()
+      .single();
+
+    if (error) {
+      console.error("restoreOrder insert orders error:", error);
+      alert("Khôi phục đơn thất bại.");
+      return;
+    }
+
+    if (data && !activeOrders.some(o => o.id === data.id)) {
+      activeOrders.unshift(data);
+    }
+
+    // log xoá vẫn giữ nguyên, KHÔNG xoá
+    renderPosHistory();
+    updateRevenueMetrics();
+    renderHistoryPage();
+  }
+
+  function handleDeleteOrder(orderId) {
+    const order = activeOrders.find(o => o.id === orderId);
+    if (!order) return;
+    if (!confirm(`Xoá đơn ${order.order_code || ""}?`)) return;
+    deleteOrder(order);
+  }
+
+  function handleRestoreOrder(deletedId) {
+    const row = deletedOrders.find(d => d.id === deletedId);
+    if (!row) return;
+    restoreOrder(row);
+  }
+
+  // ============ SAVE & REALTIME ============
+  async function saveOrder(printAfter) {
+    if (!currentOrder.length) {
+      alert("Đơn hiện tại đang trống.");
+      return;
+    }
+
+    const total = currentOrder.reduce((s, l) => s + l.lineTotal, 0);
+    const cashThousand = parseInt(cashInput.value || "0", 10);
+    const cash = cashThousand * 1000;
+    const change = cash > 0 ? cash - total : null;
+    const device = deviceNameInput.value.trim() || "Không đặt tên";
+
+    const payload = {
+      device,
+      items: currentOrder,
+      total,
+      cash_given: cash || null,
+      change
+      // order_code: để DB tự sinh nếu có sequence
+    };
+
+    const { data, error } = await supa
+      .from("orders")
+      .insert([payload])
+      .select()
+      .single();
+
+    if (error) {
+      console.error("saveOrder error:", error);
+      alert("Lưu đơn lên Supabase thất bại.");
+      return;
+    }
+
+    // Thêm vào local nếu chưa có (realtime cũng sẽ bắn thêm 1 event)
+    if (!activeOrders.some(o => o.id === data.id)) {
+      activeOrders.unshift(data);
+    }
+
+    renderPosHistory();
+    updateRevenueMetrics();
+    renderHistoryPage();
+
+    if (printAfter) {
+      printBill(data);
+    }
+
+    clearCurrentOrder();
+  }
+
+  function initRealtime() {
+    const channel = supa
+      .channel("orders-realtime")
+      // INSERT orders
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "orders" },
+        payload => {
+          const newOrder = payload.new;
+          if (!activeOrders.some(o => o.id === newOrder.id)) {
+            activeOrders.unshift(newOrder);
           }
-        )
-        .subscribe();
-    }
+          renderPosHistory();
+          updateRevenueMetrics();
+          renderHistoryPage();
+        }
+      )
+      // DELETE orders
+      .on(
+        "postgres_changes",
+        { event: "DELETE", schema: "public", table: "orders" },
+        payload => {
+          const deletedId = payload.old.id;
+          activeOrders = activeOrders.filter(o => o.id !== deletedId);
+          renderPosHistory();
+          updateRevenueMetrics();
+          renderHistoryPage();
+        }
+      )
+      // INSERT deleted_orders
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "deleted_orders" },
+        payload => {
+          const row = payload.new;
+          if (!deletedOrders.some(d => d.id === row.id)) {
+            deletedOrders.unshift(row);
+          }
+          renderHistoryPage();
+        }
+      );
 
-    // ========= PRINT BILL =========
-    function printBill(order) {
-      const now = order.created_at
-        ? new Date(order.created_at)
-        : new Date();
-      const timeStr = now.toLocaleString("vi-VN");
-      const codeStr = formatOrderCode(order.id);
+    channel.subscribe(status => {
+      console.log("Realtime status:", status);
+    });
+  }
 
-      let rows = "";
-      (order.items || []).forEach(it => {
-        rows += `
-          <tr>
-            <td>${it.name}</td>
-            <td style="text-align:center;">${it.size}</td>
-            <td style="text-align:center;">${it.qty}</td>
-            <td style="text-align:right;">${formatVND(it.lineTotal)}</td>
-          </tr>`;
-      });
+  // ============ PRINT BILL ============
+  function printBill(order) {
+    const now = order.created_at
+      ? new Date(order.created_at)
+      : new Date();
+    const timeStr = now.toLocaleString("vi-VN");
 
-      const cashStr = order.cash_given ? formatVND(order.cash_given) : "0 VND";
-      const changeStr = order.change != null ? formatVND(order.change) : "0 VND";
+    let rows = "";
+    (order.items || []).forEach(it => {
+      rows += `
+        <tr>
+          <td>${it.name}</td>
+          <td style="text-align:center;">${it.size}</td>
+          <td style="text-align:center;">${it.qty}</td>
+          <td style="text-align:right;">${formatVND(it.lineTotal)}</td>
+        </tr>`;
+    });
 
-      const html = `
+    const cashStr = order.cash_given ? formatVND(order.cash_given) : "0 VND";
+    const changeStr = order.change != null ? formatVND(order.change) : "0 VND";
+
+    const html = `
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -1039,8 +1035,8 @@
     SĐT: 0123456789
   </div>
   <div style="font-size:11px;margin-bottom:4px;">
-    Mã đơn: ${codeStr}<br>
     Thời gian: ${timeStr}<br>
+    Mã đơn: ${order.order_code || ""}<br>
     Máy: ${order.device || "N/A"}
   </div>
   <table>
@@ -1077,73 +1073,79 @@
 </body>
 </html>`;
 
-      const win = window.open("", "_blank", "width=400,height=600");
-      win.document.write(html);
-      win.document.close();
-      win.focus();
-      win.print();
-    }
+    const win = window.open("", "_blank", "width=400,height=600");
+    win.document.write(html);
+    win.document.close();
+    win.focus();
+    win.print();
+  }
 
-    // ========= TABS =========
-    tabBar.addEventListener("click", (e) => {
-      const btn = e.target.closest(".tab-btn");
-      if (!btn) return;
-      const pageId = btn.getAttribute("data-page");
+  // ============ EVENT BINDINGS ============
+  sizeMBtn.addEventListener("click", () => {
+    currentSize = "M";
+    sizeMBtn.classList.add("active");
+    sizeLBtn.classList.remove("active");
+  });
 
-      document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
+  sizeLBtn.addEventListener("click", () => {
+    currentSize = "L";
+    sizeLBtn.classList.add("active");
+    sizeMBtn.classList.remove("active");
+  });
 
-      Object.keys(pages).forEach(id => {
-        pages[id].style.display = (id === pageId) ? "block" : "none";
-      });
+  qtyMinus.addEventListener("click", () => {
+    const v = Math.max(1, parseInt(qtyInput.value || "1", 10) - 1);
+    qtyInput.value = v;
+  });
 
-      const index = ["page-pos","page-revenue","page-history"].indexOf(pageId);
-      tabUnderline.style.transform = `translateX(${index * 100}%)`;
-    });
+  qtyPlus.addEventListener("click", () => {
+    const v = Math.max(1, parseInt(qtyInput.value || "1", 10, 10) + 1);
+    qtyInput.value = v;
+  });
 
-    // ========= EVENTS =========
-    sizeMBtn.addEventListener("click", () => {
-      currentSize = "M";
-      sizeMBtn.classList.add("active");
-      sizeLBtn.classList.remove("active");
-    });
-    sizeLBtn.addEventListener("click", () => {
-      currentSize = "L";
-      sizeLBtn.classList.add("active");
-      sizeMBtn.classList.remove("active");
-    });
-    qtyMinus.addEventListener("click", () => {
-      const v = Math.max(1, parseInt(qtyInput.value || "1", 10) - 1);
-      qtyInput.value = v;
-    });
-    qtyPlus.addEventListener("click", () => {
-      const v = Math.max(1, parseInt(qtyInput.value || "1", 10) + 1);
-      qtyInput.value = v;
-    });
-    qtyInput.addEventListener("change", () => {
-      if (!qtyInput.value || qtyInput.value <= 0) qtyInput.value = 1;
-    });
-    cashInput.addEventListener("input", () => {
-      renderCurrentOrder();
-    });
-    btnUndo.addEventListener("click", () => {
-      currentOrder.pop();
-      renderCurrentOrder();
-    });
-    btnClear.addEventListener("click", () => {
-      if (!currentOrder.length) return;
-      if (!confirm("Xoá toàn bộ món trong đơn hiện tại?")) return;
-      clearCurrentOrder();
-    });
-    btnSave.addEventListener("click", () => saveOrder(false));
-    btnPrint.addEventListener("click", () => saveOrder(true));
-    btnRefreshHistory.addEventListener("click", () => loadHistory());
+  qtyInput.addEventListener("change", () => {
+    if (!qtyInput.value || qtyInput.value <= 0) qtyInput.value = 1;
+  });
 
-    // ========= INIT =========
+  cashInput.addEventListener("input", renderCurrentOrder);
+
+  btnUndo.addEventListener("click", () => {
+    currentOrder.pop();
+    renderCurrentOrder();
+  });
+
+  btnClear.addEventListener("click", () => {
+    if (!currentOrder.length) return;
+    if (!confirm("Xoá toàn bộ món trong đơn hiện tại?")) return;
+    clearCurrentOrder();
+  });
+
+  btnSave.addEventListener("click", () => saveOrder(false));
+  btnPrint.addEventListener("click", () => saveOrder(true));
+
+  btnRefreshHistory.addEventListener("click", async () => {
+    await loadActiveOrders();
+    await loadDeletedOrders();
+    renderPosHistory();
+    updateRevenueMetrics();
+    renderHistoryPage();
+  });
+
+  // ============ INIT ============
+  async function initApp() {
     renderMenu();
     renderCurrentOrder();
-    loadHistory();
+
+    await loadActiveOrders();
+    await loadDeletedOrders();
+
+    renderPosHistory();
+    updateRevenueMetrics();
+    renderHistoryPage();
     initRealtime();
-  </script>
+  }
+
+  initApp().catch(err => console.error("initApp error:", err));
+</script>
 </body>
 </html>
