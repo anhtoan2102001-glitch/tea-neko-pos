@@ -2,80 +2,37 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8" />
-  <title>Mini POS – Tea Neko V5.2 (Multi-Page)</title>
+  <title>Mini POS – Tea Neko V5.1 (Multi-Page)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
   <style>
     * { box-sizing: border-box; }
 
     body {
       margin: 0;
       font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif;
-      background: #111827;
-      color: #f9fafb;
+      background: #1f1f23;
+      color: #f5f5f5;
     }
 
-    a { color: inherit; text-decoration: none; }
-
-    /* ======= TAB BAR (Kiểu 2 – gạch dưới) ======= */
-    #tabBar {
-      display: flex;
-      justify-content: space-around;
-      background: #020617;
-      padding: 12px 0;
-      border-bottom: 1px solid #1f2937;
-      position: sticky;
-      top: 0;
-      z-index: 999;
-    }
-
-    .tab-btn {
-      padding: 6px 10px;
-      cursor: pointer;
-      font-size: 15px;
-      font-weight: 500;
-      color: #9ca3af;
-      position: relative;
-      transition: color 0.15s;
-    }
-
-    .tab-btn.active {
-      color: #f9fafb;
-    }
-
-    #tabUnderline {
-      width: 33.33%;
-      height: 3px;
-      background: #0ea5e9;
-      transition: transform .2s ease;
-    }
-
-    /* ======= PAGE CONTAINER ======= */
     .page {
+      max-width: 480px;
+      margin: 70px auto 24px;
       padding: 12px;
-      display: none;
     }
 
-    .page-active {
-      display: block;
-    }
-
-    /* ======= POS BOX ======= */
     .box {
       max-width: 480px;
       margin: 0 auto;
-      background: #020617;
+      background: #2b2b31;
       border-radius: 16px;
       padding: 14px;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.4);
-      border: 1px solid #1e293b;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.5);
     }
 
     h2 {
-      margin: 0 0 6px;
+      margin: 0 0 10px;
       text-align: center;
-      font-size: 18px;
-      color: #e5e7eb;
+      font-size: 20px;
     }
 
     .device-row {
@@ -88,26 +45,24 @@
 
     .device-row span {
       white-space: nowrap;
-      color: #9ca3af;
     }
 
     .device-row input {
       flex: 1;
-      padding: 6px 8px;
+      padding: 6px 10px;
       border-radius: 10px;
-      border: 1px solid #374151;
+      border: 1px solid #555;
+      background: #1f1f23;
+      color: #f5f5f5;
       font-size: 13px;
-      background: #020617;
-      color: #f9fafb;
     }
 
     .menu-section-title {
       margin-top: 8px;
       font-size: 15px;
       font-weight: 600;
-      border-left: 4px solid #0ea5e9;
+      border-left: 4px solid #0a84ff;
       padding-left: 6px;
-      color: #e5e7eb;
     }
 
     .menu-grid {
@@ -120,70 +75,67 @@
     .menu-item {
       border-radius: 12px;
       padding: 8px;
-      background: #0b1120;
+      background: #3a3a41;
       cursor: pointer;
-      border: 1px solid #1e293b;
+      border: 1px solid transparent;
       font-size: 14px;
       transition: transform 0.06s ease, box-shadow 0.08s ease, background 0.08s ease;
     }
 
-    .menu-item:hover {
-      background: #020617;
-    }
-
     .menu-item:active {
       transform: translateY(1px) scale(0.98);
-      box-shadow: 0 1px 3px rgba(0,0,0,0.4) inset;
-      background: #0f172a;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.5) inset;
+      background: #4b4b55;
     }
 
     .menu-item-name {
       font-weight: 600;
-      color: #f9fafb;
     }
 
     .menu-item-price {
       font-size: 12px;
-      color: #9ca3af;
+      color: #ccc;
       margin-top: 2px;
     }
 
-    .size-row, .qty-row, .cash-row {
+    .size-row,
+    .qty-row,
+    .cash-row {
       display: flex;
       gap: 8px;
       margin-top: 8px;
       align-items: center;
       font-size: 14px;
-      color: #e5e7eb;
     }
 
     .size-row button {
       flex: 1;
       padding: 6px 0;
       border-radius: 999px;
-      border: 1px solid #374151;
-      background: #0b1120;
+      border: 1px solid #666;
+      background: #3a3a41;
       cursor: pointer;
       font-size: 13px;
-      color: #e5e7eb;
-      transition: background 0.08s ease, box-shadow 0.08s ease, border-color 0.08s, color 0.08s;
+      color: #f5f5f5;
+      transition: background 0.08s ease, box-shadow 0.08s ease;
     }
 
     .size-row button.active {
-      background: #0ea5e9;
-      color: #0b1120;
-      border-color: #22d3ee;
-      box-shadow: 0 0 0 1px rgba(56,189,248,0.5);
+      background: #0a84ff;
+      color: #fff;
+      border-color: #0a84ff;
+      box-shadow: 0 0 0 1px rgba(10,132,255,0.6);
     }
 
-    .qty-row input, .cash-row input {
+    .qty-row input,
+    .cash-row input {
       flex: 1;
       padding: 6px 8px;
       border-radius: 8px;
-      border: 1px solid #374151;
+      border: 1px solid #666;
       font-size: 14px;
-      background: #020617;
-      color: #f9fafb;
+      background: #1f1f23;
+      color: #f5f5f5;
     }
 
     .qty-row button {
@@ -191,10 +143,10 @@
       height: 32px;
       border-radius: 50%;
       border: none;
-      background: #1f2937;
+      background: #3a3a41;
       cursor: pointer;
       font-size: 18px;
-      color: #e5e7eb;
+      color: #f5f5f5;
     }
 
     .btn-row {
@@ -211,28 +163,37 @@
       cursor: pointer;
       font-size: 14px;
       font-weight: 600;
-      color: #f9fafb;
+      color: #fff;
       transition: opacity 0.08s ease, transform 0.06s ease, box-shadow 0.08s ease;
     }
 
     .btn:active {
       opacity: 0.85;
       transform: translateY(1px);
-      box-shadow: 0 1px 3px rgba(0,0,0,0.4) inset;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.5) inset;
     }
 
-    .btn-undo { background: #6b7280; }
-    .btn-clear { background: #ef4444; }
-    .btn-save { background: #6366f1; }
-    .btn-print { background: #22c55e; }
+    .btn-undo   { background: #8e8e93; }
+    .btn-clear  { background: #ff3b30; }
+    .btn-save   { background: #5856d6; }
+    .btn-print  { background: #34c759; }
+    .btn-small  {
+      padding: 4px 10px;
+      font-size: 11px;
+      border-radius: 999px;
+      border: none;
+      background: #444;
+      color: #fff;
+      cursor: pointer;
+    }
 
     .list-box {
       margin-top: 10px;
       padding: 10px;
       border-radius: 12px;
-      background: #020617;
+      background: #1f1f23;
       font-size: 14px;
-      border: 1px solid #1e293b;
+      border: 1px solid #3a3a41;
     }
 
     ul {
@@ -246,18 +207,16 @@
     .summary {
       margin-top: 6px;
       font-size: 14px;
-      color: #e5e7eb;
     }
 
     .summary strong { font-size: 15px; }
 
-    /* ===== History Box (page POS + page History) ===== */
     .history-box {
       margin-top: 10px;
       padding: 10px;
       border-radius: 12px;
-      background: #020617;
-      border: 1px solid #1e293b;
+      background: #1f1f23;
+      border: 1px solid #3a3a41;
       font-size: 13px;
     }
 
@@ -266,7 +225,6 @@
       justify-content: space-between;
       align-items: center;
       margin-bottom: 4px;
-      color: #e5e7eb;
     }
 
     .history-list {
@@ -276,176 +234,187 @@
     }
 
     .history-item {
-      border-bottom: 1px dashed #1f2937;
+      border-bottom: 1px dashed #444;
       padding: 4px 0;
       display: flex;
       justify-content: space-between;
-      align-items: flex-start;
-      gap: 6px;
+      gap: 8px;
+      align-items: center;
     }
 
     .history-item-main {
       flex: 1;
     }
 
-    .history-item small {
-      display: block;
-      color: #9ca3af;
+    .history-item-code {
+      font-family: Menlo, Monaco, Consolas, monospace;
+      font-size: 11px;
+      color: #ffcc00;
+    }
+
+    .history-delete-btn {
+      border: none;
+      background: #ff3b30;
+      color: #fff;
+      border-radius: 50%;
+      width: 22px;
+      height: 22px;
+      font-size: 14px;
+      cursor: pointer;
+      flex-shrink: 0;
     }
 
     .history-total {
       margin-top: 4px;
       font-weight: 600;
-      color: #e5e7eb;
     }
 
-    .chip {
-      display: inline-block;
-      border-radius: 999px;
-      padding: 2px 8px;
-      font-size: 11px;
-      background: #111827;
-      color: #e5e7eb;
-      border: 1px solid #1f2937;
-    }
-
-    .chip-danger {
-      background: #7f1d1d;
-      border-color: #b91c1c;
-    }
-
-    .chip-muted {
-      background: #020617;
-      border-color: #4b5563;
-      color: #9ca3af;
-    }
-
-    .btn-sm {
-      border-radius: 999px;
-      border: none;
-      padding: 3px 8px;
-      font-size: 11px;
-      cursor: pointer;
-      color: #f9fafb;
-    }
-
-    .btn-sm-danger { background: #b91c1c; }
-    .btn-sm-restore { background: #22c55e; }
-
-    /* ===== Revenue page ===== */
-    .stat-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 8px;
+    .footer {
       margin-top: 10px;
+      text-align: center;
+      font-size: 12px;
+      color: #aaa;
     }
 
-    .stat-card {
-      padding: 10px;
-      border-radius: 12px;
-      background: #020617;
-      border: 1px solid #1e293b;
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 0;
+      border-bottom: 1px dashed #444;
+      font-size: 14px;
+    }
+
+    .stat-row strong {
+      font-size: 15px;
+    }
+
+    .stat-label {
+      color: #ddd;
+    }
+
+    .stat-value {
+      font-weight: 600;
+      color: #0fd976;
+    }
+
+    .section-title {
+      margin-top: 10px;
+      margin-bottom: 6px;
+      font-weight: 600;
+      border-left: 4px solid #34c759;
+      padding-left: 6px;
+      font-size: 15px;
+    }
+
+    .deleted-item {
+      border-bottom: 1px dashed #444;
+      padding: 4px 0;
       font-size: 13px;
     }
 
-    .stat-card-title {
-      font-size: 12px;
-      color: #9ca3af;
-      margin-bottom: 4px;
+    .deleted-actions {
+      margin-top: 4px;
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
     }
 
-    .stat-card-value {
-      font-size: 15px;
-      font-weight: 600;
-      color: #22c55e;
+    .btn-restore {
+      border-radius: 999px;
+      border: none;
+      padding: 4px 10px;
+      cursor: pointer;
+      font-size: 12px;
+      background: #0a84ff;
+      color: #fff;
+    }
+
+    .btn-restore-all {
+      border-radius: 999px;
+      border: none;
+      padding: 4px 12px;
+      cursor: pointer;
+      font-size: 12px;
+      background: #ff9f0a;
+      color: #fff;
+      margin-top: 6px;
     }
 
     .filter-row {
       display: flex;
       gap: 6px;
-      margin-top: 10px;
+      margin-top: 4px;
+      flex-wrap: wrap;
+      font-size: 11px;
     }
 
-    .filter-btn {
-      flex: 1;
-      padding: 6px 0;
+    .filter-row button {
       border-radius: 999px;
-      border: 1px solid #374151;
-      background: #020617;
-      color: #e5e7eb;
-      font-size: 12px;
+      border: none;
+      padding: 4px 10px;
       cursor: pointer;
+      background: #3a3a41;
+      color: #fff;
     }
 
-    .filter-btn.active {
-      background: #0ea5e9;
-      border-color: #22d3ee;
-      color: #0b1120;
+    .filter-row button.active {
+      background: #0a84ff;
     }
 
-    .revenue-list {
-      margin-top: 8px;
-      max-height: 260px;
-      overflow-y: auto;
-      font-size: 13px;
-    }
-
-    .revenue-item {
-      padding: 4px 0;
-      border-bottom: 1px dashed #1f2937;
-      display: flex;
-      justify-content: space-between;
-      gap: 8px;
-    }
-
-    .revenue-item span:last-child {
-      font-weight: 500;
-      color: #facc15;
-    }
-
-    /* Search input on history page */
-    #searchOrder {
-      width: 100%;
-      padding: 8px;
-      background: #020617;
-      border-radius: 10px;
-      border: 1px solid #374151;
-      color: #f9fafb;
-      font-size: 13px;
-    }
-
-    /* Footer small note */
-    .footer {
-      margin-top: 10px;
-      text-align: center;
+    .label {
       font-size: 12px;
-      color: #6b7280;
+      color: #ccc;
     }
 
-    @media (min-width: 768px) {
-      body {
-        display: flex;
-        justify-content: center;
-      }
+    #tabBar {
+      display: flex;
+      justify-content: space-around;
+      background: #2b2b31;
+      padding: 12px 0;
+      border-bottom: 1px solid #3a3a41;
+      position: sticky;
+      top: 0;
+      z-index: 999;
+    }
+
+    .tab-btn {
+      padding: 6px 10px;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 500;
+      color: #aaa;
+    }
+
+    .tab-btn.active {
+      color: #0a84ff;
+    }
+
+    #tabUnderline {
+      width: 33.33%;
+      height: 3px;
+      background: #007aff;
+      transition: transform .2s ease;
+      position: fixed;
+      top: 52px;
+      left: 0;
+    }
+
+    @media (max-width: 600px) {
       .page {
-        max-width: 900px;
-        width: 100%;
+        margin-top: 65px;
       }
-      .two-column {
-        display: grid;
-        grid-template-columns: 1.1fr 1fr;
-        gap: 12px;
+      #tabUnderline {
+        top: 52px;
       }
     }
   </style>
 
-  <!-- Supabase -->
   <script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 </head>
 
 <body>
 
-  <!-- ============= TAB MENU (Kiểu 2 – gạch dưới) ============= -->
+  <!-- TAB MENU -->
   <div id="tabBar">
     <div class="tab-btn active" data-page="page-pos">POS</div>
     <div class="tab-btn" data-page="page-revenue">Doanh thu</div>
@@ -453,154 +422,150 @@
   </div>
   <div id="tabUnderline"></div>
 
-  <!-- ============= PAGE 1 – POS ============= -->
-  <div id="page-pos" class="page page-active">
-    <div class="two-column">
-      <!-- POS box -->
-      <div class="box">
-        <h2>Tea Neko – POS</h2>
+  <!-- PAGE 1 – POS -->
+  <div id="page-pos" class="page" style="display:block;">
+    <div class="box">
+      <h2>Tea Neko – POS</h2>
 
-        <div class="device-row">
-          <span>Máy:</span>
-          <input id="deviceName" placeholder="VD: Thu ngân 1" />
-        </div>
-
-        <div class="menu-section-title">LATTE / COFFEE / TRÀ SỮA</div>
-        <div class="menu-grid" id="menuMain"></div>
-
-        <div class="menu-section-title">Tùy chọn</div>
-        <div class="size-row">
-          <button id="sizeM" class="active">Size M</button>
-          <button id="sizeL">Size L (+5.000)</button>
-        </div>
-
-        <div class="qty-row">
-          <span>SL:</span>
-          <button id="qtyMinus">−</button>
-          <input id="qtyInput" type="number" min="1" value="1" />
-          <button id="qtyPlus">+</button>
-        </div>
-
-        <div class="cash-row">
-          <span>Khách đưa (nghìn):</span>
-          <input id="cashInput" type="number" min="0" placeholder="VD: 50" />
-        </div>
-
-        <div class="btn-row">
-          <button class="btn btn-undo" id="btnUndo">↩ Hoàn tác</button>
-          <button class="btn btn-clear" id="btnClear">Xóa tất cả</button>
-        </div>
-        <div class="btn-row" style="margin-top: 6px;">
-          <button class="btn btn-save" id="btnSave">💾 Lưu đơn</button>
-          <button class="btn btn-print" id="btnPrint">🧾 Lưu + In bill</button>
-        </div>
-
-        <div class="list-box">
-          <div><strong>Đơn hiện tại:</strong> <span id="currentOrderCode" class="chip-muted"></span></div>
-          <ul id="currentList"></ul>
-          <div class="summary" id="currentSummary">Tổng: 0 VND</div>
-          <div class="summary" id="cashSummary"></div>
-        </div>
+      <div class="device-row">
+        <span>Máy:</span>
+        <input id="deviceName" placeholder="VD: Thu ngân 1" />
       </div>
 
-      <!-- History summary on right side (for nhanh) -->
+      <div class="menu-section-title">LATTE / COFFEE / TRÀ SỮA</div>
+      <div class="menu-grid" id="menuMain"></div>
+
+      <div class="menu-section-title">Tùy chọn</div>
+      <div class="size-row">
+        <button id="sizeM" class="active">Size M</button>
+        <button id="sizeL">Size L (+5.000)</button>
+      </div>
+
+      <div class="qty-row">
+        <span>SL:</span>
+        <button id="qtyMinus">−</button>
+        <input id="qtyInput" type="number" min="1" value="1" />
+        <button id="qtyPlus">+</button>
+      </div>
+
+      <div class="cash-row">
+        <span>Khách đưa (nghìn):</span>
+        <input id="cashInput" type="number" min="0" placeholder="VD: 50" />
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-undo" id="btnUndo">↩ Hoàn tác</button>
+        <button class="btn btn-clear" id="btnClear">Xóa tất cả</button>
+      </div>
+      <div class="btn-row" style="margin-top:6px;">
+        <button class="btn btn-save" id="btnSave">💾 Lưu đơn</button>
+        <button class="btn btn-print" id="btnPrint">🧾 Lưu + In bill</button>
+      </div>
+
+      <div class="list-box">
+        <div><strong>Đơn hiện tại:</strong></div>
+        <ul id="currentList"></ul>
+        <div class="summary" id="currentSummary">Tổng: 0 VND</div>
+        <div class="summary" id="cashSummary"></div>
+      </div>
+
       <div class="history-box">
         <div class="history-header">
-          <span><strong>Lịch sử gần đây</strong></span>
-          <button class="btn btn-undo" id="btnRefreshHistoryPos"
-                  style="padding:4px 10px;font-size:11px;border-radius:999px;">
-            ↻ Tải lại
-          </button>
+          <span><strong>Lịch sử đơn (Realtime)</strong></span>
+          <button class="btn-small" id="btnRefreshHistory">↻ Tải lại</button>
         </div>
-        <div class="history-list" id="historyListPos"></div>
-        <div class="history-total" id="historyTotalPos">Tổng doanh thu: 0 VND</div>
-        <div class="footer" style="margin-top:8px;">
-          Xem chi tiết hơn trong tab <strong>Doanh thu</strong> và <strong>Lịch sử</strong>.
-        </div>
+        <div class="history-list" id="historyList"></div>
+        <div class="history-total" id="historyTotal">Tổng doanh thu: 0 VND</div>
       </div>
+
+      <div class="footer">Cảm ơn quý khách đã ghé Tea Neko 💜</div>
     </div>
   </div>
 
-  <!-- ============= PAGE 2 – REVENUE ============= -->
-  <div id="page-revenue" class="page">
+  <!-- PAGE 2 – DOANH THU -->
+  <div id="page-revenue" class="page" style="display:none;">
     <div class="box">
-      <h2>Doanh thu – Tea Neko</h2>
+      <h2>Doanh thu</h2>
 
-      <div class="stat-grid">
-        <div class="stat-card">
-          <div class="stat-card-title">Tổng doanh thu (chưa xoá)</div>
-          <div class="stat-card-value" id="revTotalOverall">0 VND</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-card-title">Số đơn hiện tại</div>
-          <div class="stat-card-value" id="revOrdersCount">0 đơn</div>
-        </div>
-      </div>
-
+      <div class="section-title">Chọn khoảng thời gian</div>
       <div class="filter-row">
-        <button class="filter-btn active" data-mode="day">Theo ngày</button>
-        <button class="filter-btn" data-mode="week">Theo tuần</button>
-        <button class="filter-btn" data-mode="month">Theo tháng</button>
+        <button class="filter-btn active" data-range="day">Hôm nay</button>
+        <button class="filter-btn" data-range="week">7 ngày</button>
+        <button class="filter-btn" data-range="month">30 ngày</button>
+        <button class="filter-btn" data-range="all">Tất cả</button>
       </div>
 
-      <div class="revenue-list" id="revenueList"></div>
-
-      <div class="footer">
-        Dữ liệu lấy từ bảng <code>orders</code> (chỉ tính những đơn chưa xoá).
+      <div class="section-title">Tổng hợp</div>
+      <div id="revenueSummary">
+        <div class="stat-row">
+          <span class="stat-label">Tổng doanh thu</span>
+          <span class="stat-value" id="revTotal">0 VND</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">Số đơn</span>
+          <span class="stat-value" id="revCount">0</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">Đơn trung bình</span>
+          <span class="stat-value" id="revAvg">0 VND</span>
+        </div>
       </div>
+
+      <div class="section-title">Theo ngày</div>
+      <div id="revenueByDay" style="font-size:13px;"></div>
+
+      <div class="footer">Xem nhanh doanh thu POS Tea Neko 📈</div>
     </div>
   </div>
 
-  <!-- ============= PAGE 3 – HISTORY + DELETED ============= -->
-  <div id="page-history" class="page">
+  <!-- PAGE 3 – LỊCH SỬ & XOÁ -->
+  <div id="page-history" class="page" style="display:none;">
     <div class="box">
-      <h2>Lịch sử đơn & Lịch sử xoá</h2>
+      <h2>Lịch sử & Xoá</h2>
 
-      <div style="margin-top:10px;">
-        <input id="searchOrder" placeholder="Tìm mã đơn (#0001) hoặc tên máy..." />
-      </div>
+      <div class="section-title">Lịch sử đơn (toàn bộ)</div>
+      <div class="label">Tìm theo mã đơn (#0001):</div>
+      <input id="searchOrder" placeholder="Nhập mã..." style="width:100%; padding:8px; border-radius:10px; border:1px solid #555; background:#1f1f23; color:#f5f5f5;">
 
-      <div id="historyList" style="margin-top: 15px;"></div>
+      <div id="historyListFull" style="margin-top:10px;"></div>
 
-      <h3 style="margin:18px 0 6px;font-size:15px;">Lịch sử xoá (không thể xoá, chỉ khôi phục)</h3>
-      <div id="deletedList"></div>
+      <div class="section-title">Lịch sử xoá (không xoá được)</div>
+      <div class="label">Có thể khôi phục đơn bị xoá.</div>
+      <div id="deletedList" style="margin-top:8px;"></div>
+      <button id="btnRestoreAll" class="btn-restore-all">⤴ Khôi phục tất cả đơn đã xoá</button>
 
-      <div class="footer">
-        Lịch sử xoá chỉ đánh dấu <code>is_deleted = true</code>, không xoá cứng.
-      </div>
+      <div class="footer">Lịch sử xoá được giữ riêng, chỉ có thể khôi phục 💾</div>
     </div>
   </div>
 
-  <!-- ============= JS ============= -->
   <script>
-    // ======= SUPABASE CONFIG =======
+    // ========= SUPABASE =========
     const SUPABASE_URL = "https://kcrchwedlrettpkucoct.supabase.co";
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtjcmNod2VkbHJldHRwa3Vjb2N0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM4ODQ0MjgsImV4cCI6MjA3OTQ2MDQyOH0.g4WA9tci2zm4MIa6EvOe6tH_EhaoicdrdiP6swgjRgw";
     const supa = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // ======= GLOBAL STATE =======
+    // ========= STATE =========
     const MENU = [
-      { name: "Matcha Latte",       price: 25000 },
-      { name: "Coffee",             price: 25000 },
-      { name: "Trà sữa trân châu",  price: 30000 },
-      { name: "Hồng trà sữa",       price: 28000 },
-      { name: "Cacao đá",           price: 22000 },
-      { name: "Bạc xỉu",            price: 20000 }
+      { name: "Matcha Latte",      price: 25000 },
+      { name: "Coffee",            price: 25000 },
+      { name: "Trà sữa trân châu", price: 30000 },
+      { name: "Hồng trà sữa",      price: 28000 },
+      { name: "Cacao đá",          price: 22000 },
+      { name: "Bạc xỉu",           price: 20000 }
     ];
 
     let currentOrder = [];
-    let currentSize = "M";
-    let allOrders = [];        // tất cả orders (bao gồm đã xoá)
-    let latestOrderIndex = 0;  // để sinh mã #0001
-    let revenueMode = "day";   // day|week|month
+    let currentSize  = "M";
+    let historyOrders = [];
+    let deletedOrders = [];
 
-    // ======= DOM POS =======
+    // ========= DOM =========
     const menuMain = document.getElementById("menuMain");
     const sizeMBtn = document.getElementById("sizeM");
     const sizeLBtn = document.getElementById("sizeL");
     const qtyInput = document.getElementById("qtyInput");
     const qtyMinus = document.getElementById("qtyMinus");
-    const qtyPlus = document.getElementById("qtyPlus");
+    const qtyPlus  = document.getElementById("qtyPlus");
     const cashInput = document.getElementById("cashInput");
     const currentList = document.getElementById("currentList");
     const currentSummary = document.getElementById("currentSummary");
@@ -609,66 +574,42 @@
     const btnClear = document.getElementById("btnClear");
     const btnSave = document.getElementById("btnSave");
     const btnPrint = document.getElementById("btnPrint");
-    const btnRefreshHistoryPos = document.getElementById("btnRefreshHistoryPos");
-    const historyListPos = document.getElementById("historyListPos");
-    const historyTotalPos = document.getElementById("historyTotalPos");
-    const deviceNameInput = document.getElementById("deviceName");
-    const currentOrderCodeSpan = document.getElementById("currentOrderCode");
-
-    // ======= DOM REVENUE =======
-    const revTotalOverall = document.getElementById("revTotalOverall");
-    const revOrdersCount = document.getElementById("revOrdersCount");
-    const revenueList = document.getElementById("revenueList");
-    const filterButtons = document.querySelectorAll(".filter-btn");
-
-    // ======= DOM HISTORY PAGE =======
-    const searchOrderInput = document.getElementById("searchOrder");
+    const btnRefreshHistory = document.getElementById("btnRefreshHistory");
     const historyList = document.getElementById("historyList");
-    const deletedList = document.getElementById("deletedList");
+    const historyTotal = document.getElementById("historyTotal");
+    const deviceNameInput = document.getElementById("deviceName");
 
-    // ======= HELPERS =======
+    const tabBar = document.getElementById("tabBar");
+    const tabUnderline = document.getElementById("tabUnderline");
+    const pages = {
+      "page-pos": document.getElementById("page-pos"),
+      "page-revenue": document.getElementById("page-revenue"),
+      "page-history": document.getElementById("page-history"),
+    };
+
+    const filterButtons = document.querySelectorAll(".filter-btn");
+    const revTotalEl = document.getElementById("revTotal");
+    const revCountEl = document.getElementById("revCount");
+    const revAvgEl = document.getElementById("revAvg");
+    const revenueByDayEl = document.getElementById("revenueByDay");
+
+    const historyListFull = document.getElementById("historyListFull");
+    const deletedListEl = document.getElementById("deletedList");
+    const searchOrderInput = document.getElementById("searchOrder");
+    const btnRestoreAll = document.getElementById("btnRestoreAll");
+
     function formatVND(x) {
-      return (x || 0).toLocaleString("vi-VN") + " VND";
+      return x.toLocaleString("vi-VN") + " VND";
     }
 
-    function computeLatestIndexFromOrders() {
-      latestOrderIndex = 0;
-      allOrders.forEach(o => {
-        if (!o.order_code) return;
-        const num = parseInt(String(o.order_code).replace("#", ""), 10);
-        if (!isNaN(num) && num > latestOrderIndex) latestOrderIndex = num;
-      });
+    function formatOrderCode(id) {
+      if (!id) return "#????";
+      const tail = id.replace(/-/g, "").slice(-4);
+      const num = parseInt(tail, 16) % 10000;
+      return "#" + num.toString().padStart(4, "0");
     }
 
-    function getNextOrderCode() {
-      latestOrderIndex += 1;
-      return "#" + String(latestOrderIndex).padStart(4, "0");
-    }
-
-    function formatDate(dateStr) {
-      const d = new Date(dateStr);
-      return d.toLocaleString("vi-VN");
-    }
-
-    function getDateKey(dateStr) {
-      const d = new Date(dateStr);
-      return d.toISOString().slice(0,10); // YYYY-MM-DD
-    }
-
-    function getWeekKey(dateStr) {
-      const d = new Date(dateStr);
-      const oneJan = new Date(d.getFullYear(), 0, 1);
-      const week = Math.ceil(((d - oneJan) / 86400000 + oneJan.getDay() + 1) / 7);
-      return d.getFullYear() + " - Tuần " + week;
-    }
-
-    function getMonthKey(dateStr) {
-      const d = new Date(dateStr);
-      const month = String(d.getMonth() + 1).padStart(2, "0");
-      return d.getFullYear() + "-" + month;
-    }
-
-    // ======= RENDER MENU =======
+    // ========= RENDER MENU =========
     function renderMenu() {
       menuMain.innerHTML = "";
       MENU.forEach(item => {
@@ -700,20 +641,7 @@
       renderCurrentOrder();
     }
 
-    // ======= CURRENT ORDER =======
-    function ensureCurrentOrderCode() {
-      if (!currentOrderCodeSpan.textContent) {
-        currentOrderCodeSpan.textContent = "(sẽ cấp mã khi lưu)";
-      }
-    }
-
-    function clearCurrentOrder() {
-      currentOrder = [];
-      cashInput.value = "";
-      currentOrderCodeSpan.textContent = "";
-      renderCurrentOrder();
-    }
-
+    // ========= CURRENT ORDER =========
     function renderCurrentOrder() {
       currentList.innerHTML = "";
       let total = 0;
@@ -735,12 +663,16 @@
       } else {
         cashSummary.textContent = "";
       }
-
-      ensureCurrentOrderCode();
     }
 
-    // ======= LOAD ALL ORDERS (history + revenue + deleted) =======
-    async function loadAllOrders() {
+    function clearCurrentOrder() {
+      currentOrder = [];
+      cashInput.value = "";
+      renderCurrentOrder();
+    }
+
+    // ========= LOAD HISTORY =========
+    async function loadHistory() {
       const { data, error } = await supa
         .from("orders")
         .select("*")
@@ -749,241 +681,256 @@
 
       if (error) {
         console.error(error);
-        alert("Không tải được dữ liệu orders từ Supabase");
+        alert("Không tải được lịch sử từ Supabase");
         return;
       }
-
-      allOrders = data || [];
-      computeLatestIndexFromOrders();
-      renderFromAllOrders();
+      historyOrders = data || [];
+      renderHistoryShort();
+      renderHistoryFull();
+      updateRevenueView();
     }
 
-    function renderFromAllOrders() {
-      renderHistoryPos();
-      renderHistoryPage();
-      renderRevenuePage();
-    }
-
-    // ======= POS: history summary =======
-    function renderHistoryPos() {
-      const active = allOrders.filter(o => !o.is_deleted);
-      historyListPos.innerHTML = "";
+    function renderHistoryShort() {
+      historyList.innerHTML = "";
       let revenue = 0;
-
-      active.slice(0, 30).forEach(order => {
+      historyOrders.forEach(order => {
         revenue += order.total || 0;
         const div = document.createElement("div");
         div.className = "history-item";
 
-        const main = document.createElement("div");
-        main.className = "history-item-main";
+        const timeStr = order.created_at
+          ? new Date(order.created_at).toLocaleTimeString("vi-VN")
+          : "";
+        const codeStr = formatOrderCode(order.id);
 
-        const timeStr = order.created_at ? formatDate(order.created_at) : "";
         const itemsText = (order.items || [])
           .map(it => `${it.qty}x ${it.name} (${it.size})`)
           .join(", ");
 
-        main.innerHTML = `
-          <div>
-            <span class="chip">Mã: ${order.order_code || "N/A"}</span>
-            <span class="chip-muted">Máy: ${order.device || "N/A"}</span>
-          </div>
-          <small>${timeStr}</small>
-          <div>${itemsText}</div>
-        `;
-
-        const right = document.createElement("div");
-        right.style.textAlign = "right";
-        right.innerHTML = `<strong>${formatVND(order.total || 0)}</strong>`;
+        const main = document.createElement("div");
+        main.className = "history-item-main";
+        main.innerHTML =
+          `<div><span class="history-item-code">${codeStr}</span> ` +
+          `[${timeStr}] (${order.device || "N/A"})</div>` +
+          `<div>${itemsText}</div>` +
+          `<div><strong>${formatVND(order.total || 0)}</strong></div>`;
 
         div.appendChild(main);
-        div.appendChild(right);
-        historyListPos.appendChild(div);
+
+        const xBtn = document.createElement("button");
+        xBtn.className = "history-delete-btn";
+        xBtn.textContent = "×";
+        xBtn.title = "Xoá đơn (vẫn lưu trong Lịch sử xoá)";
+        xBtn.onclick = () => softDeleteOrder(order);
+        div.appendChild(xBtn);
+
+        historyList.appendChild(div);
       });
 
-      historyTotalPos.textContent = `Tổng doanh thu: ${formatVND(revenue)}`;
+      historyTotal.textContent = `Tổng doanh thu: ${formatVND(revenue)}`;
     }
 
-    // ======= HISTORY PAGE (full) =======
-    function renderHistoryPage() {
-      const keyword = (searchOrderInput.value || "").trim().toLowerCase();
+    function renderHistoryFull() {
+      historyListFull.innerHTML = "";
+      const keyword = (searchOrderInput.value || "").trim().replace("#", "");
+      let list = historyOrders;
 
-      const active = allOrders.filter(o => !o.is_deleted);
-      const deleted = allOrders.filter(o => o.is_deleted);
-
-      historyList.innerHTML = "";
-      deletedList.innerHTML = "";
-
-      // Active orders list
-      active.forEach(order => {
-        if (keyword) {
-          const combined = [
-            order.order_code || "",
-            order.device || "",
-          ].join(" ").toLowerCase();
-          if (!combined.includes(keyword)) return;
-        }
-
-        const row = document.createElement("div");
-        row.className = "history-item";
-
-        const main = document.createElement("div");
-        main.className = "history-item-main";
-
-        const timeStr = order.created_at ? formatDate(order.created_at) : "";
-        const itemsText = (order.items || [])
-          .map(it => `${it.qty}x ${it.name} (${it.size})`)
-          .join(", ");
-
-        main.innerHTML = `
-          <div>
-            <span class="chip">Mã: ${order.order_code || "N/A"}</span>
-            <span class="chip-muted">Máy: ${order.device || "N/A"}</span>
-          </div>
-          <small>${timeStr}</small>
-          <div>${itemsText}</div>
-          <div><strong>${formatVND(order.total || 0)}</strong></div>
-        `;
-
-        const act = document.createElement("div");
-        const btnDel = document.createElement("button");
-        btnDel.className = "btn-sm btn-sm-danger";
-        btnDel.textContent = "X xoá";
-        btnDel.onclick = () => softDeleteOrder(order.id);
-
-        act.appendChild(btnDel);
-        row.appendChild(main);
-        row.appendChild(act);
-        historyList.appendChild(row);
-      });
-
-      if (!active.length) {
-        historyList.innerHTML = `<div class="chip-muted">Chưa có đơn nào (hoặc đã lọc hết).</div>`;
+      if (keyword) {
+        list = list.filter(o => {
+          const code = formatOrderCode(o.id).replace("#", "");
+          return code.includes(keyword);
+        });
       }
 
-      // Deleted orders list
-      deleted.forEach(order => {
-        const row = document.createElement("div");
-        row.className = "history-item";
-
-        const main = document.createElement("div");
-        main.className = "history-item-main";
-        const timeStr = order.created_at ? formatDate(order.created_at) : "";
-        const itemsText = (order.items || [])
-          .map(it => `${it.qty}x ${it.name} (${it.size})`)
-          .join(", ");
-
-        main.innerHTML = `
-          <div>
-            <span class="chip chip-danger">ĐÃ XOÁ</span>
-            <span class="chip">Mã: ${order.order_code || "N/A"}</span>
-            <span class="chip-muted">Máy: ${order.device || "N/A"}</span>
-          </div>
-          <small>${timeStr}</small>
-          <div>${itemsText}</div>
-          <div><strong>${formatVND(order.total || 0)}</strong></div>
-        `;
-
-        const act = document.createElement("div");
-        const btnRestore = document.createElement("button");
-        btnRestore.className = "btn-sm btn-sm-restore";
-        btnRestore.textContent = "↩ Khôi phục";
-        btnRestore.onclick = () => restoreOrder(order.id);
-
-        act.appendChild(btnRestore);
-        row.appendChild(main);
-        row.appendChild(act);
-        deletedList.appendChild(row);
-      });
-
-      if (!deleted.length) {
-        deletedList.innerHTML = `<div class="chip-muted">Chưa có đơn nào bị xoá.</div>`;
-      }
-    }
-
-    async function softDeleteOrder(id) {
-      if (!confirm("Xoá đơn này? (sẽ chuyển sang Lịch sử xoá, không xoá mất dữ liệu)")) return;
-
-      const { data, error } = await supa
-        .from("orders")
-        .update({ is_deleted: true })
-        .eq("id", id)
-        .select()
-        .single();
-
-      if (error) {
-        console.error(error);
-        alert("Xoá đơn thất bại.");
+      if (!list.length) {
+        historyListFull.textContent = "Không có đơn nào.";
         return;
       }
 
-      // Cập nhật local
-      const idx = allOrders.findIndex(o => o.id === id);
-      if (idx !== -1) allOrders[idx] = data;
-
-      renderFromAllOrders();
-    }
-
-    async function restoreOrder(id) {
-      const { data, error } = await supa
-        .from("orders")
-        .update({ is_deleted: false })
-        .eq("id", id)
-        .select()
-        .single();
-
-      if (error) {
-        console.error(error);
-        alert("Khôi phục đơn thất bại.");
-        return;
-      }
-
-      const idx = allOrders.findIndex(o => o.id === id);
-      if (idx !== -1) allOrders[idx] = data;
-
-      renderFromAllOrders();
-    }
-
-    // ======= REVENUE PAGE =======
-    function renderRevenuePage() {
-      const active = allOrders.filter(o => !o.is_deleted);
-
-      const totalRev = active.reduce((s, o) => s + (o.total || 0), 0);
-      revTotalOverall.textContent = formatVND(totalRev);
-      revOrdersCount.textContent = active.length + " đơn";
-
-      // Group by day / week / month
-      const groups = {};
-      const getKey = revenueMode === "day"
-        ? getDateKey
-        : revenueMode === "week"
-        ? getWeekKey
-        : getMonthKey;
-
-      active.forEach(o => {
-        const key = o.created_at ? getKey(o.created_at) : "Không rõ";
-        groups[key] = (groups[key] || 0) + (o.total || 0);
-      });
-
-      // Render
-      revenueList.innerHTML = "";
-      const keys = Object.keys(groups).sort((a, b) => (a < b ? 1 : -1));
-      keys.forEach(k => {
+      list.forEach(order => {
         const div = document.createElement("div");
-        div.className = "revenue-item";
-        div.innerHTML = `
-          <span>${k}</span>
-          <span>${formatVND(groups[k])}</span>
-        `;
-        revenueList.appendChild(div);
+        div.className = "history-item";
+
+        const timeStr = order.created_at
+          ? new Date(order.created_at).toLocaleString("vi-VN")
+          : "";
+        const codeStr = formatOrderCode(order.id);
+        const itemsText = (order.items || [])
+          .map(it => `${it.qty}x ${it.name} (${it.size})`)
+          .join(", ");
+
+        const main = document.createElement("div");
+        main.className = "history-item-main";
+        main.innerHTML =
+          `<div><span class="history-item-code">${codeStr}</span> ` +
+          `[${timeStr}] (${order.device || "N/A"})</div>` +
+          `<div>${itemsText}</div>` +
+          `<div><strong>${formatVND(order.total || 0)}</strong></div>`;
+
+        const xBtn = document.createElement("button");
+        xBtn.className = "history-delete-btn";
+        xBtn.textContent = "×";
+        xBtn.title = "Xoá đơn (vẫn lưu trong Lịch sử xoá)";
+        xBtn.onclick = () => softDeleteOrder(order);
+
+        div.appendChild(main);
+        div.appendChild(xBtn);
+        historyListFull.appendChild(div);
+      });
+    }
+
+    // ========= SOFT DELETE / DELETED HISTORY =========
+    function softDeleteOrder(order) {
+      if (!confirm("Xoá đơn này khỏi danh sách lịch sử?\nĐơn sẽ chuyển sang mục Lịch sử xoá và có thể khôi phục.")) {
+        return;
+      }
+      historyOrders = historyOrders.filter(o => o.id !== order.id);
+
+      deletedOrders.unshift({
+        ...order,
+        deleted_at_local: new Date().toISOString()
       });
 
-      if (!keys.length) {
-        revenueList.innerHTML = `<div class="chip-muted">Chưa có dữ liệu doanh thu.</div>`;
+      renderHistoryShort();
+      renderHistoryFull();
+      renderDeletedList();
+      updateRevenueView();
+    }
+
+    function renderDeletedList() {
+      deletedListEl.innerHTML = "";
+      if (!deletedOrders.length) {
+        deletedListEl.textContent = "Chưa có đơn nào bị xoá.";
+        return;
+      }
+
+      deletedOrders.forEach((order, idx) => {
+        const div = document.createElement("div");
+        div.className = "deleted-item";
+
+        const codeStr = formatOrderCode(order.id);
+        const timeStr = order.deleted_at_local
+          ? new Date(order.deleted_at_local).toLocaleString("vi-VN")
+          : "";
+        const itemsText = (order.items || [])
+          .map(it => `${it.qty}x ${it.name} (${it.size})`)
+          .join(", ");
+
+        div.innerHTML =
+          `<div><span class="history-item-code">${codeStr}</span> – đã xoá lúc ${timeStr}</div>` +
+          `<div>(${order.device || "N/A"}) → ${itemsText}</div>` +
+          `<div><strong>${formatVND(order.total || 0)}</strong></div>`;
+
+        const actions = document.createElement("div");
+        actions.className = "deleted-actions";
+
+        const restoreBtn = document.createElement("button");
+        restoreBtn.className = "btn-restore";
+        restoreBtn.textContent = "⤴ Khôi phục đơn này";
+        restoreBtn.onclick = () => {
+          historyOrders.unshift(order);
+          deletedOrders.splice(idx, 1);
+          renderHistoryShort();
+          renderHistoryFull();
+          renderDeletedList();
+          updateRevenueView();
+        };
+
+        actions.appendChild(restoreBtn);
+        div.appendChild(actions);
+        deletedListEl.appendChild(div);
+      });
+    }
+
+    btnRestoreAll.onclick = () => {
+      if (!deletedOrders.length) {
+        alert("Không có đơn nào để khôi phục.");
+        return;
+      }
+      if (!confirm("Khôi phục TẤT CẢ đơn đã xoá?")) return;
+      deletedOrders.forEach(o => historyOrders.unshift(o));
+      deletedOrders = [];
+      renderHistoryShort();
+      renderHistoryFull();
+      renderDeletedList();
+      updateRevenueView();
+    };
+
+    searchOrderInput.addEventListener("input", () => {
+      renderHistoryFull();
+    });
+
+    // ========= REVENUE =========
+    function updateRevenueView() {
+      const rangeBtn = document.querySelector(".filter-btn.active");
+      const range = rangeBtn ? rangeBtn.getAttribute("data-range") : "day";
+      const now = new Date();
+      const start = new Date(now);
+
+      if (range === "day") {
+        start.setHours(0, 0, 0, 0);
+      } else if (range === "week") {
+        start.setDate(start.getDate() - 6);
+        start.setHours(0, 0, 0, 0);
+      } else if (range === "month") {
+        start.setDate(start.getDate() - 29);
+        start.setHours(0, 0, 0, 0);
+      } else {
+        start.setTime(0);
+      }
+
+      const inRange = historyOrders.filter(o => {
+        if (!o.created_at) return false;
+        const t = new Date(o.created_at);
+        return t >= start && t <= now;
+      });
+
+      const total = inRange.reduce((s, o) => s + (o.total || 0), 0);
+      const count = inRange.length;
+      const avg = count ? Math.round(total / count) : 0;
+
+      revTotalEl.textContent = formatVND(total);
+      revCountEl.textContent = count.toString();
+      revAvgEl.textContent = formatVND(avg);
+
+      const byDay = {};
+      inRange.forEach(o => {
+        const d = new Date(o.created_at);
+        const key = d.toLocaleDateString("vi-VN");
+        if (!byDay[key]) byDay[key] = 0;
+        byDay[key] += o.total || 0;
+      });
+
+      const entries = Object.entries(byDay).sort((a,b) => {
+        const da = a[0].split("/").reverse().join("-");
+        const db = b[0].split("/").reverse().join("-");
+        return da.localeCompare(db);
+      });
+
+      revenueByDayEl.innerHTML = "";
+      if (!entries.length) {
+        revenueByDayEl.textContent = "Không có đơn trong khoảng thời gian này.";
+      } else {
+        entries.forEach(([day, sum]) => {
+          const row = document.createElement("div");
+          row.className = "stat-row";
+          row.innerHTML =
+            `<span class="stat-label">${day}</span>` +
+            `<span class="stat-value">${formatVND(sum)}</span>`;
+          revenueByDayEl.appendChild(row);
+        });
       }
     }
 
-    // ======= SAVE + REALTIME =======
+    filterButtons.forEach(btn => {
+      btn.addEventListener("click", () => {
+        filterButtons.forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        updateRevenueView();
+      });
+    });
+
+    // ========= SAVE + REALTIME =========
     async function saveOrder(printAfter) {
       if (!currentOrder.length) {
         alert("Đơn hiện tại đang trống.");
@@ -996,17 +943,12 @@
       const change = cash > 0 ? cash - total : null;
       const device = deviceNameInput.value.trim() || "Không đặt tên";
 
-      const orderCode = getNextOrderCode();
-      currentOrderCodeSpan.textContent = orderCode;
-
       const payload = {
         device,
         items: currentOrder,
         total,
         cash_given: cash || null,
-        change,
-        order_code: orderCode,
-        is_deleted: false
+        change
       };
 
       const { data, error } = await supa
@@ -1021,8 +963,10 @@
         return;
       }
 
-      allOrders.unshift(data);
-      renderFromAllOrders();
+      historyOrders.unshift(data);
+      renderHistoryShort();
+      renderHistoryFull();
+      updateRevenueView();
 
       if (printAfter) {
         printBill(data);
@@ -1039,33 +983,22 @@
           { event: "INSERT", schema: "public", table: "orders" },
           payload => {
             const newOrder = payload.new;
-            // tránh trùng nếu đã có (do tự insert)
-            if (!allOrders.find(o => o.id === newOrder.id)) {
-              allOrders.unshift(newOrder);
-              computeLatestIndexFromOrders();
-              renderFromAllOrders();
-            }
-          }
-        )
-        .on(
-          "postgres_changes",
-          { event: "UPDATE", schema: "public", table: "orders" },
-          payload => {
-            const updated = payload.new;
-            const idx = allOrders.findIndex(o => o.id === updated.id);
-            if (idx !== -1) {
-              allOrders[idx] = updated;
-              renderFromAllOrders();
-            }
+            historyOrders.unshift(newOrder);
+            renderHistoryShort();
+            renderHistoryFull();
+            updateRevenueView();
           }
         )
         .subscribe();
     }
 
-    // ======= PRINT BILL =======
+    // ========= PRINT BILL =========
     function printBill(order) {
-      const now = order.created_at ? new Date(order.created_at) : new Date();
+      const now = order.created_at
+        ? new Date(order.created_at)
+        : new Date();
       const timeStr = now.toLocaleString("vi-VN");
+      const codeStr = formatOrderCode(order.id);
 
       let rows = "";
       (order.items || []).forEach(it => {
@@ -1106,8 +1039,8 @@
     SĐT: 0123456789
   </div>
   <div style="font-size:11px;margin-bottom:4px;">
+    Mã đơn: ${codeStr}<br>
     Thời gian: ${timeStr}<br>
-    Mã đơn: ${order.order_code || "N/A"}<br>
     Máy: ${order.device || "N/A"}
   </div>
   <table>
@@ -1151,100 +1084,65 @@
       win.print();
     }
 
-    // ======= TAB SWITCH =======
-    const tabBtns = document.querySelectorAll(".tab-btn");
-    const pages = {
-      "page-pos": document.getElementById("page-pos"),
-      "page-revenue": document.getElementById("page-revenue"),
-      "page-history": document.getElementById("page-history")
-    };
-    const tabUnderline = document.getElementById("tabUnderline");
+    // ========= TABS =========
+    tabBar.addEventListener("click", (e) => {
+      const btn = e.target.closest(".tab-btn");
+      if (!btn) return;
+      const pageId = btn.getAttribute("data-page");
 
-    function updateTabUnderline(index) {
-      tabUnderline.style.transform = `translateX(${index * 100}%)`;
-    }
+      document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
 
-    tabBtns.forEach((btn, index) => {
-      btn.addEventListener("click", () => {
-        tabBtns.forEach(b => b.classList.remove("active"));
-        btn.classList.add("active");
-
-        const pageId = btn.getAttribute("data-page");
-        Object.keys(pages).forEach(id => {
-          if (id === pageId) pages[id].classList.add("page-active");
-          else pages[id].classList.remove("page-active");
-        });
-
-        updateTabUnderline(index);
+      Object.keys(pages).forEach(id => {
+        pages[id].style.display = (id === pageId) ? "block" : "none";
       });
+
+      const index = ["page-pos","page-revenue","page-history"].indexOf(pageId);
+      tabUnderline.style.transform = `translateX(${index * 100}%)`;
     });
 
-    // ======= EVENT BINDINGS POS =======
+    // ========= EVENTS =========
     sizeMBtn.addEventListener("click", () => {
       currentSize = "M";
       sizeMBtn.classList.add("active");
       sizeLBtn.classList.remove("active");
     });
-
     sizeLBtn.addEventListener("click", () => {
       currentSize = "L";
       sizeLBtn.classList.add("active");
       sizeMBtn.classList.remove("active");
     });
-
     qtyMinus.addEventListener("click", () => {
       const v = Math.max(1, parseInt(qtyInput.value || "1", 10) - 1);
       qtyInput.value = v;
     });
-
     qtyPlus.addEventListener("click", () => {
       const v = Math.max(1, parseInt(qtyInput.value || "1", 10) + 1);
       qtyInput.value = v;
     });
-
     qtyInput.addEventListener("change", () => {
       if (!qtyInput.value || qtyInput.value <= 0) qtyInput.value = 1;
     });
-
     cashInput.addEventListener("input", () => {
       renderCurrentOrder();
     });
-
-    btnUndo.onclick = () => {
+    btnUndo.addEventListener("click", () => {
       currentOrder.pop();
       renderCurrentOrder();
-    };
-
-    btnClear.onclick = () => {
+    });
+    btnClear.addEventListener("click", () => {
       if (!currentOrder.length) return;
       if (!confirm("Xoá toàn bộ món trong đơn hiện tại?")) return;
       clearCurrentOrder();
-    };
-
-    btnSave.onclick = () => saveOrder(false);
-    btnPrint.onclick = () => saveOrder(true);
-
-    btnRefreshHistoryPos.onclick = () => loadAllOrders();
-
-    // ======= EVENTS REVENUE =======
-    filterButtons.forEach(btn => {
-      btn.addEventListener("click", () => {
-        filterButtons.forEach(b => b.classList.remove("active"));
-        btn.classList.add("active");
-        revenueMode = btn.getAttribute("data-mode");
-        renderRevenuePage();
-      });
     });
+    btnSave.addEventListener("click", () => saveOrder(false));
+    btnPrint.addEventListener("click", () => saveOrder(true));
+    btnRefreshHistory.addEventListener("click", () => loadHistory());
 
-    // ======= EVENTS HISTORY PAGE =======
-    searchOrderInput.addEventListener("input", () => {
-      renderHistoryPage();
-    });
-
-    // ======= INIT =======
+    // ========= INIT =========
     renderMenu();
     renderCurrentOrder();
-    loadAllOrders();
+    loadHistory();
     initRealtime();
   </script>
 </body>
