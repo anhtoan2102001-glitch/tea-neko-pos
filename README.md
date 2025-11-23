@@ -157,6 +157,7 @@
       font-size: 14px;
     }
     .summary strong { font-size: 15px; }
+
     .history-box {
       margin-top: 10px;
       padding: 10px;
@@ -170,15 +171,36 @@
       justify-content: space-between;
       align-items: center;
       margin-bottom: 4px;
+      gap: 6px;
     }
+    .history-header-right {
+      display: flex;
+      gap: 4px;
+    }
+
     .history-list {
-      max-height: 200px;
+      max-height: 160px;
       overflow-y: auto;
       margin-top: 4px;
     }
     .history-item {
       border-bottom: 1px dashed #ddd;
       padding: 4px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 4px;
+    }
+    .history-text {
+      flex: 1;
+    }
+    .history-delete {
+      border: none;
+      background: transparent;
+      color: #ff3b30;
+      cursor: pointer;
+      font-size: 12px;
+      padding: 0 4px;
     }
     .history-total {
       margin-top: 4px;
@@ -191,6 +213,7 @@
       color: #777;
     }
   </style>
+
   <script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 </head>
 <body>
@@ -243,13 +266,26 @@
   <div class="history-box">
     <div class="history-header">
       <span><strong>Lịch sử đơn (Realtime)</strong></span>
-      <button class="btn btn-undo" id="btnRefreshHistory"
-              style="padding:4px 10px;font-size:11px;border-radius:999px;">
-        ↻ Tải lại
-      </button>
+      <div class="history-header-right">
+        <button class="btn btn-save" id="btnRevenue"
+                style="padding:4px 10px;font-size:11px;border-radius:999px;">
+          📊 Tổng doanh thu
+        </button>
+        <button class="btn btn-undo" id="btnRefreshHistory"
+                style="padding:4px 10px;font-size:11px;border-radius:999px;">
+          ↻ Tải lại
+        </button>
+      </div>
     </div>
+
     <div class="history-list" id="historyList"></div>
     <div class="history-total" id="historyTotal">Tổng doanh thu: 0 VND</div>
+
+    <hr style="margin:6px 0;border:none;border-top:1px dashed #ddd;">
+
+    <div><strong>Lịch sử xoá</strong></div>
+    <div class="history-list" id="deletedList"></div>
+    <div class="history-total" id="deletedTotal">Tổng tiền đã xoá: 0 VND</div>
   </div>
 
   <div class="footer">Cảm ơn quý khách đã ghé Tea Neko 💜</div>
@@ -258,7 +294,9 @@
 <script>
   // ============ SUPABASE CONFIG ============
   const SUPABASE_URL = "https://kcrchwedlrettpkucoct.supabase.co";
-  const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtjcmNod2VkbHJldHRwa3Vjb2N0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM4ODQ0MjgsImV4cCI6MjA3OTQ2MDQyOH0.g4WA9tci2zm4MIa6EvOe6tH_EhaoicdrdiP6swgjRgw";
+  const SUPABASE_KEY =
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtjcmNod2VkbHJldHRwa3Vjb2N0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM4ODQ0MjgsImV4cCI6MjA3OTQ2MDQyOH0.g4WA9tci2zm4MIa6EvOe6tH_EhaoicdrdiP6swgjRgw";
+
   const supa = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
   // ============ MENU & STATE ============
@@ -274,6 +312,8 @@
   let currentOrder = [];
   let currentSize = "M";
   let historyOrders = [];
+  let deletedOrders = [];
+  let nextOrderNumber = 1; // dùng để tạo mã #0001, #0002...
 
   // DOM
   const menuMain = document.getElementById("menuMain");
@@ -291,8 +331,11 @@
   const btnSave = document.getElementById("btnSave");
   const btnPrint = document.getElementById("btnPrint");
   const btnRefreshHistory = document.getElementById("btnRefreshHistory");
+  const btnRevenue = document.getElementById("btnRevenue");
   const historyList = document.getElementById("historyList");
   const historyTotal = document.getElementById("historyTotal");
+  const deletedList = document.getElementById("deletedList");
+  const deletedTotal = document.getElementById("deletedTotal");
   const deviceNameInput = document.getElementById("deviceName");
 
   function formatVND(x) {
@@ -337,7 +380,8 @@
     currentOrder.forEach(line => {
       total += line.lineTotal;
       const li = document.createElement("li");
-      li.textContent = `${line.qty} x ${line.name} (Size ${line.size}) – ${formatVND(line.lineTotal)}`;
+      li.textContent =
+        `${line.qty} x ${line.name} (Size ${line.size}) – ${formatVND(line.lineTotal)}`;
       currentList.appendChild(li);
     });
     currentSummary.innerHTML = `<strong>Tổng:</strong> ${formatVND(total)}`;
@@ -374,12 +418,25 @@
       return;
     }
     historyOrders = data || [];
+
+    // Tìm số thứ tự lớn nhất để set nextOrderNumber
+    nextOrderNumber = 1;
+    historyOrders.forEach(o => {
+      if (o.order_code) {
+        const num = parseInt(String(o.order_code).replace(/[^0-9]/g, ""), 10);
+        if (!Number.isNaN(num) && num >= nextOrderNumber) {
+          nextOrderNumber = num + 1;
+        }
+      }
+    });
+
     renderHistory();
   }
 
   function renderHistory() {
     historyList.innerHTML = "";
     let revenue = 0;
+
     historyOrders.forEach(order => {
       revenue += order.total || 0;
       const div = document.createElement("div");
@@ -393,11 +450,64 @@
         .map(it => `${it.qty}x ${it.name} (${it.size})`)
         .join(", ");
 
-      div.textContent = `[${timeStr}] (${order.device || "N/A"}) → ${itemsText} = ${formatVND(order.total || 0)}`;
+      const code = order.order_code || "";
+
+      const span = document.createElement("span");
+      span.className = "history-text";
+      span.textContent =
+        `[${timeStr}] ${code ? code + " " : ""}(${order.device || "N/A"}) → ${itemsText} = ${formatVND(order.total || 0)}`;
+
+      const btnX = document.createElement("button");
+      btnX.className = "history-delete";
+      btnX.textContent = "✕";
+      btnX.addEventListener("click", () => handleDeleteOrder(order));
+
+      div.appendChild(span);
+      div.appendChild(btnX);
       historyList.appendChild(div);
     });
 
     historyTotal.textContent = `Tổng doanh thu: ${formatVND(revenue)}`;
+    renderDeleted();
+  }
+
+  function renderDeleted() {
+    deletedList.innerHTML = "";
+    let deletedRevenue = 0;
+
+    deletedOrders.forEach(order => {
+      deletedRevenue += order.total || 0;
+
+      const div = document.createElement("div");
+      div.className = "history-item";
+
+      const timeStr = order.created_at
+        ? new Date(order.created_at).toLocaleString("vi-VN")
+        : "";
+
+      const itemsText = (order.items || [])
+        .map(it => `${it.qty}x ${it.name} (${it.size})`)
+        .join(", ");
+
+      const code = order.order_code || "";
+
+      const span = document.createElement("span");
+      span.className = "history-text";
+      span.textContent =
+        `[${timeStr}] ${code ? code + " " : ""}(${order.device || "N/A"}) → ${itemsText} = ${formatVND(order.total || 0)}`;
+
+      div.appendChild(span);
+      deletedList.appendChild(div);
+    });
+
+    deletedTotal.textContent = `Tổng tiền đã xoá: ${formatVND(deletedRevenue)}`;
+  }
+
+  // ============ ORDER CODE ============
+  function generateOrderCode() {
+    const code = "#" + String(nextOrderNumber).padStart(4, "0");
+    nextOrderNumber += 1;
+    return code;
   }
 
   // ============ SAVE + REALTIME ============
@@ -412,13 +522,15 @@
     const cash = cashThousand * 1000;
     const change = cash > 0 ? cash - total : null;
     const device = deviceNameInput.value.trim() || "Không đặt tên";
+    const orderCode = generateOrderCode();
 
     const payload = {
       device,
       items: currentOrder,
       total,
       cash_given: cash || null,
-      change
+      change,
+      order_code: orderCode
     };
 
     const { data, error } = await supa
@@ -433,7 +545,7 @@
       return;
     }
 
-    // thêm vào history local (realtime cũng sẽ bắn thêm, nhưng ta cập nhật ngay cho mượt)
+    // thêm vào history local cho mượt
     historyOrders.unshift(data);
     renderHistory();
 
@@ -442,6 +554,26 @@
     }
 
     clearCurrentOrder();
+  }
+
+  async function handleDeleteOrder(order) {
+    if (!confirm("Xoá đơn này khỏi lịch sử?")) return;
+
+    const { error } = await supa
+      .from("orders")
+      .delete()
+      .eq("id", order.id);
+
+    if (error) {
+      console.error(error);
+      alert("Xoá đơn trên Supabase thất bại.");
+      return;
+    }
+
+    // cập nhật local: chuyển sang lịch sử xoá
+    historyOrders = historyOrders.filter(o => o.id !== order.id);
+    deletedOrders.unshift(order);
+    renderHistory();
   }
 
   function initRealtime() {
@@ -479,6 +611,7 @@
 
     const cashStr = order.cash_given ? formatVND(order.cash_given) : "0 VND";
     const changeStr = order.change != null ? formatVND(order.change) : "0 VND";
+    const code = order.order_code ? order.order_code : "";
 
     const html = `
 <!DOCTYPE html>
@@ -505,6 +638,7 @@
     SĐT: 0123456789
   </div>
   <div style="font-size:11px;margin-bottom:4px;">
+    Mã đơn: ${code || "N/A"}<br>
     Thời gian: ${timeStr}<br>
     Máy: ${order.device || "N/A"}
   </div>
@@ -523,7 +657,9 @@
     <tfoot>
       <tr class="total-row">
         <td colspan="3"><strong>Tổng:</strong></td>
-        <td style="text-align:right;"><strong>${formatVND(order.total || 0)}</strong></td>
+        <td style="text-align:right;">
+          <strong>${formatVND(order.total || 0)}</strong>
+        </td>
       </tr>
       <tr>
         <td colspan="3">Khách đưa:</td>
@@ -586,6 +722,22 @@
   btnSave.addEventListener("click", () => saveOrder(false));
   btnPrint.addEventListener("click", () => saveOrder(true));
   btnRefreshHistory.addEventListener("click", () => loadHistory());
+  btnRevenue.addEventListener("click", () => {
+    const totalRevenue = historyOrders.reduce(
+      (s, o) => s + (o.total || 0),
+      0
+    );
+    const deletedRevenue = deletedOrders.reduce(
+      (s, o) => s + (o.total || 0),
+      0
+    );
+    alert(
+      "Tổng doanh thu hiện tại: " + formatVND(totalRevenue) +
+      "\nTổng tiền đã xoá: " + formatVND(deletedRevenue) +
+      "\nSố đơn hiện tại: " + historyOrders.length +
+      "\nSố đơn đã xoá: " + deletedOrders.length
+    );
+  });
 
   // ============ INIT ============
   renderMenu();
