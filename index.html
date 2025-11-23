@@ -2,6 +2,12 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
+  <title>Mini POS – Tea Neko V5.1 (Multi-Page)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
   <title>Mini POS – Tea Neko (Realtime V4)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -594,7 +600,450 @@ renderMenu();
 renderCurrentOrder();
 loadHistory();
 initRealtime();
+<script>
+// =============================================
+//  TAB MENU – CHUYỂN TRANG
+// =============================================
+const tabs = document.querySelectorAll('.tab-btn');
+const pages = document.querySelectorAll('.page');
+const underline = document.getElementById('tabUnderline');
 
+tabs.forEach((t, i) => {
+  t.addEventListener('click', () => {
+    tabs.forEach(btn => btn.style.color = "#333");
+    t.style.color = "#007AFF";
+
+    underline.style.transform = `translateX(${i * 100}%)`;
+
+    pages.forEach(p => p.style.display = "none");
+    document.getElementById(t.dataset.page).style.display = "block";
+  });
+});
+
+// =============================================
+//  FORMAT
+// =============================================
+function fVND(x) {
+  return x.toLocaleString("vi-VN") + " VND";
+}
+
+// =============================================
+//  LOAD ORDERS TỪ SUPABASE
+// =============================================
+async function loadAllOrders() {
+  const { data, error } = await supa
+    .from("orders")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error(error);
+    return [];
+  }
+
+  return data || [];
+}
+
+// =============================================
+//  PAGE DOANH THU – NGÀY / TUẦN / THÁNG
+// =============================================
+async function loadRevenue(mode = "day") {
+  const orders = await loadAllOrders();
+  let total = 0;
+
+  const now = new Date();
+
+  orders.forEach(o => {
+    const t = new Date(o.created_at);
+
+    if (mode === "day") {
+      if (t.toDateString() === now.toDateString()) total += o.total;
+    }
+    else if (mode === "week") {
+      const weekStart = new Date(now);
+      weekStart.setDate(now.getDate() - now.getDay());
+      if (t >= weekStart) total += o.total;
+    }
+    else if (mode === "month") {
+      if (t.getMonth() === now.getMonth() && t.getFullYear() === now.getFullYear())
+        total += o.total;
+    }
+  });
+
+  document.getElementById("revResult").innerHTML =
+    `<strong>${fVND(total)}</strong>`;
+}
+
+document.getElementById("revDay").onclick = () => loadRevenue("day");
+document.getElementById("revWeek").onclick = () => loadRevenue("week");
+document.getElementById("revMonth").onclick = () => loadRevenue("month");
+
+
+// =============================================
+//   PAGE LỊCH SỬ ĐƠN + XOÁ + KHÔI PHỤC
+// =============================================
+let deletedMemory = []; // lưu local
+
+async function loadHistoryPage() {
+  const orders = await loadAllOrders();
+  const box = document.getElementById("historyList");
+  box.innerHTML = "";
+
+  orders.forEach(o => {
+    const t = new Date(o.created_at).toLocaleString("vi-VN");
+    const id = String(o.id).slice(-4).padStart(4, "0");
+    const li = document.createElement("div");
+
+    li.className = "history-item";
+    li.innerHTML = `
+      <div>
+        <strong>#${id}</strong> — [${t}] — ${o.items.map(i => `${i.qty}x ${i.name}`).join(", ")}
+        — <strong>${fVND(o.total)}</strong>
+      </div>
+      <button class="del-btn" data-id="${o.id}">X</button>
+    `;
+
+    box.appendChild(li);
+  });
+
+  // xử lý nút xoá
+  document.querySelectorAll(".del-btn").forEach(btn => {
+    btn.onclick = async () => {
+      const id = btn.dataset.id;
+
+      // lấy dữ liệu đơn để lưu vào lịch sử xoá
+      const found = await supa.from("orders").select("*").eq("id", id).single();
+      if (found.data) deletedMemory.push(found.data);
+
+      // xoá khỏi supabase
+      await supa.from("orders").delete().eq("id", id);
+
+      loadHistoryPage();
+      renderDeletedList();
+    };
+  });
+}
+
+function renderDeletedList() {
+  const box = document.getElementById("deleted-list");
+  box.innerHTML = "";
+
+  deletedMemory.forEach((o, idx) => {
+    const t = new Date(o.created_at).toLocaleString("vi-VN");
+
+    const div = document.createElement("div");
+    div.className = "deleted-item";
+    div.innerHTML = `
+      <div>[${t}] (#${String(o.id).slice(-4)}) — ${o.items.map(i => `${i.qty}x ${i.name}`).join(", ")} — <strong>${fVND(o.total)}</strong></div>
+      <button class="restore-btn" data-i="${idx}">Khôi phục</button>
+    `;
+
+    box.appendChild(div);
+  });
+
+  document.querySelectorAll(".restore-btn").forEach(btn => {
+    btn.onclick = async () => {
+      const i = btn.dataset.i * 1;
+      const item = deletedMemory[i];
+
+      await supa.from("orders").insert([item]);
+
+      deletedMemory.splice(i, 1);
+      renderDeletedList();
+      loadHistoryPage();
+    };
+  });
+}
+
+
+// =============================================
+//  KHI MỞ TRANG LỊCH SỬ
+// =============================================
+document.querySelector('[data-page="page-history"]').onclick = () => {
+  loadHistoryPage();
+};
+
+
+// =============================================
+//  KHI MỞ TRANG DOANH THU
+// =============================================
+document.querySelector('[data-page="page-revenue"]').onclick = () => {
+  document.getElementById("revResult").innerHTML = "0 VND";
+};
+</script>
 </script>
 </body>
 </html>
+
+</head>
+
+<body style="margin:0; font-family:-apple-system, BlinkMacSystemFont, Arial; background:#f2f2f2;">
+
+<!-- ============================
+     TAB MENU (Kiểu 2 – Gạch dưới)
+=============================== -->
+<div id="tabBar" style="
+    display:flex;
+    justify-content:space-around;
+    background:white;
+    padding:12px 0;
+    border-bottom:1px solid #ddd;
+    position:sticky;
+    top:0;
+    z-index:999;
+">
+  <div class="tab-btn" data-page="page-pos"
+       style="padding:6px 10px; cursor:pointer; font-size:15px; font-weight:500;">
+       POS
+  </div>
+  <div class="tab-btn" data-page="page-revenue"
+       style="padding:6px 10px; cursor:pointer; font-size:15px; font-weight:500;">
+       Doanh thu
+  </div>
+  <div class="tab-btn" data-page="page-history"
+       style="padding:6px 10px; cursor:pointer; font-size:15px; font-weight:500;">
+       Lịch sử
+  </div>
+  <!-- ============== PAGE 1: POS (Mặc định) ============== -->
+<div class="page" id="pagePOS">
+
+  <div class="device-row">
+    <span>Máy:</span>
+    <input id="deviceName" placeholder="VD: Mac Quầy 1, iPhone Thu Ngân">
+  </div>
+
+  <div class="menu-section-title">LATTE / COFFEE / TRÀ SỮA</div>
+  <div class="menu-grid" id="menuMain"></div>
+
+  <div class="menu-section-title">Tùy chọn</div>
+  <div class="size-row">
+    <button id="sizeM" class="active">Size M</button>
+    <button id="sizeL">Size L (+5.000)</button>
+  </div>
+
+  <div class="qty-row">
+    <span>SL:</span>
+    <button id="qtyMinus">−</button>
+    <input id="qtyInput" type="number" min="1" value="1">
+    <button id="qtyPlus">+</button>
+  </div>
+
+  <div class="cash-row">
+    <span>Khách đưa (nghìn):</span>
+    <input id="cashInput" type="number" min="0" placeholder="VD: 50">
+  </div>
+
+  <div class="btn-row">
+    <button class="btn btn-undo" id="btnUndo">↩ Hoàn tác</button>
+    <button class="btn btn-clear" id="btnClear">Xóa tất cả</button>
+  </div>
+  <div class="btn-row" style="margin-top:6px;">
+    <button class="btn btn-save" id="btnSave">💾 Lưu đơn</button>
+    <button class="btn btn-print" id="btnPrint">🧾 Lưu + In bill</button>
+  </div>
+
+  <div class="list-box">
+    <div><strong>Đơn hiện tại:</strong></div>
+    <ul id="currentList"></ul>
+    <div class="summary" id="currentSummary">Tổng: 0 VND</div>
+    <div class="summary" id="cashSummary"></div>
+  </div>
+
+</div>
+</div>
+
+<!-- underline -->
+<div id="tabUnderline" style="
+    width:33.33%;
+    height:3px;
+    background:#007AFF;
+    transition:transform .2s ease;
+"></div>
+
+
+<!-- ======================================
+     PAGE 1 — POS PAGE
+======================================= -->
+<div id="page-pos" class="page" style="padding:12px; display:block;">
+
+  <div class="box" style="
+      max-width:480px;
+      margin:0 auto;
+      background:white;
+      border-radius:16px;
+      padding:14px;
+      box-shadow:0 2px 8px rgba(0,0,0,0.12);
+  ">
+
+    <h2 style="margin:0 0 10px; text-align:center;">Tea Neko – POS</h2>
+
+    <div style="display:flex; gap:8px; margin-bottom:10px;">
+      <span style="font-size:14px;">Máy:</span>
+      <input id="deviceName" placeholder="VD: Thu ngân 1" style="
+        flex:1; padding:6px 10px; border-radius:10px; border:1px solid #ccc;">
+    </div>
+
+    <div class="menu-section-title"
+         style="font-size:15px; font-weight:600; margin-top:8px;">
+      LATTE / TRÀ SỮA / COFFEE
+    </div>
+
+    <div id="menuMain" style="
+        display:grid;
+        grid-template-columns:repeat(2,1fr);
+        gap:10px;
+        margin-top:8px;">
+    </div>
+
+    <div class="size-row" style="display:flex; gap:10px; margin-top:12px;">
+      <button id="sizeM" class="size-btn active"
+              style="flex:1; padding:8px; border-radius:20px;">Size M</button>
+      <button id="sizeL" class="size-btn"
+              style="flex:1; padding:8px; border-radius:20px;">Size L (+5k)</button>
+    </div>
+
+    <div class="qty-row" style="display:flex; gap:10px; margin-top:12px; align-items:center;">
+      <span>SL:</span>
+      <button id="qtyMinus" style="width:34px; height:34px;">−</button>
+      <input id="qtyInput" type="number" value="1" min="1"
+             style="flex:1; padding:6px 10px; border-radius:10px;">
+      <button id="qtyPlus" style="width:34px; height:34px;">+</button>
+    </div>
+
+    <div class="cash-row" style="display:flex; gap:10px; margin-top:12px;">
+      <span>Khách đưa (nghìn):</span>
+      <input id="cashInput" type="number" placeholder="VD: 50"
+             style="flex:1; padding:6px 10px; border-radius:10px;">
+    </div>
+
+    <div style="display:grid; gap:10px; grid-template-columns:repeat(2,1fr); margin-top:12px;">
+      <button id="btnUndo" style="padding:10px; border-radius:18px; background:#8e8e93; color:white;">
+        ↩ Hoàn tác
+      </button>
+      <button id="btnClear" style="padding:10px; border-radius:18px; background:#ff3b30; color:white;">
+        Xóa tất cả
+      </button>
+    </div>
+
+    <div style="display:grid; gap:10px; grid-template-columns:repeat(2,1fr); margin-top:10px;">
+      <button id="btnSave" style="padding:10px; border-radius:18px; background:#5856d6; color:white;">
+        💾 Lưu đơn
+      </button>
+      <button id="btnPrint" style="padding:10px; border-radius:18px; background:#34c759; color:white;">
+        🧾 Lưu + In
+      </button>
+    </div>
+
+    <div style="margin-top:15px; padding:12px; background:#fafafa; border-radius:12px;">
+      <strong>Đơn hiện tại:</strong>
+      <ul id="currentList" style="max-height:220px; overflow:auto; margin-top:6px;"></ul>
+      <div id="currentSummary" style="margin-top:8px; font-size:15px;">Tổng: 0 VND</div>
+      <div id="cashSummary" style="margin-top:4px; font-size:14px; color:#444;"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ======================================
+     PAGE 2 — REVENUE PAGE
+======================================= -->
+<div id="page-revenue" class="page" style="padding:12px; display:none;">
+
+  <div class="box" style="
+      max-width:480px; margin:0 auto; background:white;
+      border-radius:16px; padding:16px; box-shadow:0 2px 8px rgba(0,0,0,0.12);
+  ">
+    <h2 style="margin:0 0 10px; text-align:center;">Tổng doanh thu</h2>
+
+    <div id="revAll" class="rev-line" style="margin-top:10px; font-size:16px;">
+      Tổng doanh thu: 0 VND
+    </div>
+    <div id="revDay" class="rev-line" style="margin-top:6px;">Hôm nay: 0 VND</div>
+    <div id="revWeek" class="rev-line" style="margin-top:6px;">Tuần này: 0 VND</div>
+    <div id="revMonth" class="rev-line" style="margin-top:6px;">Tháng này: 0 VND</div>
+
+    <h3 style="margin-top:18px;">Lọc theo ngày</h3>
+    <div style="display:flex; gap:10px; margin-top:8px;">
+      <input id="revFrom" type="date" style="flex:1; padding:8px;">
+      <input id="revTo" type="date" style="flex:1; padding:8px;">
+    </div>
+
+    <button id="btnRevFilter" style="
+        width:100%; margin-top:12px; padding:10px;
+        background:#007AFF; color:white; border-radius:10px;">
+      Lọc doanh thu
+    </button>
+
+    <div id="revCustom" style="margin-top:12px; font-size:15px;"></div>
+
+  </div>
+
+</div>
+
+<!-- ======================================
+     PAGE 3 — HISTORY PAGE
+======================================= -->
+<div id="page-history" class="page" style="padding:12px; display:none;">
+
+  <div class="box" style="
+      max-width:480px; margin:0 auto; background:white;
+      border-radius:16px; padding:16px; box-shadow:0 2px 8px rgba(0,0,0,0.12);
+  ">
+
+    <h2 style="text-align:center; margin-top:0;">Lịch sử đơn</h2>
+
+    <div style="margin-top:10px;">
+      <input id="searchOrder" placeholder="Tìm mã đơn (#0003)"
+             style="width:100%; padding:8px; border-radius:10px; border:1px solid #ccc;">
+    </div>
+
+    <div id="historyList" style="margin-top:15px;"></div>
+
+    <h2 style="margin-top:30px; text-align:center;">Lịch sử xoá đơn</h2>
+
+    <div id="deletedList" style="margin-top:12px;"></div>
+
+  </div>
+<!-- ========================= -->
+<!--  HISTORY LIST + DELETED   -->
+<!-- ========================= -->
+
+<h2 style="margin-top:30px; text-align:center;">Lịch sử xoá</h2>
+
+<div id="deleted-list" style="margin-top:12px;">
+
+  <!-- Mỗi mục xoá sẽ hiển thị như sau:
+  <div class="deleted-item">
+      <div>[14:32 23/11/2025] (#0003) 1x Matcha Latte, 2x Bạc xỉu — 85.000 VND</div>
+      <button class="restore-btn">Khôi phục</button>
+  </div>
+  -->
+
+</div>
+
+<style>
+  .deleted-item {
+    padding:10px;
+    border-radius:10px;
+    border:1px solid #ddd;
+    margin-bottom:10px;
+    background:#fff7f7;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+  }
+  .restore-btn {
+    background:#34c759;
+    border:none;
+    padding:6px 12px;
+    color:white;
+    border-radius:6px;
+    cursor:pointer;
+    font-size:13px;
+  }
+</style>
+</div>
+
+<!-- END PAGE STRUCTURE -->
+  
