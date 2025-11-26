@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Tea Neko – Tồn kho nguyên liệu</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  body{
+    margin:0;
+    padding:14px;
+    background:#0b1220;
+    font-family:-apple-system,BlinkMacSystemFont,system-ui,sans-serif;
+    color:#fff;
+  }
+  h1{
+    margin:0 0 10px;
+    font-size:22px;
+    font-weight:700;
+  }
+  .desc{
+    font-size:13px;
+    color:#a3a3c0;
+    margin-bottom:12px;
+  }
+
+  .inv-card{
+    background:#111a30;
+    border-radius:14px;
+    padding:10px 12px;
+    margin-bottom:10px;
+    box-shadow:0 2px 6px #0005;
+  }
+  .inv-name{
+    font-size:15px;
+    font-weight:600;
+    margin-bottom:4px;
+  }
+  .inv-row{
+    display:flex;
+    gap:8px;
+    margin-bottom:4px;
+  }
+  .inv-row input{
+    flex:1;
+    padding:8px;
+    border-radius:8px;
+    border:0;
+    background:#1f2937;
+    color:#e5e7eb;
+    font-size:13px;
+  }
+  .inv-row input.qty{
+    max-width:120px;
+  }
+  .inv-row input.unit{
+    max-width:100px;
+  }
+  .inv-footer{
+    font-size:11px;
+    color:#9ca3af;
+    margin-top:3px;
+  }
+  .inv-actions{
+    margin-top:6px;
+    display:flex;
+    gap:8px;
+  }
+  .btn{
+    border:0;
+    border-radius:8px;
+    padding:6px 10px;
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+  }
+  .btn-edit{background:#0ea5e9;color:#022c3a;}
+  .btn-del{background:#ef4444;color:#3b0707;}
+
+  .btn-add{
+    background:#22c55e;
+    color:#022c22;
+    padding:10px;
+    border-radius:12px;
+    text-align:center;
+    font-weight:700;
+    margin-bottom:12px;
+    cursor:pointer;
+    font-size:15px;
+  }
+
+  /* modal */
+  .modal-bg{
+    position:fixed;inset:0;
+    background:#0008;
+    backdrop-filter:blur(4px);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:50;
+  }
+  .modal{
+    background:#111a30;
+    border-radius:14px;
+    padding:16px;
+    width:92%;
+    max-width:380px;
+  }
+  .modal h2{
+    margin:0 0 12px;
+    font-size:20px;
+    text-align:center;
+  }
+  .modal input{
+    width:100%;
+    padding:9px;
+    border-radius:9px;
+    border:0;
+    margin-bottom:8px;
+    background:#1f2937;
+    color:#e5e7eb;
+    font-size:14px;
+  }
+  .modal .btn-save{
+    width:100%;
+    background:#22c55e;
+    color:#022c22;
+    padding:11px;
+    border-radius:10px;
+    border:0;
+    font-size:15px;
+    font-weight:700;
+    cursor:pointer;
+    margin-top:6px;
+  }
+  .modal .btn-close{
+    width:100%;
+    background:#4b5563;
+    color:#e5e7eb;
+    padding:9px;
+    border-radius:10px;
+    border:0;
+    font-size:14px;
+    font-weight:600;
+    cursor:pointer;
+    margin-top:6px;
+  }
+</style>
+</head>
+<body>
+
+<h1>Tồn kho nguyên liệu</h1>
+<div class="desc">
+  Ghi nhận tồn kho cuối ngày. Hệ thống <b>không tự trừ</b> khi bán – bạn tự kiểm và nhập lại số mới.
+</div>
+
+<div class="btn-add" id="btnAdd">+ Thêm nguyên liệu</div>
+
+<div id="invList"></div>
+
+<!-- Modal add / edit -->
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <h2 id="modalTitle">Thêm nguyên liệu</h2>
+    <input id="inpName" placeholder="Tên nguyên liệu (VD: Sữa tươi, Bột matcha)">
+    <input id="inpQty" type="number" placeholder="Số lượng hiện tại">
+    <input id="inpUnit" placeholder="Đơn vị (ml, g, cái, chai...)">
+    <button class="btn-save" id="btnSave">Lưu</button>
+    <button class="btn-close" id="btnClose">Đóng</button>
+  </div>
+</div>
+
+<script type="module">
+import { supabase } from "./js/supabase.js";
+
+let editingId = null;
+
+/* ---------- LOAD LIST ---------- */
+async function loadInventory(){
+  const { data, error } = await supabase
+    .from("inventory")
+    .select("*")
+    .order("name",{ascending:true});
+
+  if(error){
+    alert("Không tải được tồn kho!");
+    console.error(error);
+    return;
+  }
+  renderList(data || []);
+}
+
+/* ---------- RENDER ---------- */
+function renderList(list){
+  const box = document.getElementById("invList");
+  box.innerHTML = "";
+
+  if(!list.length){
+    box.textContent = "Chưa có nguyên liệu nào. Bấm 'Thêm nguyên liệu' để bắt đầu.";
+    return;
+  }
+
+  list.forEach(item=>{
+    const div = document.createElement("div");
+    div.className="inv-card";
+    div.innerHTML=`
+      <div class="inv-name">${item.name}</div>
+      <div class="inv-row">
+        <input class="qty" value="${item.qty ?? 0}" disabled>
+        <input class="unit" value="${item.unit || ""}" disabled>
+      </div>
+      <div class="inv-footer">
+        Cập nhật lần cuối: ${
+          item.updated_at
+            ? new Date(item.updated_at).toLocaleString("vi-VN")
+            : "Chưa có"
+        }
+      </div>
+      <div class="inv-actions">
+        <button class="btn btn-edit" data-id="${item.id}">Sửa</button>
+        <button class="btn btn-del" data-id="${item.id}">Xoá</button>
+      </div>
+    `;
+    box.appendChild(div);
+  });
+
+  document.querySelectorAll(".btn-edit").forEach(btn=>{
+    btn.onclick = () => openEdit(btn.dataset.id);
+  });
+  document.querySelectorAll(".btn-del").forEach(btn=>{
+    btn.onclick = () => deleteItem(btn.dataset.id);
+  });
+}
+
+/* ---------- MODAL ---------- */
+const modalBg = document.getElementById("modalBg");
+const modalTitle = document.getElementById("modalTitle");
+const inpName = document.getElementById("inpName");
+const inpQty  = document.getElementById("inpQty");
+const inpUnit = document.getElementById("inpUnit");
+
+document.getElementById("btnAdd").onclick = ()=>{
+  editingId = null;
+  modalTitle.textContent = "Thêm nguyên liệu";
+  inpName.value = "";
+  inpQty.value = "";
+  inpUnit.value = "";
+  modalBg.style.display="flex";
+};
+
+document.getElementById("btnClose").onclick = ()=>{
+  modalBg.style.display="none";
+};
+
+modalBg.addEventListener("click", (e)=>{
+  if(e.target === modalBg) modalBg.style.display="none";
+});
+
+/* ---------- SAVE ADD/EDIT ---------- */
+document.getElementById("btnSave").onclick = async ()=>{
+  const name = inpName.value.trim();
+  const qty  = Number(inpQty.value || "0");
+  const unit = inpUnit.value.trim();
+
+  if(!name){
+    alert("Tên nguyên liệu không được để trống");
+    return;
+  }
+
+  if(editingId){
+    const { error } = await supabase
+      .from("inventory")
+      .update({ name, qty, unit })
+      .eq("id", editingId);
+
+    if(error){
+      console.error(error);
+      alert("Lỗi khi cập nhật nguyên liệu!");
+      return;
+    }
+  } else {
+    const { error } = await supabase
+      .from("inventory")
+      .insert([{ name, qty, unit }]);
+
+    if(error){
+      console.error(error);
+      alert("Lỗi khi thêm nguyên liệu!");
+      return;
+    }
+  }
+
+  modalBg.style.display="none";
+  loadInventory();
+};
+
+/* ---------- EDIT ---------- */
+async function openEdit(id){
+  editingId = id;
+  const { data, error } = await supabase
+    .from("inventory")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if(error){
+    console.error(error);
+    alert("Không tải được thông tin nguyên liệu!");
+    return;
+  }
+
+  modalTitle.textContent = "Sửa nguyên liệu";
+  inpName.value = data.name || "";
+  inpQty.value  = data.qty ?? 0;
+  inpUnit.value = data.unit || "";
+  modalBg.style.display="flex";
+}
+
+/* ---------- DELETE ---------- */
+async function deleteItem(id){
+  if(!confirm("Xoá nguyên liệu này khỏi danh sách tồn kho?")) return;
+
+  const { error } = await supabase
+    .from("inventory")
+    .delete()
+    .eq("id", id);
+
+  if(error){
+    console.error(error);
+    alert("Lỗi khi xoá nguyên liệu!");
+    return;
+  }
+
+  loadInventory();
+}
+
+/* ---------- INIT ---------- */
+loadInventory();
+</script>
+
+</body>
+</html>
