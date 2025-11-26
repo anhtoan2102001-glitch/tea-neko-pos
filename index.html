@@ -2,8 +2,8 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Tea Neko – Đặt món</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mini POS – Tea Neko</title>
 
 <style>
     body {
@@ -13,472 +13,266 @@
         color: #fff;
     }
 
-    h2 {
-        padding: 16px;
-        text-align: center;
-        font-size: 26px;
-        font-weight: 700;
-    }
-
-    /* khung item */
-    .item-box {
-        background: #101a30;
-        margin: 14px;
-        border-radius: 14px;
-        padding: 14px;
-    }
-
-    .item-img {
-        width: 100%;
-        height: 220px;
-        border-radius: 12px;
-        object-fit: cover;
-    }
-
-    .item-name {
-        font-size: 20px;
-        margin-top: 10px;
-        font-weight: 600;
-    }
-
-    .item-price {
-        font-size: 16px;
-        margin-top: 4px;
-        opacity: 0.7;
-    }
-
-    /* Hàng tăng giảm số lượng */
-    .qty-row {
+    .tabs {
         display: flex;
         justify-content: center;
-        align-items: center;
-        margin-top: 14px;
-        gap: 18px;
-    }
-
-    .qty-row button {
-        width: 40px;
-        height: 40px;
-        background: #202b45;
-        border: none;
-        border-radius: 10px;
-        color: #fff;
-        font-size: 22px;
-    }
-
-    .qty-row span {
-        min-width: 26px;
-        text-align: center;
-        font-size: 20px;
-    }
-
-    /* Khung tổng */
-    #cart-box {
-        margin: 14px;
         background: #101a30;
-        padding: 16px;
-        border-radius: 14px;
-        display: none;
+        padding: 10px;
+        gap: 20px;
     }
 
-    #order-summary {
-        margin-top: 10px;
-        font-size: 16px;
-        line-height: 1.6;
-    }
-
-    #order-total {
-        margin-top: 8px;
-        font-size: 18px;
+    .tab {
+        padding: 10px 20px;
+        border-radius: 10px;
+        background: #222d46;
+        cursor: pointer;
         font-weight: 700;
-        color: #0be98b;
     }
 
-    textarea {
-        width: 100%;
-        margin-top: 14px;
-        padding: 12px;
-        height: 70px;
-        border-radius: 10px;
-        background: #162038;
-        color: #fff;
-        border: 1px solid #2d3f5c;
-        font-size: 15px;
+    .tab.active {
+        background: #3b5bff;
     }
 
-    .btn-send {
-        background: #18ef72;
-        padding: 15px;
-        margin-top: 16px;
-        border-radius: 12px;
-        text-align: center;
-        font-size: 20px;
-        font-weight: bold;
-        color: #000;
+    .box {
+        background: #111a30;
+        margin: 20px;
+        padding: 18px;
+        border-radius: 14px;
+        box-shadow: 0 0 6px #0008;
     }
 
-    #status {
-        text-align: center;
+    h2 { margin-top: 0; }
+    .btn {
         margin-top: 10px;
-        font-size: 15px;
-    }
-
-    /* Size chọn */
-    .size-row {
-        display: flex;
-        margin: 12px 14px;
-        gap: 12px;
-    }
-
-    .size-btn {
-        flex: 1;
-        padding: 12px 0;
-        text-align: center;
-        background: #202b45;
+        padding: 12px;
         border-radius: 10px;
-        font-size: 16px;
+        text-align: center;
+        font-weight: bold;
+        cursor: pointer;
+        user-select: none;
+    }
+
+    .btn-red { background: #d63636; }
+    .btn-blue { background: #0044ff; }
+    .btn-green { background: #00ff90; color: #002a15; }
+    .btn-gray { background: #555; }
+
+    .order-item {
+        margin-bottom: 10px;
+        padding-bottom: 10px;
+        border-bottom: 1px dashed #444;
+    }
+
+    .del-btn {
+        padding: 6px 12px;
+        background: #d63636;
+        border-radius: 6px;
+        margin-left: 10px;
+        cursor: pointer;
     }
 </style>
 </head>
 
 <body>
 
-<h2>Menu • Tea Neko</h2>
-
-<!-- SIZE -->
-<div class="size-row">
-    <div id="btn-size-m" class="size-btn" style="opacity:1">Size M</div>
-    <div id="btn-size-l" class="size-btn" style="opacity:0.4">Size L (+5k)</div>
+<!-- ======================= MENU TAB ======================= -->
+<div class="tabs">
+    <div class="tab active" onclick="showTab('pos')">POS</div>
+    <div class="tab" onclick="showTab('history')">Lịch sử</div>
+    <div class="tab" onclick="showTab('deleted')">Đã xoá</div>
 </div>
 
-<!-- LIST MÓN -->
-<div id="menu-list"></div>
+<!-- ======================= POS ======================= -->
+<div id="pos" class="tab-page">
 
-<!-- GIỎ HÀNG -->
-<div id="cart-box">
-    <h3>Đơn của bạn</h3>
+    <h2>Mini POS – Tea Neko</h2>
 
-    <div id="order-summary"></div>
+    <div class="box">
+        <div id="current-list">Chưa có món nào.</div>
+        <div style="margin-top:6px; font-size:18px; font-weight:700;">
+            Tổng: <span id="current-total">0đ</span>
+        </div>
 
-    <p style="margin-top: 12px; font-weight: 600;">Tổng: 
-        <span id="order-total">0đ</span>
-    </p>
+        <input id="cash" type="number" placeholder="Khách đưa (nghìn)" style="width:100%; padding:10px; margin-top:10px; border-radius:8px;" />
 
-    <textarea id="note" placeholder="Ghi chú cho quán"></textarea>
+        <textarea id="note" placeholder="Ghi chú đơn..." style="width:100%; padding:10px; border-radius:8px; margin-top:10px;"></textarea>
 
-    <div class="btn-send" onclick="sendOrder()">Gửi order đến Tea Neko</div>
+        <div class="btn btn-gray" onclick="undo()">↩ Hoàn tác</div>
+        <div class="btn btn-red" onclick="clearAll()">Xoá tất cả</div>
+        <div class="btn btn-blue" onclick="saveOrder()">💾 Lưu đơn</div>
+        <div class="btn btn-green" onclick="saveAndPrint()">🖨 Lưu + In bill</div>
+    </div>
 
-    <div id="status"></div>
 </div>
-<script>
-// =========================
-// 2) STATE BIẾN LƯU ORDER
-// =========================
-let orderItems = {}; 
-let currentSize = "M";
 
-// =========================
-// 3) THAY ĐỔI SIZE
-// =========================
-document.getElementById("btn-size-m").onclick = () => {
-    currentSize = "M";
-    document.getElementById("btn-size-m").style.opacity = "1";
-    document.getElementById("btn-size-l").style.opacity = "0.4";
-    renderOrderSummary();
-};
-document.getElementById("btn-size-l").onclick = () => {
-    currentSize = "L";
-    document.getElementById("btn-size-l").style.opacity = "1";
-    document.getElementById("btn-size-m").style.opacity = "0.4";
-    renderOrderSummary();
-};
+<!-- ======================= HISTORY ======================= -->
+<div id="history" class="tab-page" style="display:none;">
+    <h2>Lịch sử đơn</h2>
 
-// =========================
-// 4) TĂNG / GIẢM SỐ LƯỢNG
-// =========================
-function changeQty(id, delta) {
-    const item = MENU.find(m => m.id === id);
-    if (!item) return;
+    <div class="box">
+        <div id="history-list">Đang tải...</div>
+        <div class="btn btn-gray" onclick="loadHistory()">↻ Tải lại</div>
+    </div>
+</div>
 
-    const key = id + "_" + currentSize;
+<!-- ======================= DELETED ======================= -->
+<div id="deleted" class="tab-page" style="display:none;">
+    <h2>Đơn đã xoá</h2>
 
-    if (!orderItems[key]) {
-        orderItems[key] = { ...item, qty: 0, size: currentSize };
+    <div class="box">
+        <div id="deleted-list">Đang tải...</div>
+        <div class="btn btn-gray" onclick="loadDeleted()">↻ Tải lại</div>
+    </div>
+</div>
+
+<!-- ======================= SCRIPT ======================= -->
+<script type="module">
+
+// =============== SUPABASE ===============
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const supabase = createClient(
+    "https://kcrchwedlrettpkucoct.supabase.co",
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtjcmNod2VkbHJldHRwa3Vjb2N0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM4ODQ0MjgsImV4cCI6MjA3OTQ2MDQyOH0.g4WA9tci2zm4MIa6EvOe6tH_EhaoicdrdiP6swgjRgw"
+);
+
+// ================= TAB ==================
+function showTab(tab) {
+    document.querySelectorAll(".tab-page").forEach(e => e.style.display = "none");
+    document.getElementById(tab).style.display = "block";
+
+    document.querySelectorAll(".tab").forEach(e => e.classList.remove("active"));
+    event.target.classList.add("active");
+
+    if (tab === "history") loadHistory();
+    if (tab === "deleted") loadDeleted();
+}
+
+// ================= POS ==================
+let current = [];
+
+function renderCurrent() {
+    if (current.length === 0) {
+        document.getElementById("current-list").innerHTML = "Chưa có món nào.";
+        document.getElementById("current-total").innerText = "0đ";
+        return;
     }
 
-    orderItems[key].qty += delta;
-
-    if (orderItems[key].qty <= 0) delete orderItems[key];
-    renderOrderSummary();
-}
-
-// =========================
-// 5) LOAD MENU -> TẠO UI
-// =========================
-function loadMenuUI() {
-    const container = document.getElementById("menu-list");
-    MENU.forEach(item => {
-        container.innerHTML += `
-        <div class="item-box">
-            <img src="${item.img}" class="item-img">
-            <div class="item-name">${item.name}</div>
-            <div class="item-price">${item.priceM.toLocaleString()}đ (Size M)</div>
-
-            <div class="qty-row">
-                <button onclick="changeQty(${item.id}, -1)">-</button>
-                <span id="qty-${item.id}">0</span>
-                <button onclick="changeQty(${item.id}, 1)">+</button>
-            </div>
-        </div>
-        `;
-    });
-}
-
-loadMenuUI();
-
-// =========================
-// 6) RENDER ĐƠN HÀNG
-// =========================
-function renderOrderSummary() {
-    const list = Object.values(orderItems);
     let html = "";
     let total = 0;
 
-    list.forEach(i => {
-        const price = i.size === "M" ? i.priceM : i.priceL;
-        const sum = i.qty * price;
-
+    current.forEach((item, i) => {
         html += `
-            <div class="sum-row">
-                ${i.qty}x ${i.name} (Size ${i.size}) — ${sum.toLocaleString()}đ
+            <div class="order-item">
+                ${item.qty}x ${item.name} — ${(item.qty * item.price).toLocaleString()}đ
+                <span class="del-btn" onclick="removeItem(${i})">X</span>
             </div>
         `;
-        total += sum;
+        total += item.qty * item.price;
     });
 
-    document.getElementById("order-summary").innerHTML = html || "<i>Chưa chọn món nào.</i>";
-    document.getElementById("order-total").innerHTML = total.toLocaleString() + "đ";
+    document.getElementById("current-list").innerHTML = html;
+    document.getElementById("current-total").innerText = total.toLocaleString() + "đ";
 }
+
+window.removeItem = (i) => {
+    current.splice(i, 1);
+    renderCurrent();
+};
+
+window.undo = () => {
+    current.pop();
+    renderCurrent();
+};
+
+window.clearAll = () => {
+    if (confirm("Xoá toàn bộ đơn hiện tại?")) {
+        current = [];
+        renderCurrent();
+    }
+};
+
+async function saveOrder() {
+    if (current.length === 0) return alert("Chưa có món để lưu!");
+
+    const note = document.getElementById("note").value;
+
+    await supabase.from("orders").insert([
+        {
+            items: current,
+            total: current.reduce((t, i) => t + i.qty * i.price, 0),
+            note
+        }
+    ]);
+
+    alert("Đã lưu đơn!");
+    current = [];
+    renderCurrent();
+}
+
+async function saveAndPrint() {
+    await saveOrder();
+    print();
+}
+
+// =================== HISTORY ====================
+async function loadHistory() {
+    const { data } = await supabase.from("orders").select("*").order("created_at", { ascending:false });
+
+    let html = "";
+
+    data.forEach(order => {
+        html += `
+            <div class="order-item">
+                <b>#${order.id}</b> — ${new Date(order.created_at).toLocaleString()}
+                <br>
+                ${order.items.map(i => `${i.qty}x ${i.name}`).join(", ")}
+                <br>
+                <b>${order.total.toLocaleString()}đ</b>
+                <span class="del-btn" onclick="deleteOrder(${order.id})">Xoá</span>
+            </div>
+        `;
+    });
+
+    document.getElementById("history-list").innerHTML = html || "Chưa có đơn.";
+}
+
+async function deleteOrder(id) {
+    if (!confirm("Xoá đơn này?")) return;
+
+    // copy sang deleted_orders
+    const { data } = await supabase.from("orders").select("*").eq("id", id).single();
+    await supabase.from("deleted_orders").insert([data]);
+
+    // xoá khỏi orders
+    await supabase.from("orders").delete().eq("id", id);
+
+    loadHistory();
+    loadDeleted();
+}
+
+// =================== DELETED ====================
+async function loadDeleted() {
+    const { data } = await supabase.from("deleted_orders").select("*").order("deleted_at", { ascending:false });
+
+    let html = "";
+
+    data.forEach(order => {
+        html += `
+            <div class="order-item">
+                <b>#${order.id}</b> — Đã xoá lúc ${new Date(order.deleted_at).toLocaleString()}
+                <br>
+                ${order.items.map(i => `${i.qty}x ${i.name}`).join(", ")}
+                <br>
+                <b>${order.total.toLocaleString()}đ</b>
+            </div>
+        `;
+    });
+
+    document.getElementById("deleted-list").innerHTML = html || "Chưa có đơn xoá.";
+}
+
 </script>
-<script type="module">
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-// Supabase client
-const supabase = createClient(
-  "https://kcrchwedlrettpkucoct.supabase.co",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtjcmNod2VkbHJldHRwa3Vjb2N0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM4ODQ0MjgsImV4cCI6MjA3OTQ2MDQyOH0.g4WA9tci2zm4MIa6EvOe6tH_EhaoicdrdiP6swgjRgw"
-);
-
-// =====================
-// 1) MENU ĐỒ UỐNG
-// =====================
-const MENU = [
-  {
-    id: 1,
-    name: "Matcha Latte",
-    priceM: 25000,
-    priceL: 30000,
-    img: "https://i.imgur.com/rkzQyDi.jpeg"
-  },
-  {
-    id: 2,
-    name: "Hồng trà sữa",
-    priceM: 28000,
-    priceL: 33000,
-    img: "https://i.imgur.com/yFDRqVJ.jpeg"
-  },
-  {
-    id: 3,
-    name: "Bạc xỉu",
-    priceM: 20000,
-    priceL: 25000,
-    img: "https://i.imgur.com/KdX1Q4W.jpeg"
-  }
-];
-
-// =====================
-// 2) STATE
-// =====================
-let orderItems = {};          // key: `${id}_${size}` → {id, name, qty, size, priceM, priceL}
-let currentSize = "M";        // "M" hoặc "L"
-
-const menuListEl   = document.getElementById("menu-list");
-const cartBoxEl    = document.getElementById("cart-box");
-const orderSummary = document.getElementById("order-summary");
-const orderTotalEl = document.getElementById("order-total");
-const noteEl       = document.getElementById("note");
-const statusEl     = document.getElementById("status");
-const btnSizeM     = document.getElementById("btn-size-m");
-const btnSizeL     = document.getElementById("btn-size-l");
-
-// =====================
-// 3) RENDER MENU
-// =====================
-function loadMenuUI() {
-  let html = "";
-  MENU.forEach(item => {
-    html += `
-      <div class="item-box">
-        <img src="${item.img}" class="item-img">
-        <div class="item-name">${item.name}</div>
-        <div class="item-price">${item.priceM.toLocaleString()}đ (Size M)</div>
-        <div class="qty-row">
-          <button onclick="changeQty(${item.id}, -1)">−</button>
-          <span id="qty-${item.id}">0</span>
-          <button onclick="changeQty(${item.id}, 1)">+</button>
-        </div>
-      </div>
-    `;
-  });
-  menuListEl.innerHTML = html;
-}
-
-loadMenuUI();
-
-// =====================
-// 4) CHỌN SIZE
-// =====================
-btnSizeM.addEventListener("click", () => {
-  currentSize = "M";
-  btnSizeM.style.opacity = "1";
-  btnSizeL.style.opacity = "0.4";
-  renderOrder();
-});
-
-btnSizeL.addEventListener("click", () => {
-  currentSize = "L";
-  btnSizeL.style.opacity = "1";
-  btnSizeM.style.opacity = "0.4";
-  renderOrder();
-});
-
-// =====================
-// 5) THAY ĐỔI SỐ LƯỢNG
-// =====================
-function changeQty(id, delta) {
-  const item = MENU.find(m => m.id === id);
-  if (!item) return;
-
-  const key = `${id}_${currentSize}`;
-
-  if (!orderItems[key]) {
-    orderItems[key] = {
-      ...item,
-      qty: 0,
-      size: currentSize
-    };
-  }
-
-  orderItems[key].qty += delta;
-
-  if (orderItems[key].qty <= 0) {
-    delete orderItems[key];
-  }
-
-  // Cập nhật số hiển thị dưới ảnh
-  const totalQtyForThisId = Object.values(orderItems)
-    .filter(i => i.id === id)
-    .reduce((s, i) => s + i.qty, 0);
-
-  const qtySpan = document.getElementById(`qty-${id}`);
-  if (qtySpan) {
-    qtySpan.textContent = totalQtyForThisId;
-  }
-
-  renderOrder();
-}
-
-// =====================
-// 6) RENDER ĐƠN HIỆN TẠI
-// =====================
-function renderOrder() {
-  const items = Object.values(orderItems);
-  if (items.length === 0) {
-    cartBoxEl.style.display = "none";
-    orderSummary.innerHTML = "";
-    orderTotalEl.textContent = "0đ";
-    return;
-  }
-
-  cartBoxEl.style.display = "block";
-  let html = "";
-  let total = 0;
-
-  items.forEach(i => {
-    const price = i.size === "M" ? i.priceM : i.priceL;
-    const line = price * i.qty;
-    total += line;
-    html += `<div>${i.qty}x ${i.name} (Size ${i.size}) — ${line.toLocaleString()}đ</div>`;
-  });
-
-  orderSummary.innerHTML = html;
-  orderTotalEl.textContent = total.toLocaleString() + "đ";
-}
-
-// =====================
-// 7) GỬI ORDER LÊN SUPABASE
-// =====================
-async function sendOrder() {
-  const items = Object.values(orderItems).filter(i => i.qty > 0);
-  if (items.length === 0) {
-    alert("Bạn chưa chọn món nào.");
-    return;
-  }
-
-  statusEl.style.color = "#ffb4b4";
-  statusEl.textContent = "Đang gửi order...";
-
-  const params = new URLSearchParams(window.location.search);
-  const tableId = params.get("table") || "N/A";
-
-  const total = items.reduce((s, i) => {
-    const price = i.size === "M" ? i.priceM : i.priceL;
-    return s + price * i.qty;
-  }, 0);
-
-  const note = noteEl.value.trim() || null;
-
-  const payload = {
-    table_id: tableId,
-    items: items.map(i => ({
-      id: i.id,
-      name: i.name,
-      size: i.size,
-      qty: i.qty,
-      priceM: i.priceM,
-      priceL: i.priceL
-    })),
-    note,
-    total,
-    status: "pending"
-  };
-
-  const { error } = await supabase
-    .from("web_orders")
-    .insert([payload]);
-
-  if (error) {
-    console.error(error);
-    statusEl.style.color = "#ff7b7b";
-    statusEl.textContent = "Gửi order thất bại, vui lòng thử lại.";
-    return;
-  }
-
-  // Thành công
-  statusEl.style.color = "#4ade80";
-  statusEl.textContent = "Đã gửi order thành công!";
-
-  // Reset đơn
-  orderItems = {};
-  MENU.forEach(i => {
-    const span = document.getElementById(`qty-${i.id}`);
-    if (span) span.textContent = "0";
-  });
-  noteEl.value = "";
-  renderOrder();
-}
-
-// Gắn vào window cho onclick trong HTML
-window.changeQty = changeQty;
-window.sendOrder = sendOrder;
-</script>
+</body>
+</html>
