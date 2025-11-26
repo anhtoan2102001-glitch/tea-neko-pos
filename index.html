@@ -1,427 +1,779 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Mini POS – Tea Neko</title>
+  <meta charset="UTF-8" />
+  <title>Mini POS – Tea Neko</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      background: radial-gradient(circle at top, #111827 0, #020617 55%, #000 100%);
+      color: #f9fafb;
+    }
 
-<style>
-body{
-  margin:0;background:#0b1220;color:#fff;font-family:system-ui,sans-serif;
-}
-.tabs{
-  display:flex;gap:10px;padding:10px;background:#101a30;overflow-x:auto;
-}
-.tab{
-  padding:10px 16px;background:#1a2440;border-radius:10px;cursor:pointer;
-  white-space:nowrap;font-weight:600;
-}
-.tab.active{background:#3b5bff;}
-.page{display:none;}
-.page.active{display:block;}
+    .app-shell {
+      max-width: 520px;
+      margin: 0 auto;
+      padding: 12px 10px 20px;
+    }
 
-.box{
-  background:#111a30;margin:20px;padding:16px;border-radius:14px;
-  box-shadow:0 0 6px #0008;
-}
-.btn{
-  margin-top:10px;padding:12px;border-radius:10px;text-align:center;
-  font-weight:700;cursor:pointer;user-select:none;
-}
-.btn-red{background:#d63636;}
-.btn-blue{background:#0044ff;}
-.btn-green{background:#00ff90;color:#002a15;}
-.btn-gray{background:#666;}
+    /* ==== TOP TAB BAR (5 tab) ==== */
+    .top-tabs {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
 
-.order-item{
-  margin-bottom:10px;padding-bottom:10px;border-bottom:1px dashed #555;
-}
-.del-btn{
-  background:#d63636;padding:4px 10px;border-radius:6px;margin-left:8px;cursor:pointer;
-}
+    .top-tab {
+      flex: 1;
+      text-align: center;
+      padding: 7px 4px;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 999px;
+      border: 1px solid #1d4ed8;
+      cursor: pointer;
+      background: #020617;
+      color: #bfdbfe;
+      text-decoration: none;
+    }
+    .top-tab.active {
+      background: #1d4ed8;
+      color: #ffffff;
+      box-shadow: 0 0 0 1px #1d4ed855, 0 10px 25px #1d4ed850;
+    }
 
-/* QR tab */
-.qr-table-box{
-  padding:12px;background:#111a30;border-radius:12px;margin:10px;
-}
-.qr-btn{
-  padding:10px;background:#1a2440;border-radius:10px;margin:6px 0;cursor:pointer;
-}
+    /* ==== BOX CHUNG ==== */
+    .box {
+      background: #020617ee;
+      border-radius: 16px;
+      padding: 12px 14px;
+      margin-bottom: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.45);
+      box-shadow: 0 18px 35px rgba(15, 23, 42, 0.9);
+    }
 
-/* Menu tab */
-.menu-item{
-  background:#1a2440;padding:14px;margin:10px;border-radius:12px;
-  display:flex;gap:10px;align-items:center;
-}
-.menu-item img{width:60px;height:60px;border-radius:10px;object-fit:cover;}
-.menu-actions button{
-  padding:6px 10px;border-radius:6px;margin-top:6px;
-}
+    h2 {
+      margin: 0 0 8px;
+      font-size: 18px;
+      font-weight: 700;
+    }
 
-/* Inventory tab */
-.inventory-item{
-  background:#1a2440;padding:14px;margin:10px;border-radius:12px;
-}
-.inv-row{
-  display:flex;gap:10px;
-}
-.inv-row input{
-  flex:1;padding:6px;border-radius:6px;border:none;background:#222;color:#fff;
-}
-</style>
+    .sub {
+      font-size: 12px;
+      color: #9ca3af;
+      margin-bottom: 4px;
+    }
+
+    /* ==== MENU DRINKS ==== */
+    .menu-section-title {
+      margin: 6px 0 4px;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #a5b4fc;
+    }
+
+    .drinks-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .drink-btn {
+      padding: 8px 6px;
+      border-radius: 12px;
+      border: 1px solid #1f2937;
+      background: #020617;
+      cursor: pointer;
+      text-align: left;
+      transition: 0.15s;
+    }
+    .drink-btn:hover {
+      border-color: #1d4ed8;
+      box-shadow: 0 0 0 1px #1d4ed860;
+    }
+    .drink-name {
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .drink-price {
+      font-size: 11px;
+      color: #9ca3af;
+    }
+
+    /* ==== SIZE / INPUT / BUTTONS ==== */
+    .size-row {
+      display: flex;
+      gap: 8px;
+      margin: 6px 0;
+    }
+    .size-btn {
+      flex: 1;
+      border-radius: 999px;
+      padding: 7px 4px;
+      text-align: center;
+      font-size: 13px;
+      font-weight: 600;
+      border: 1px solid #4b5563;
+      background: #020617;
+      color: #e5e7eb;
+      cursor: pointer;
+      transition: 0.15s;
+    }
+    .size-btn.active {
+      background: #1d4ed8;
+      border-color: #2563eb;
+      color: #fff;
+      box-shadow: 0 0 0 1px #1d4ed855;
+    }
+
+    .row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 6px 0;
+    }
+
+    .pill-input {
+      flex: 1;
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid #4b5563;
+      background: #020617;
+      color: #e5e7eb;
+      font-size: 13px;
+      outline: none;
+    }
+
+    .qty-box {
+      flex: 0 0 140px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-radius: 999px;
+      border: 1px solid #4b5563;
+      background: #020617;
+      padding: 3px 4px;
+      font-size: 13px;
+    }
+    .qty-btn {
+      width: 26px;
+      height: 26px;
+      border-radius: 999px;
+      border: none;
+      background: #111827;
+      color: #e5e7eb;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    .qty-value {
+      min-width: 26px;
+      text-align: center;
+      font-weight: 600;
+    }
+
+    .btn-row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .btn {
+      border-radius: 999px;
+      border: none;
+      padding: 9px 10px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-gray {
+      background: #4b5563;
+      color: #e5e7eb;
+    }
+    .btn-red {
+      background: #ef4444;
+      color: #fee2e2;
+    }
+    .btn-blue {
+      background: #2563eb;
+      color: #dbeafe;
+    }
+    .btn-green {
+      background: #16a34a;
+      color: #dcfce7;
+    }
+
+    .btn:active {
+      transform: translateY(1px);
+      filter: brightness(0.95);
+    }
+
+    /* ==== CURRENT ORDER ==== */
+    .order-lines {
+      font-size: 13px;
+      margin-top: 4px;
+    }
+    .order-lines div {
+      margin-bottom: 2px;
+    }
+    .order-total {
+      margin-top: 6px;
+      font-weight: 700;
+    }
+    .note-line {
+      font-size: 12px;
+      color: #9ca3af;
+      margin-top: 4px;
+    }
+
+    /* ==== HISTORY ==== */
+    .history-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 13px;
+      margin-bottom: 4px;
+    }
+    .history-list {
+      max-height: 260px;
+      overflow-y: auto;
+      font-size: 12px;
+    }
+    .history-item {
+      border-bottom: 1px dashed #1f2937;
+      padding: 4px 0 6px;
+    }
+    .history-line-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 2px;
+    }
+    .order-code {
+      font-weight: 600;
+      color: #e5e7eb;
+    }
+    .order-meta {
+      font-size: 11px;
+      color: #9ca3af;
+    }
+    .history-delete {
+      border-radius: 999px;
+      border: none;
+      padding: 3px 8px;
+      font-size: 11px;
+      background: #b91c1c;
+      color: #fee2e2;
+      cursor: pointer;
+    }
+    .history-summary {
+      white-space: pre-line;
+    }
+
+    .history-footer {
+      margin-top: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #facc15;
+    }
+
+    /* ==== DELETED ORDERS ==== */
+    .deleted-title {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .deleted-list {
+      max-height: 180px;
+      overflow-y: auto;
+      font-size: 12px;
+    }
+    .deleted-item {
+      border-bottom: 1px dashed #1f2937;
+      padding: 3px 0 5px;
+    }
+    .deleted-meta {
+      font-size: 11px;
+      color: #9ca3af;
+    }
+  </style>
 </head>
-
 <body>
+<div class="app-shell">
 
-<!-- ==================== TABS ==================== -->
-<div class="tabs">
-  <div class="tab active" onclick="switchTab('pos')">POS</div>
-  <div class="tab" onclick="switchTab('qr')">QR Order</div>
-  <div class="tab" onclick="switchTab('menu')">Menu</div>
-  <div class="tab" onclick="switchTab('inventory')">Tồn kho</div>
-  <div class="tab" onclick="switchTab('history')">Lịch sử</div>
-  <div class="tab" onclick="switchTab('deleted')">Đã xoá</div>
-</div>
+  <!-- ====== TAB MENU (5 TAB) ====== -->
+  <div class="top-tabs">
+    <button class="top-tab active">POS</button>
+    <a class="top-tab" href="order.html">QR Order</a>
+    <a class="top-tab" href="menu.html">Menu</a>
+    <a class="top-tab" href="inventory.html">Tồn kho</a>
+    <button class="top-tab" onclick="document.getElementById('deletedBox').scrollIntoView({behavior:'smooth'});">
+      Đã xoá
+    </button>
+  </div>
 
-<!-- ==================== POS ==================== -->
-<div id="pos" class="page active">
+  <!-- ====== POS BOX ====== -->
   <div class="box">
     <h2>POS – Tea Neko</h2>
+    <div class="sub">Chọn món phía dưới, hệ thống tự cộng vào “Đơn hiện tại”.</div>
 
-    <div id="current-list">Chưa có món nào.</div>
-
-    <div style="margin-top:10px;font-size:20px;font-weight:700;">
-      Tổng: <span id="current-total">0đ</span>
+    <!-- MENU DRINKS (KHÔNG HÌNH) -->
+    <div class="menu-section-title">LATTE / COFFEE / TRÀ SỮA</div>
+    <div class="drinks-grid" id="menuGrid">
+      <!-- render bằng JS -->
     </div>
 
-    <input id="cash" type="number" placeholder="Khách đưa (nghìn)" style="width:100%;padding:10px;border-radius:8px;margin-top:10px;">
+    <!-- SIZE CHỌN -->
+    <div class="menu-section-title" style="margin-top:10px;">Tuỳ chọn size</div>
+    <div class="size-row">
+      <button class="size-btn active" data-size="M" id="sizeM">Size M</button>
+      <button class="size-btn" data-size="L" id="sizeL">Size L (+5.000)</button>
+    </div>
 
-    <textarea id="note" placeholder="Ghi chú..." style="width:100%;padding:10px;border-radius:8px;margin-top:10px;"></textarea>
+    <!-- QTY + CASH -->
+    <div class="row">
+      <div class="qty-box">
+        <button class="qty-btn" id="btnQtyMinus">-</button>
+        <div class="qty-value" id="qtyValue">1</div>
+        <button class="qty-btn" id="btnQtyPlus">+</button>
+      </div>
+      <input type="number" id="inputCash" class="pill-input"
+             placeholder="Khách đưa (nghìn)" />
+    </div>
 
-    <div class="btn btn-gray" onclick="undo()">↩ Hoàn tác</div>
-    <div class="btn btn-red" onclick="clearAll()">Xoá tất cả</div>
-    <div class="btn btn-blue" onclick="saveOrder()">💾 Lưu đơn</div>
-    <div class="btn btn-green" onclick="saveAndPrint()">🖨 Lưu + In bill</div>
+    <!-- NOTE -->
+    <input id="inputNote" class="pill-input"
+           placeholder="Ghi chú cho đơn (tuỳ chọn – ít đá, ít ngọt...)" />
+
+    <!-- BUTTONS -->
+    <div class="btn-row">
+      <button class="btn btn-gray" id="btnUndo">↩ Hoàn tác</button>
+      <button class="btn btn-red" id="btnClear">Xoá tất cả</button>
+      <button class="btn btn-blue" id="btnSave">💾 Lưu đơn</button>
+      <button class="btn btn-green" id="btnSavePrint">🧾 Lưu + In bill</button>
+    </div>
+
+    <!-- CURRENT ORDER -->
+    <div class="menu-section-title" style="margin-top:10px;">Đơn hiện tại</div>
+    <div class="order-lines" id="currentOrderLines">Chưa có món nào.</div>
+    <div class="order-total" id="currentOrderTotal">Tổng: 0đ</div>
+    <div class="note-line" id="changeInfo">Tiền trả lại khách: 0đ</div>
+
   </div>
-</div>
 
-<!-- ==================== QR ORDER ==================== -->
-<div id="qr" class="page">
+  <!-- ====== HISTORY BOX ====== -->
   <div class="box">
-    <h2>QR Order (20 bàn)</h2>
-    <div id="qr-list"></div>
-  </div>
-</div>
-
-<!-- ==================== MENU ==================== -->
-<div id="menu" class="page">
-  <div class="box">
-    <h2>Quản lý Menu</h2>
-
-    <div id="menu-list"></div>
-
-    <div class="btn btn-blue" onclick="openAddMenu()">➕ Thêm món mới</div>
-
-    <div id="menu-form" style="display:none;margin-top:20px;">
-      <h3 id="menu-form-title"></h3>
-      <input id="mf-name" placeholder="Tên món" style="width:100%;padding:8px;margin-bottom:6px;border-radius:8px;">
-      <input id="mf-price" type="number" placeholder="Giá" style="width:100%;padding:8px;margin-bottom:6px;border-radius:8px;">
-      <input id="mf-img" placeholder="Link ảnh" style="width:100%;padding:8px;margin-bottom:6px;border-radius:8px;">
-      <input id="mf-cat" placeholder="Danh mục" style="width:100%;padding:8px;margin-bottom:6px;border-radius:8px;">
-      <div class="btn btn-green" onclick="saveMenuForm()">💾 Lưu</div>
-      <div class="btn btn-gray" onclick="closeMenuForm()">Đóng</div>
+    <div class="history-header">
+      <div><b>Lịch sử đơn (Realtime)</b></div>
+      <button class="history-delete" id="btnReloadHistory">↻ Tải lại</button>
+    </div>
+    <div class="history-list" id="historyList">
+      Đang tải dữ liệu...
+    </div>
+    <div class="history-footer" id="totalRevenueLine">
+      Tổng doanh thu: 0đ
     </div>
   </div>
-</div>
 
-<!-- ==================== INVENTORY ==================== -->
-<div id="inventory" class="page">
-  <div class="box">
-    <h2>Tồn kho nguyên liệu</h2>
-
-    <div id="inv-list"></div>
-
-    <div class="btn btn-blue" onclick="openAddInv()">➕ Thêm nguyên liệu</div>
-
-    <div id="inv-form" style="display:none;margin-top:20px;">
-      <h3 id="inv-form-title"></h3>
-      <input id="inv-name" placeholder="Tên nguyên liệu" style="width:100%;padding:8px;margin-bottom:6px;border-radius:8px;">
-      <input id="inv-qty" type="number" placeholder="Số lượng" style="width:100%;padding:8px;margin-bottom:6px;border-radius:8px;">
-      <input id="inv-unit" placeholder="Đơn vị (g/ml/cái…)" style="width:100%;padding:8px;margin-bottom:6px;border-radius:8px;">
-      <div class="btn btn-green" onclick="saveInvForm()">💾 Lưu</div>
-      <div class="btn btn-gray" onclick="closeInvForm()">Đóng</div>
+  <!-- ====== DELETED ORDERS BOX ====== -->
+  <div class="box" id="deletedBox">
+    <div class="deleted-title">Đơn đã xoá (chỉ xem, không xoá tiếp)</div>
+    <div class="deleted-list" id="deletedList">
+      Đang tải dữ liệu...
     </div>
   </div>
+
 </div>
 
-<!-- ==================== HISTORY ==================== -->
-<div id="history" class="page">
-  <div class="box">
-    <h2>Lịch sử đơn</h2>
-    <div id="history-list">Đang tải...</div>
-    <div class="btn btn-gray" onclick="loadHistory()">↻ Tải lại</div>
-  </div>
-</div>
-
-<!-- ==================== DELETED ==================== -->
-<div id="deleted" class="page">
-  <div class="box">
-    <h2>Đơn đã xoá</h2>
-    <div id="deleted-list">Đang tải...</div>
-    <div class="btn btn-gray" onclick="loadDeleted()">↻ Tải lại</div>
-  </div>
-</div>
-
-<!-- ==================== SCRIPT ==================== -->
 <script type="module">
 import { supabase } from "./js/supabase.js";
 
-/* ========== SWITCH TAB ========== */
-function switchTab(id){
-  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
-  document.getElementById(id).classList.add("active");
+/* ====== MENU GỐC – KHÔNG HÌNH ====== */
+const baseMenu = [
+  { id: "matcha",   name: "Matcha Latte",      priceM: 25000, priceL: 30000 },
+  { id: "coffee",   name: "Coffee",            priceM: 25000, priceL: 30000 },
+  { id: "hongtra",  name: "Hồng trà sữa",      priceM: 28000, priceL: 33000 },
+  { id: "bacxiu",   name: "Bạc xỉu",           priceM: 20000, priceL: 25000 },
+  { id: "trasuacc", name: "Trà sữa trân châu", priceM: 30000, priceL: 35000 },
+  { id: "cacao",    name: "Cacao đá",         priceM: 22000, priceL: 27000 }
+];
 
-  document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
-  event.target.classList.add("active");
+/* ====== STATE ====== */
+let size = "M";
+let qty  = 1;
+let currentItems = []; // {name, size, qty, unitPrice, lineTotal}
+let undoStack = [];
 
-  if(id==="history") loadHistory();
-  if(id==="deleted") loadDeleted();
-  if(id==="menu") loadMenu();
-  if(id==="inventory") loadInventory();
-  if(id==="qr") loadQR();
-}
-
-/* ========== POS ========== */
-let current=[];
-
-function renderCurrent(){
-  let box=document.getElementById("current-list");
-  if(current.length===0){box.innerHTML="Chưa có món nào.";document.getElementById("current-total").innerText="0đ";return;}
-
-  let html="",total=0;
-  current.forEach((i,idx)=>{
-    html+=`
-      <div class="order-item">
-        ${i.qty}x ${i.name} — ${(i.qty*i.price).toLocaleString()}đ
-        <span class="del-btn" onclick="removeItem(${idx})">X</span>
-      </div>
-    `;
-    total+=i.qty*i.price;
+/* ====== RENDER MENU ====== */
+function renderMenu() {
+  const grid = document.getElementById("menuGrid");
+  grid.innerHTML = "";
+  baseMenu.forEach((item) => {
+    const btn = document.createElement("button");
+    btn.className = "drink-btn";
+    btn.innerHTML = `
+      <div class="drink-name">${item.name}</div>
+      <div class="drink-price">${
+        size === "M"
+          ? item.priceM.toLocaleString("vi-VN") + "đ (Size M)"
+          : item.priceL.toLocaleString("vi-VN") + "đ (Size L)"
+      }</div>`;
+    btn.onclick = () => addItem(item);
+    grid.appendChild(btn);
   });
-  box.innerHTML=html;
-  document.getElementById("current-total").innerText=total.toLocaleString()+"đ";
 }
 
-window.removeItem=i=>{current.splice(i,1);renderCurrent();}
-window.undo=()=>{current.pop();renderCurrent();}
-window.clearAll=()=>{if(confirm("Xoá tất cả?")){current=[];renderCurrent();}}
-
-async function saveOrder(){
-  if(current.length===0) return alert("Chưa có món!");
-
-  const total=current.reduce((s,i)=>s+i.qty*i.price,0);
-  const note=document.getElementById("note").value;
-
-  await supabase.from("orders").insert([{items:current,total,note}]);
-  alert("Đã lưu!");
-
-  current=[];renderCurrent();
+/* ====== SIZE ====== */
+function setSize(newSize) {
+  size = newSize;
+  document.getElementById("sizeM").classList.toggle("active", size === "M");
+  document.getElementById("sizeL").classList.toggle("active", size === "L");
+  renderMenu(); // để cập nhật giá hiển thị
 }
 
-async function saveAndPrint(){
-  await saveOrder();
-  print();
+/* ====== QTY ====== */
+function setQty(newQty) {
+  qty = Math.max(1, newQty);
+  document.getElementById("qtyValue").textContent = qty;
 }
 
-/* ========== QR ORDER ========== */
-async function loadQR(){
-  let html="";
-  for(let i=1;i<=20;i++){
-    html+=`<div class="qr-btn" onclick="openQR(${i})">Bàn ${i}</div>`;
+function addItem(menuItem) {
+  const unitPrice = size === "M" ? menuItem.priceM : menuItem.priceL;
+  const lineTotal = unitPrice * qty;
+
+  const existing = currentItems.find(
+    (it) => it.name === menuItem.name && it.size === size
+  );
+  if (existing) {
+    existing.qty += qty;
+    existing.lineTotal += lineTotal;
+  } else {
+    currentItems.push({
+      name: menuItem.name,
+      size,
+      qty,
+      unitPrice,
+      lineTotal
+    });
   }
-  document.getElementById("qr-list").innerHTML=html;
+
+  undoStack.push({
+    type: "add",
+    itemName: menuItem.name,
+    size,
+    qty
+  });
+
+  renderCurrentOrder();
 }
 
-window.openQR=async(table)=>{
-  const {data}=await supabase.from("web_orders").select("*").eq("table_id",table).eq("status","pending");
-  if(!data.length) return alert("Bàn này chưa có order.");
+function renderCurrentOrder() {
+  const box = document.getElementById("currentOrderLines");
+  const totalEl = document.getElementById("currentOrderTotal");
+  const changeEl = document.getElementById("changeInfo");
 
-  if(confirm("Chuyển order bàn "+table+" vào POS?")){
-    data[0].items.forEach(i=>current.push({name:i.name,qty:i.qty,price:i.priceM||i.priceL||i.price}));
-    await supabase.from("web_orders").update({status:"done"}).eq("id",data[0].id);
-    renderCurrent();
+  if (!currentItems.length) {
+    box.textContent = "Chưa có món nào.";
+    totalEl.textContent = "Tổng: 0đ";
+    changeEl.textContent = "Tiền trả lại khách: 0đ";
+    return;
   }
-};
 
-/* ========== MENU ========== */
-let editingMenu=null;
+  box.innerHTML = "";
+  let total = 0;
+  currentItems.forEach((it) => {
+    total += it.lineTotal;
+    const div = document.createElement("div");
+    div.textContent = `${it.qty}x ${it.name} (Size ${it.size}) – ${it.lineTotal.toLocaleString("vi-VN")}đ`;
+    box.appendChild(div);
+  });
+  totalEl.textContent = "Tổng: " + total.toLocaleString("vi-VN") + "đ";
 
-async function loadMenu(){
-  const {data}=await supabase.from("menu_items").select("*").order("category");
-  let html="";
-  data.forEach(m=>{
-    html+=`
-      <div class="menu-item">
-        <img src="${m.img}">
+  const cashK = Number(document.getElementById("inputCash").value || "0");
+  const cash = cashK * 1000;
+  const change = Math.max(0, cash - total);
+  changeEl.textContent =
+    "Tiền trả lại khách: " + change.toLocaleString("vi-VN") + "đ";
+}
+
+/* ====== HOÀN TÁC / XOÁ ====== */
+function undoLast() {
+  const last = undoStack.pop();
+  if (!last) return;
+
+  const idx = currentItems.findIndex(
+    (it) => it.name === last.itemName && it.size === last.size
+  );
+  if (idx === -1) return;
+  const it = currentItems[idx];
+  it.qty -= last.qty;
+  it.lineTotal -= it.unitPrice * last.qty;
+  if (it.qty <= 0 || it.lineTotal <= 0) {
+    currentItems.splice(idx, 1);
+  }
+  renderCurrentOrder();
+}
+
+function clearOrder() {
+  if (!currentItems.length) return;
+  if (!confirm("Xoá toàn bộ món trong đơn hiện tại?")) return;
+  currentItems = [];
+  undoStack = [];
+  renderCurrentOrder();
+}
+
+/* ====== SAVE ORDER TO SUPABASE ====== */
+async function saveOrder(printAfter) {
+  if (!currentItems.length) {
+    alert("Chưa có món nào trong đơn.");
+    return;
+  }
+
+  let total = 0;
+  currentItems.forEach((it) => (total += it.lineTotal));
+
+  const cashK = Number(document.getElementById("inputCash").value || "0");
+  const cash = cashK * 1000;
+  const change = Math.max(0, cash - total);
+  const note = document.getElementById("inputNote").value.trim();
+
+  const { data: last, error: lastErr } = await supabase
+    .from("orders")
+    .select("order_code")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  let nextNumber = 1;
+  if (!lastErr && last && last.order_code) {
+    const m = last.order_code.match(/#(\d+)/);
+    if (m) nextNumber = Number(m[1]) + 1;
+  }
+  const orderCode = "#" + String(nextNumber).padStart(4, "0");
+
+  const payload = {
+    order_code: orderCode,
+    items: currentItems,
+    total,
+    cash_given: cash,
+    change,
+    note
+  };
+
+  const { error } = await supabase.from("orders").insert([payload]);
+  if (error) {
+    console.error(error);
+    alert("Lưu đơn thất bại.");
+    return;
+  }
+
+  currentItems = [];
+  undoStack = [];
+  document.getElementById("inputCash").value = "";
+  document.getElementById("inputNote").value = "";
+  renderCurrentOrder();
+  await loadHistory();
+
+  if (printAfter) {
+    window.print(); // in đơn tạm thời (chrome / cốc cốc)
+  } else {
+    alert("Đã lưu đơn " + orderCode);
+  }
+}
+
+/* ====== HISTORY + DELETED ====== */
+async function loadHistory() {
+  const listEl = document.getElementById("historyList");
+  listEl.textContent = "Đang tải dữ liệu...";
+
+  const { data, error } = await supabase
+    .from("orders")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error(error);
+    listEl.textContent = "Lỗi tải lịch sử đơn.";
+    return;
+  }
+
+  if (!data.length) {
+    listEl.textContent = "Chưa có đơn nào.";
+    document.getElementById("totalRevenueLine").textContent =
+      "Tổng doanh thu: 0đ";
+    return;
+  }
+
+  listEl.innerHTML = "";
+  let totalRev = 0;
+
+  data.forEach((row) => {
+    totalRev += row.total || 0;
+    const div = document.createElement("div");
+    div.className = "history-item";
+
+    const itemsSummary = (row.items || [])
+      .map(
+        (it) =>
+          `${it.qty}x ${it.name} (Size ${it.size}) – ${it.lineTotal.toLocaleString(
+            "vi-VN"
+          )}đ`
+      )
+      .join("\n");
+
+    div.innerHTML = `
+      <div class="history-line-top">
         <div>
-          <div><b>${m.name}</b></div>
-          <div>${m.price.toLocaleString()}đ</div>
-          <div style="font-size:12px;color:#aaa">${m.category}</div>
-          <div class="menu-actions">
-            <button onclick="editMenu(${m.id})">Sửa</button>
-            <button onclick="deleteMenu(${m.id})">Xoá</button>
+          <div class="order-code">${row.order_code || "N/A"}</div>
+          <div class="order-meta">
+            ${new Date(row.created_at).toLocaleString("vi-VN")}
           </div>
         </div>
+        <button class="history-delete" data-id="${row.id}">Xoá đơn</button>
+      </div>
+      <div class="history-summary">${itemsSummary}</div>
+      <div class="order-meta">
+        Tổng: ${(row.total || 0).toLocaleString("vi-VN")}đ
+        ${
+          row.cash_given
+            ? " | Khách đưa: " +
+              row.cash_given.toLocaleString("vi-VN") +
+              "đ – Trả lại khách: " +
+              (row.change || 0).toLocaleString("vi-VN") +
+              "đ"
+            : ""
+        }
+        ${row.note ? "<br>Ghi chú: " + row.note : ""}
       </div>
     `;
+    listEl.appendChild(div);
   });
-  document.getElementById("menu-list").innerHTML=html;
+
+  document.getElementById("totalRevenueLine").textContent =
+    "Tổng doanh thu: " + totalRev.toLocaleString("vi-VN") + "đ";
+
+  listEl.querySelectorAll(".history-delete").forEach((btn) => {
+    btn.onclick = () => deleteOrder(btn.dataset.id);
+  });
+
+  await loadDeleted();
 }
 
-/* Form menu */
-window.openAddMenu=()=>{
-  editingMenu=null;
-  document.getElementById("menu-form-title").innerText="Thêm món mới";
-  document.getElementById("menu-form").style.display="block";
-};
-window.closeMenuForm=()=>document.getElementById("menu-form").style.display="none";
+async function deleteOrder(id) {
+  if (!confirm("Xoá đơn này và chuyển vào mục Đã xoá?")) return;
 
-window.editMenu=async(id)=>{
-  editingMenu=id;
-  const {data}=await supabase.from("menu_items").select("*").eq("id",id).single();
+  const { data, error } = await supabase
+    .from("orders")
+    .select("*")
+    .eq("id", id)
+    .single();
 
-  document.getElementById("menu-form-title").innerText="Sửa món";
-  document.getElementById("mf-name").value=data.name;
-  document.getElementById("mf-price").value=data.price;
-  document.getElementById("mf-img").value=data.img;
-  document.getElementById("mf-cat").value=data.category;
-
-  document.getElementById("menu-form").style.display="block";
-};
-
-window.saveMenuForm=async()=>{
-  let name=document.getElementById("mf-name").value;
-  let price=+document.getElementById("mf-price").value;
-  let img=document.getElementById("mf-img").value;
-  let category=document.getElementById("mf-cat").value;
-
-  if(editingMenu){
-    await supabase.from("menu_items").update({name,price,img,category}).eq("id",editingMenu);
-  }else{
-    await supabase.from("menu_items").insert([{name,price,img,category}]);
+  if (error) {
+    console.error(error);
+    alert("Không tìm thấy đơn để xoá.");
+    return;
   }
 
-  closeMenuForm();loadMenu();
-};
+  const payload = {
+    ...data,
+    deleted_at: new Date().toISOString()
+  };
 
-window.deleteMenu=async(id)=>{
-  if(confirm("Xoá món này?")){
-    await supabase.from("menu_items").delete().eq("id",id);
-    loadMenu();
+  const { error: insErr } = await supabase
+    .from("deleted_orders")
+    .insert([payload]);
+
+  if (insErr) {
+    console.error(insErr);
+    alert("Không thể chép sang bảng deleted_orders.");
+    return;
   }
-};
 
-/* ========== INVENTORY ========== */
-let editingInv=null;
+  const { error: delErr } = await supabase
+    .from("orders")
+    .delete()
+    .eq("id", id);
 
-async function loadInventory(){
-  const {data}=await supabase.from("inventory").select("*");
-  let html="";
-  data.forEach(i=>{
-    html+=`
-      <div class="inventory-item">
-        <b>${i.name}</b>
-        <div class="inv-row">
-          <input value="${i.qty}">
-          <input value="${i.unit}">
-        </div>
-        <div style="margin-top:6px;">
-          <button onclick="editInv(${i.id})">Sửa</button>
-          <button onclick="deleteInv(${i.id})">Xoá</button>
-        </div>
+  if (delErr) {
+    console.error(delErr);
+    alert("Xoá đơn trên bảng orders thất bại.");
+    return;
+  }
+
+  await loadHistory();
+}
+
+async function loadDeleted() {
+  const listEl = document.getElementById("deletedList");
+  const { data, error } = await supabase
+    .from("deleted_orders")
+    .select("*")
+    .order("deleted_at", { ascending: false })
+    .limit(50);
+
+  if (error) {
+    console.error(error);
+    listEl.textContent = "Lỗi tải đơn đã xoá.";
+    return;
+  }
+
+  if (!data.length) {
+    listEl.textContent = "Chưa có đơn nào bị xoá.";
+    return;
+  }
+
+  listEl.innerHTML = "";
+  data.forEach((row) => {
+    const div = document.createElement("div");
+    div.className = "deleted-item";
+
+    const itemsSummary = (row.items || [])
+      .map((it) => `${it.qty}x ${it.name} (Size ${it.size})`)
+      .join(", ");
+
+    div.innerHTML = `
+      <div><b>${row.order_code || "N/A"}</b> – ${
+      (row.total || 0).toLocaleString("vi-VN") + "đ"
+    }</div>
+      <div class="deleted-meta">
+        Xoá lúc: ${
+          row.deleted_at
+            ? new Date(row.deleted_at).toLocaleString("vi-VN")
+            : "không rõ"
+        }
       </div>
+      <div class="deleted-meta">${itemsSummary}</div>
+      ${row.note ? '<div class="deleted-meta">Ghi chú: ' + row.note + "</div>" : ""}
     `;
+    listEl.appendChild(div);
   });
-  document.getElementById("inv-list").innerHTML=html;
 }
 
-window.openAddInv=()=>{editingInv=null;document.getElementById("inv-form-title").innerText="Thêm nguyên liệu";document.getElementById("inv-form").style.display="block";}
-window.closeInvForm=()=>document.getElementById("inv-form").style.display="none";
+/* ====== EVENT BINDING ====== */
+document.getElementById("sizeM").onclick = () => setSize("M");
+document.getElementById("sizeL").onclick = () => setSize("L");
 
-window.editInv=async(id)=>{
-  editingInv=id;
-  const {data}=await supabase.from("inventory").select("*").eq("id",id).single();
-  document.getElementById("inv-form-title").innerText="Sửa nguyên liệu";
-  document.getElementById("inv-name").value=data.name;
-  document.getElementById("inv-qty").value=data.qty;
-  document.getElementById("inv-unit").value=data.unit;
-  document.getElementById("inv-form").style.display="block";
-};
+document.getElementById("btnQtyMinus").onclick = () => setQty(qty - 1);
+document.getElementById("btnQtyPlus").onclick = () => setQty(qty + 1);
 
-window.saveInvForm=async()=>{
-  let name=document.getElementById("inv-name").value;
-  let qty=+document.getElementById("inv-qty").value;
-  let unit=document.getElementById("inv-unit").value;
+document.getElementById("inputCash").addEventListener("input", () =>
+  renderCurrentOrder()
+);
 
-  if(editingInv){
-    await supabase.from("inventory").update({name,qty,unit}).eq("id",editingInv);
-  }else{
-    await supabase.from("inventory").insert([{name,qty,unit}]);
-  }
+document.getElementById("btnUndo").onclick = undoLast;
+document.getElementById("btnClear").onclick = clearOrder;
+document.getElementById("btnSave").onclick = () => saveOrder(false);
+document.getElementById("btnSavePrint").onclick = () => saveOrder(true);
+document.getElementById("btnReloadHistory").onclick = loadHistory;
 
-  closeInvForm();loadInventory();
-};
-
-window.deleteInv=async(id)=>{
-  if(confirm("Xoá nguyên liệu?")){
-    await supabase.from("inventory").delete().eq("id",id);
-    loadInventory();
-  }
-};
-
-/* ========== HISTORY ========== */
-async function loadHistory(){
-  const {data}=await supabase.from("orders").select("*").order("created_at",{ascending:false});
-  let html="";
-  data.forEach(o=>{
-    html+=`
-      <div class="order-item">
-        <b>#${o.id}</b> — ${new Date(o.created_at).toLocaleString()}
-        <br>${o.items.map(i=>`${i.qty}x ${i.name}`).join(", ")}
-        <br><b>${o.total.toLocaleString()}đ</b>
-        <span class="del-btn" onclick="deleteOrder(${o.id})">X</span>
-      </div>
-    `;
-  });
-  document.getElementById("history-list").innerHTML=html||"Chưa có đơn.";
-}
-
-window.deleteOrder=async(id)=>{
-  if(confirm("Xoá đơn?")){
-    const {data}=await supabase.from("orders").select("*").eq("id",id).single();
-    await supabase.from("deleted_orders").insert([data]);
-    await supabase.from("orders").delete().eq("id",id);
-    loadHistory();
-    loadDeleted();
-  }
-};
-
-/* ========== DELETED ========== */
-async function loadDeleted(){
-  const {data}=await supabase.from("deleted_orders").select("*").order("deleted_at",{ascending:false});
-  let html="";
-  data.forEach(o=>{
-    html+=`
-      <div class="order-item">
-        <b>#${o.id}</b> — Đã xoá
-        <br>${o.items.map(i=>`${i.qty}x ${i.name}`).join(", ")}
-        <br><b>${o.total.toLocaleString()}đ</b>
-      </div>
-    `;
-  });
-  document.getElementById("deleted-list").innerHTML=html||"Chưa có đơn xoá.";
-}
-
+/* ====== INIT ====== */
+renderMenu();
+renderCurrentOrder();
+loadHistory();
 </script>
 </body>
 </html>
