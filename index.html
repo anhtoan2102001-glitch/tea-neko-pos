@@ -1,278 +1,427 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Mini POS – Tea Neko</title>
 
 <style>
-    body {
-        margin: 0;
-        background: #0b1220;
-        font-family: system-ui, sans-serif;
-        color: #fff;
-    }
+body{
+  margin:0;background:#0b1220;color:#fff;font-family:system-ui,sans-serif;
+}
+.tabs{
+  display:flex;gap:10px;padding:10px;background:#101a30;overflow-x:auto;
+}
+.tab{
+  padding:10px 16px;background:#1a2440;border-radius:10px;cursor:pointer;
+  white-space:nowrap;font-weight:600;
+}
+.tab.active{background:#3b5bff;}
+.page{display:none;}
+.page.active{display:block;}
 
-    .tabs {
-        display: flex;
-        justify-content: center;
-        background: #101a30;
-        padding: 10px;
-        gap: 20px;
-    }
+.box{
+  background:#111a30;margin:20px;padding:16px;border-radius:14px;
+  box-shadow:0 0 6px #0008;
+}
+.btn{
+  margin-top:10px;padding:12px;border-radius:10px;text-align:center;
+  font-weight:700;cursor:pointer;user-select:none;
+}
+.btn-red{background:#d63636;}
+.btn-blue{background:#0044ff;}
+.btn-green{background:#00ff90;color:#002a15;}
+.btn-gray{background:#666;}
 
-    .tab {
-        padding: 10px 20px;
-        border-radius: 10px;
-        background: #222d46;
-        cursor: pointer;
-        font-weight: 700;
-    }
+.order-item{
+  margin-bottom:10px;padding-bottom:10px;border-bottom:1px dashed #555;
+}
+.del-btn{
+  background:#d63636;padding:4px 10px;border-radius:6px;margin-left:8px;cursor:pointer;
+}
 
-    .tab.active {
-        background: #3b5bff;
-    }
+/* QR tab */
+.qr-table-box{
+  padding:12px;background:#111a30;border-radius:12px;margin:10px;
+}
+.qr-btn{
+  padding:10px;background:#1a2440;border-radius:10px;margin:6px 0;cursor:pointer;
+}
 
-    .box {
-        background: #111a30;
-        margin: 20px;
-        padding: 18px;
-        border-radius: 14px;
-        box-shadow: 0 0 6px #0008;
-    }
+/* Menu tab */
+.menu-item{
+  background:#1a2440;padding:14px;margin:10px;border-radius:12px;
+  display:flex;gap:10px;align-items:center;
+}
+.menu-item img{width:60px;height:60px;border-radius:10px;object-fit:cover;}
+.menu-actions button{
+  padding:6px 10px;border-radius:6px;margin-top:6px;
+}
 
-    h2 { margin-top: 0; }
-    .btn {
-        margin-top: 10px;
-        padding: 12px;
-        border-radius: 10px;
-        text-align: center;
-        font-weight: bold;
-        cursor: pointer;
-        user-select: none;
-    }
-
-    .btn-red { background: #d63636; }
-    .btn-blue { background: #0044ff; }
-    .btn-green { background: #00ff90; color: #002a15; }
-    .btn-gray { background: #555; }
-
-    .order-item {
-        margin-bottom: 10px;
-        padding-bottom: 10px;
-        border-bottom: 1px dashed #444;
-    }
-
-    .del-btn {
-        padding: 6px 12px;
-        background: #d63636;
-        border-radius: 6px;
-        margin-left: 10px;
-        cursor: pointer;
-    }
+/* Inventory tab */
+.inventory-item{
+  background:#1a2440;padding:14px;margin:10px;border-radius:12px;
+}
+.inv-row{
+  display:flex;gap:10px;
+}
+.inv-row input{
+  flex:1;padding:6px;border-radius:6px;border:none;background:#222;color:#fff;
+}
 </style>
 </head>
 
 <body>
 
-<!-- ======================= MENU TAB ======================= -->
+<!-- ==================== TABS ==================== -->
 <div class="tabs">
-    <div class="tab active" onclick="showTab('pos')">POS</div>
-    <div class="tab" onclick="showTab('history')">Lịch sử</div>
-    <div class="tab" onclick="showTab('deleted')">Đã xoá</div>
+  <div class="tab active" onclick="switchTab('pos')">POS</div>
+  <div class="tab" onclick="switchTab('qr')">QR Order</div>
+  <div class="tab" onclick="switchTab('menu')">Menu</div>
+  <div class="tab" onclick="switchTab('inventory')">Tồn kho</div>
+  <div class="tab" onclick="switchTab('history')">Lịch sử</div>
+  <div class="tab" onclick="switchTab('deleted')">Đã xoá</div>
 </div>
 
-<!-- ======================= POS ======================= -->
-<div id="pos" class="tab-page">
+<!-- ==================== POS ==================== -->
+<div id="pos" class="page active">
+  <div class="box">
+    <h2>POS – Tea Neko</h2>
 
-    <h2>Mini POS – Tea Neko</h2>
+    <div id="current-list">Chưa có món nào.</div>
 
-    <div class="box">
-        <div id="current-list">Chưa có món nào.</div>
-        <div style="margin-top:6px; font-size:18px; font-weight:700;">
-            Tổng: <span id="current-total">0đ</span>
-        </div>
-
-        <input id="cash" type="number" placeholder="Khách đưa (nghìn)" style="width:100%; padding:10px; margin-top:10px; border-radius:8px;" />
-
-        <textarea id="note" placeholder="Ghi chú đơn..." style="width:100%; padding:10px; border-radius:8px; margin-top:10px;"></textarea>
-
-        <div class="btn btn-gray" onclick="undo()">↩ Hoàn tác</div>
-        <div class="btn btn-red" onclick="clearAll()">Xoá tất cả</div>
-        <div class="btn btn-blue" onclick="saveOrder()">💾 Lưu đơn</div>
-        <div class="btn btn-green" onclick="saveAndPrint()">🖨 Lưu + In bill</div>
+    <div style="margin-top:10px;font-size:20px;font-weight:700;">
+      Tổng: <span id="current-total">0đ</span>
     </div>
 
+    <input id="cash" type="number" placeholder="Khách đưa (nghìn)" style="width:100%;padding:10px;border-radius:8px;margin-top:10px;">
+
+    <textarea id="note" placeholder="Ghi chú..." style="width:100%;padding:10px;border-radius:8px;margin-top:10px;"></textarea>
+
+    <div class="btn btn-gray" onclick="undo()">↩ Hoàn tác</div>
+    <div class="btn btn-red" onclick="clearAll()">Xoá tất cả</div>
+    <div class="btn btn-blue" onclick="saveOrder()">💾 Lưu đơn</div>
+    <div class="btn btn-green" onclick="saveAndPrint()">🖨 Lưu + In bill</div>
+  </div>
 </div>
 
-<!-- ======================= HISTORY ======================= -->
-<div id="history" class="tab-page" style="display:none;">
+<!-- ==================== QR ORDER ==================== -->
+<div id="qr" class="page">
+  <div class="box">
+    <h2>QR Order (20 bàn)</h2>
+    <div id="qr-list"></div>
+  </div>
+</div>
+
+<!-- ==================== MENU ==================== -->
+<div id="menu" class="page">
+  <div class="box">
+    <h2>Quản lý Menu</h2>
+
+    <div id="menu-list"></div>
+
+    <div class="btn btn-blue" onclick="openAddMenu()">➕ Thêm món mới</div>
+
+    <div id="menu-form" style="display:none;margin-top:20px;">
+      <h3 id="menu-form-title"></h3>
+      <input id="mf-name" placeholder="Tên món" style="width:100%;padding:8px;margin-bottom:6px;border-radius:8px;">
+      <input id="mf-price" type="number" placeholder="Giá" style="width:100%;padding:8px;margin-bottom:6px;border-radius:8px;">
+      <input id="mf-img" placeholder="Link ảnh" style="width:100%;padding:8px;margin-bottom:6px;border-radius:8px;">
+      <input id="mf-cat" placeholder="Danh mục" style="width:100%;padding:8px;margin-bottom:6px;border-radius:8px;">
+      <div class="btn btn-green" onclick="saveMenuForm()">💾 Lưu</div>
+      <div class="btn btn-gray" onclick="closeMenuForm()">Đóng</div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== INVENTORY ==================== -->
+<div id="inventory" class="page">
+  <div class="box">
+    <h2>Tồn kho nguyên liệu</h2>
+
+    <div id="inv-list"></div>
+
+    <div class="btn btn-blue" onclick="openAddInv()">➕ Thêm nguyên liệu</div>
+
+    <div id="inv-form" style="display:none;margin-top:20px;">
+      <h3 id="inv-form-title"></h3>
+      <input id="inv-name" placeholder="Tên nguyên liệu" style="width:100%;padding:8px;margin-bottom:6px;border-radius:8px;">
+      <input id="inv-qty" type="number" placeholder="Số lượng" style="width:100%;padding:8px;margin-bottom:6px;border-radius:8px;">
+      <input id="inv-unit" placeholder="Đơn vị (g/ml/cái…)" style="width:100%;padding:8px;margin-bottom:6px;border-radius:8px;">
+      <div class="btn btn-green" onclick="saveInvForm()">💾 Lưu</div>
+      <div class="btn btn-gray" onclick="closeInvForm()">Đóng</div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== HISTORY ==================== -->
+<div id="history" class="page">
+  <div class="box">
     <h2>Lịch sử đơn</h2>
-
-    <div class="box">
-        <div id="history-list">Đang tải...</div>
-        <div class="btn btn-gray" onclick="loadHistory()">↻ Tải lại</div>
-    </div>
+    <div id="history-list">Đang tải...</div>
+    <div class="btn btn-gray" onclick="loadHistory()">↻ Tải lại</div>
+  </div>
 </div>
 
-<!-- ======================= DELETED ======================= -->
-<div id="deleted" class="tab-page" style="display:none;">
+<!-- ==================== DELETED ==================== -->
+<div id="deleted" class="page">
+  <div class="box">
     <h2>Đơn đã xoá</h2>
-
-    <div class="box">
-        <div id="deleted-list">Đang tải...</div>
-        <div class="btn btn-gray" onclick="loadDeleted()">↻ Tải lại</div>
-    </div>
+    <div id="deleted-list">Đang tải...</div>
+    <div class="btn btn-gray" onclick="loadDeleted()">↻ Tải lại</div>
+  </div>
 </div>
 
-<!-- ======================= SCRIPT ======================= -->
+<!-- ==================== SCRIPT ==================== -->
 <script type="module">
+import { supabase } from "./js/supabase.js";
 
-// =============== SUPABASE ===============
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+/* ========== SWITCH TAB ========== */
+function switchTab(id){
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
 
-const supabase = createClient(
-    "https://kcrchwedlrettpkucoct.supabase.co",
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtjcmNod2VkbHJldHRwa3Vjb2N0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM4ODQ0MjgsImV4cCI6MjA3OTQ2MDQyOH0.g4WA9tci2zm4MIa6EvOe6tH_EhaoicdrdiP6swgjRgw"
-);
+  document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+  event.target.classList.add("active");
 
-// ================= TAB ==================
-function showTab(tab) {
-    document.querySelectorAll(".tab-page").forEach(e => e.style.display = "none");
-    document.getElementById(tab).style.display = "block";
-
-    document.querySelectorAll(".tab").forEach(e => e.classList.remove("active"));
-    event.target.classList.add("active");
-
-    if (tab === "history") loadHistory();
-    if (tab === "deleted") loadDeleted();
+  if(id==="history") loadHistory();
+  if(id==="deleted") loadDeleted();
+  if(id==="menu") loadMenu();
+  if(id==="inventory") loadInventory();
+  if(id==="qr") loadQR();
 }
 
-// ================= POS ==================
-let current = [];
+/* ========== POS ========== */
+let current=[];
 
-function renderCurrent() {
-    if (current.length === 0) {
-        document.getElementById("current-list").innerHTML = "Chưa có món nào.";
-        document.getElementById("current-total").innerText = "0đ";
-        return;
-    }
+function renderCurrent(){
+  let box=document.getElementById("current-list");
+  if(current.length===0){box.innerHTML="Chưa có món nào.";document.getElementById("current-total").innerText="0đ";return;}
 
-    let html = "";
-    let total = 0;
-
-    current.forEach((item, i) => {
-        html += `
-            <div class="order-item">
-                ${item.qty}x ${item.name} — ${(item.qty * item.price).toLocaleString()}đ
-                <span class="del-btn" onclick="removeItem(${i})">X</span>
-            </div>
-        `;
-        total += item.qty * item.price;
-    });
-
-    document.getElementById("current-list").innerHTML = html;
-    document.getElementById("current-total").innerText = total.toLocaleString() + "đ";
+  let html="",total=0;
+  current.forEach((i,idx)=>{
+    html+=`
+      <div class="order-item">
+        ${i.qty}x ${i.name} — ${(i.qty*i.price).toLocaleString()}đ
+        <span class="del-btn" onclick="removeItem(${idx})">X</span>
+      </div>
+    `;
+    total+=i.qty*i.price;
+  });
+  box.innerHTML=html;
+  document.getElementById("current-total").innerText=total.toLocaleString()+"đ";
 }
 
-window.removeItem = (i) => {
-    current.splice(i, 1);
+window.removeItem=i=>{current.splice(i,1);renderCurrent();}
+window.undo=()=>{current.pop();renderCurrent();}
+window.clearAll=()=>{if(confirm("Xoá tất cả?")){current=[];renderCurrent();}}
+
+async function saveOrder(){
+  if(current.length===0) return alert("Chưa có món!");
+
+  const total=current.reduce((s,i)=>s+i.qty*i.price,0);
+  const note=document.getElementById("note").value;
+
+  await supabase.from("orders").insert([{items:current,total,note}]);
+  alert("Đã lưu!");
+
+  current=[];renderCurrent();
+}
+
+async function saveAndPrint(){
+  await saveOrder();
+  print();
+}
+
+/* ========== QR ORDER ========== */
+async function loadQR(){
+  let html="";
+  for(let i=1;i<=20;i++){
+    html+=`<div class="qr-btn" onclick="openQR(${i})">Bàn ${i}</div>`;
+  }
+  document.getElementById("qr-list").innerHTML=html;
+}
+
+window.openQR=async(table)=>{
+  const {data}=await supabase.from("web_orders").select("*").eq("table_id",table).eq("status","pending");
+  if(!data.length) return alert("Bàn này chưa có order.");
+
+  if(confirm("Chuyển order bàn "+table+" vào POS?")){
+    data[0].items.forEach(i=>current.push({name:i.name,qty:i.qty,price:i.priceM||i.priceL||i.price}));
+    await supabase.from("web_orders").update({status:"done"}).eq("id",data[0].id);
     renderCurrent();
+  }
 };
 
-window.undo = () => {
-    current.pop();
-    renderCurrent();
+/* ========== MENU ========== */
+let editingMenu=null;
+
+async function loadMenu(){
+  const {data}=await supabase.from("menu_items").select("*").order("category");
+  let html="";
+  data.forEach(m=>{
+    html+=`
+      <div class="menu-item">
+        <img src="${m.img}">
+        <div>
+          <div><b>${m.name}</b></div>
+          <div>${m.price.toLocaleString()}đ</div>
+          <div style="font-size:12px;color:#aaa">${m.category}</div>
+          <div class="menu-actions">
+            <button onclick="editMenu(${m.id})">Sửa</button>
+            <button onclick="deleteMenu(${m.id})">Xoá</button>
+          </div>
+        </div>
+      </div>
+    `;
+  });
+  document.getElementById("menu-list").innerHTML=html;
+}
+
+/* Form menu */
+window.openAddMenu=()=>{
+  editingMenu=null;
+  document.getElementById("menu-form-title").innerText="Thêm món mới";
+  document.getElementById("menu-form").style.display="block";
+};
+window.closeMenuForm=()=>document.getElementById("menu-form").style.display="none";
+
+window.editMenu=async(id)=>{
+  editingMenu=id;
+  const {data}=await supabase.from("menu_items").select("*").eq("id",id).single();
+
+  document.getElementById("menu-form-title").innerText="Sửa món";
+  document.getElementById("mf-name").value=data.name;
+  document.getElementById("mf-price").value=data.price;
+  document.getElementById("mf-img").value=data.img;
+  document.getElementById("mf-cat").value=data.category;
+
+  document.getElementById("menu-form").style.display="block";
 };
 
-window.clearAll = () => {
-    if (confirm("Xoá toàn bộ đơn hiện tại?")) {
-        current = [];
-        renderCurrent();
-    }
+window.saveMenuForm=async()=>{
+  let name=document.getElementById("mf-name").value;
+  let price=+document.getElementById("mf-price").value;
+  let img=document.getElementById("mf-img").value;
+  let category=document.getElementById("mf-cat").value;
+
+  if(editingMenu){
+    await supabase.from("menu_items").update({name,price,img,category}).eq("id",editingMenu);
+  }else{
+    await supabase.from("menu_items").insert([{name,price,img,category}]);
+  }
+
+  closeMenuForm();loadMenu();
 };
 
-async function saveOrder() {
-    if (current.length === 0) return alert("Chưa có món để lưu!");
+window.deleteMenu=async(id)=>{
+  if(confirm("Xoá món này?")){
+    await supabase.from("menu_items").delete().eq("id",id);
+    loadMenu();
+  }
+};
 
-    const note = document.getElementById("note").value;
+/* ========== INVENTORY ========== */
+let editingInv=null;
 
-    await supabase.from("orders").insert([
-        {
-            items: current,
-            total: current.reduce((t, i) => t + i.qty * i.price, 0),
-            note
-        }
-    ]);
-
-    alert("Đã lưu đơn!");
-    current = [];
-    renderCurrent();
+async function loadInventory(){
+  const {data}=await supabase.from("inventory").select("*");
+  let html="";
+  data.forEach(i=>{
+    html+=`
+      <div class="inventory-item">
+        <b>${i.name}</b>
+        <div class="inv-row">
+          <input value="${i.qty}">
+          <input value="${i.unit}">
+        </div>
+        <div style="margin-top:6px;">
+          <button onclick="editInv(${i.id})">Sửa</button>
+          <button onclick="deleteInv(${i.id})">Xoá</button>
+        </div>
+      </div>
+    `;
+  });
+  document.getElementById("inv-list").innerHTML=html;
 }
 
-async function saveAndPrint() {
-    await saveOrder();
-    print();
+window.openAddInv=()=>{editingInv=null;document.getElementById("inv-form-title").innerText="Thêm nguyên liệu";document.getElementById("inv-form").style.display="block";}
+window.closeInvForm=()=>document.getElementById("inv-form").style.display="none";
+
+window.editInv=async(id)=>{
+  editingInv=id;
+  const {data}=await supabase.from("inventory").select("*").eq("id",id).single();
+  document.getElementById("inv-form-title").innerText="Sửa nguyên liệu";
+  document.getElementById("inv-name").value=data.name;
+  document.getElementById("inv-qty").value=data.qty;
+  document.getElementById("inv-unit").value=data.unit;
+  document.getElementById("inv-form").style.display="block";
+};
+
+window.saveInvForm=async()=>{
+  let name=document.getElementById("inv-name").value;
+  let qty=+document.getElementById("inv-qty").value;
+  let unit=document.getElementById("inv-unit").value;
+
+  if(editingInv){
+    await supabase.from("inventory").update({name,qty,unit}).eq("id",editingInv);
+  }else{
+    await supabase.from("inventory").insert([{name,qty,unit}]);
+  }
+
+  closeInvForm();loadInventory();
+};
+
+window.deleteInv=async(id)=>{
+  if(confirm("Xoá nguyên liệu?")){
+    await supabase.from("inventory").delete().eq("id",id);
+    loadInventory();
+  }
+};
+
+/* ========== HISTORY ========== */
+async function loadHistory(){
+  const {data}=await supabase.from("orders").select("*").order("created_at",{ascending:false});
+  let html="";
+  data.forEach(o=>{
+    html+=`
+      <div class="order-item">
+        <b>#${o.id}</b> — ${new Date(o.created_at).toLocaleString()}
+        <br>${o.items.map(i=>`${i.qty}x ${i.name}`).join(", ")}
+        <br><b>${o.total.toLocaleString()}đ</b>
+        <span class="del-btn" onclick="deleteOrder(${o.id})">X</span>
+      </div>
+    `;
+  });
+  document.getElementById("history-list").innerHTML=html||"Chưa có đơn.";
 }
 
-// =================== HISTORY ====================
-async function loadHistory() {
-    const { data } = await supabase.from("orders").select("*").order("created_at", { ascending:false });
-
-    let html = "";
-
-    data.forEach(order => {
-        html += `
-            <div class="order-item">
-                <b>#${order.id}</b> — ${new Date(order.created_at).toLocaleString()}
-                <br>
-                ${order.items.map(i => `${i.qty}x ${i.name}`).join(", ")}
-                <br>
-                <b>${order.total.toLocaleString()}đ</b>
-                <span class="del-btn" onclick="deleteOrder(${order.id})">Xoá</span>
-            </div>
-        `;
-    });
-
-    document.getElementById("history-list").innerHTML = html || "Chưa có đơn.";
-}
-
-async function deleteOrder(id) {
-    if (!confirm("Xoá đơn này?")) return;
-
-    // copy sang deleted_orders
-    const { data } = await supabase.from("orders").select("*").eq("id", id).single();
+window.deleteOrder=async(id)=>{
+  if(confirm("Xoá đơn?")){
+    const {data}=await supabase.from("orders").select("*").eq("id",id).single();
     await supabase.from("deleted_orders").insert([data]);
-
-    // xoá khỏi orders
-    await supabase.from("orders").delete().eq("id", id);
-
+    await supabase.from("orders").delete().eq("id",id);
     loadHistory();
     loadDeleted();
-}
+  }
+};
 
-// =================== DELETED ====================
-async function loadDeleted() {
-    const { data } = await supabase.from("deleted_orders").select("*").order("deleted_at", { ascending:false });
-
-    let html = "";
-
-    data.forEach(order => {
-        html += `
-            <div class="order-item">
-                <b>#${order.id}</b> — Đã xoá lúc ${new Date(order.deleted_at).toLocaleString()}
-                <br>
-                ${order.items.map(i => `${i.qty}x ${i.name}`).join(", ")}
-                <br>
-                <b>${order.total.toLocaleString()}đ</b>
-            </div>
-        `;
-    });
-
-    document.getElementById("deleted-list").innerHTML = html || "Chưa có đơn xoá.";
+/* ========== DELETED ========== */
+async function loadDeleted(){
+  const {data}=await supabase.from("deleted_orders").select("*").order("deleted_at",{ascending:false});
+  let html="";
+  data.forEach(o=>{
+    html+=`
+      <div class="order-item">
+        <b>#${o.id}</b> — Đã xoá
+        <br>${o.items.map(i=>`${i.qty}x ${i.name}`).join(", ")}
+        <br><b>${o.total.toLocaleString()}đ</b>
+      </div>
+    `;
+  });
+  document.getElementById("deleted-list").innerHTML=html||"Chưa có đơn xoá.";
 }
 
 </script>
-
 </body>
 </html>
