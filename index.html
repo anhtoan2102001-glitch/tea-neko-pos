@@ -2,216 +2,324 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
+<title>Tea Neko POS</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mini POS – Tea Neko</title>
 
 <style>
-body {
-  margin: 0; padding: 0;
-  font-family: Arial, sans-serif;
-  background: #0b1122;
-  color: white;
+*{box-sizing:border-box;margin:0;padding:0;}
+body{
+    font-family:-apple-system,BlinkMacSystemFont,Arial;
+    background:#f5f5f7;
+    padding:14px;
 }
-.container {
-  max-width: 900px;
-  margin: auto;
-  padding: 20px;
+
+/* Khung tổng */
+.container{
+    max-width:480px;
+    margin:0 auto;
+    background:#fff;
+    border-radius:16px;
+    padding:14px;
+    box-shadow:0 2px 8px rgba(0,0,0,0.1);
 }
-.box {
-  background: #111a33;
-  padding: 16px;
-  border-radius: 14px;
-  margin-bottom: 20px;
-  border: 1px solid #334155;
+
+/* Tabs */
+.tabs{
+    display:flex;
+    gap:8px;
+    margin-bottom:14px;
 }
-h2 { margin-top: 0; color: #38bdf8; }
-button {
-  padding: 10px 14px;
-  border-radius: 10px;
-  border: none;
-  cursor: pointer;
-  font-weight: bold;
+
+.tab{
+    flex:1;
+    padding:10px 0;
+    text-align:center;
+    border-radius:12px;
+    background:#eee;
+    font-weight:600;
+    cursor:pointer;
+    transition:0.15s;
 }
-.blue { background: #2563eb; color: white; }
-.green { background: #16a34a; color: white; }
-.red { background: #dc2626; color: white; }
+
+.tab.active{
+    background:#a78bfa;
+    color:white;
+    box-shadow:0 0 0 2px rgba(167,139,250,0.35);
+}
+
+/* Món */
+.menu-grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:10px;
+    margin-top:10px;
+}
+
+.menu-item{
+    background:#fafafa;
+    border-radius:14px;
+    padding:10px;
+    cursor:pointer;
+    border:1px solid #eee;
+    transition:0.12s;
+}
+
+.menu-item:active{
+    transform:scale(0.97);
+    background:#e5deff;
+}
+
+.menu-name{font-weight:600;font-size:15px;}
+.menu-price{font-size:13px;color:#666;margin-top:2px;}
+
+/* Danh sách đơn */
+.box{
+    background:#fafafa;
+    border-radius:14px;
+    padding:12px;
+    margin-top:14px;
+}
+
+ul{margin-top:6px;padding-left:18px;font-size:14px;}
+.summary{font-weight:600;margin-top:6px;}
+
+/* Nút */
+.btn{
+    width:100%;
+    border:none;
+    padding:12px 0;
+    border-radius:14px;
+    font-size:15px;
+    font-weight:600;
+    cursor:pointer;
+    margin-top:10px;
+    color:#fff;
+}
+
+.btn-save{background:#6366f1;}
+.btn-print{background:#10b981;}
+.btn-clear{background:#ef4444;}
+.btn-undo{background:#6b7280;}
+.btn-delete{background:#f43f5e;}
+
+/* Lịch sử */
+.history{
+    background:#fff;
+    border-radius:14px;
+    padding:12px;
+    margin-top:14px;
+    border:1px solid #e5e7eb;
+}
+.history-item{
+    border-bottom:1px dashed #ccc;
+    padding:6px 0;
+    font-size:14px;
+}
+.history-item.deleted{
+    color:#999;
+    text-decoration:line-through;
+}
+.delete-btn{
+    float:right;
+    font-size:12px;
+    background:#fee2e2;
+    border:1px solid #fca5a5;
+    border-radius:6px;
+    padding:2px 6px;
+    cursor:pointer;
+}
+
+/* Tabs khu POS */
+#tab-pos,#tab-history,#tab-deleted{display:none;}
+#tab-pos.active,#tab-history.active,#tab-deleted.active{display:block;}
+
 </style>
 </head>
 
 <body>
+
 <div class="container">
 
-<h1>Mini POS – Tea Neko</h1>
+    <!-- Tabs -->
+    <div class="tabs">
+        <div class="tab active" onclick="openTab('pos')">POS</div>
+        <div class="tab" onclick="openTab('history')">Lịch sử</div>
+        <div class="tab" onclick="openTab('deleted')">Đã xoá</div>
+    </div>
 
-<!-- ==============================
-      MỤC 1 – MENU CHỌN MÓN
-================================ -->
-<div class="box">
-  <h2>Menu</h2>
+    <!-- POS -->
+    <div id="tab-pos" class="active">
 
-  <button class="blue" onclick="setSize('M')">Size M</button>
-  <button class="blue" onclick="setSize('L')">Size L (+5,000)</button>
+        <h2 style="text-align:center;">Mini POS – Tea Neko</h2>
 
-  <div id="menuList"></div>
-</div>
+        <div class="menu-grid" id="menuList"></div>
 
-<!-- ==============================
-      MỤC 2 – ĐƠN HIỆN TẠI
-================================ -->
-<div class="box">
-  <h2>Đơn hiện tại</h2>
+        <div class="box">
+            <strong>Đơn hiện tại:</strong>
+            <ul id="orderList"></ul>
+            <div class="summary" id="orderTotal">Tổng: 0đ</div>
+            <div class="summary" id="orderCash"></div>
+        </div>
 
-  <div id="currentOrder">Chưa có món nào.</div>
-  <div><b>Tổng:</b> <span id="totalPrice">0</span> VND</div>
+        <input id="cashInput" type="number" placeholder="Khách đưa (nghìn)" style="
+            width:100%;margin-top:10px;padding:10px;border-radius:12px;border:1px solid #ddd;">
 
-  <label>Khách đưa (VND):</label><br>
-  <input id="cashGiven" type="number" style="width:100%;margin-top:6px;">
+        <button class="btn btn-undo" onclick="undoItem()">↩ Hoàn tác</button>
+        <button class="btn btn-clear" onclick="clearOrder()">Xoá tất cả</button>
+        <button class="btn btn-save" onclick="saveOrder(false)">💾 Lưu đơn</button>
+        <button class="btn btn-print" onclick="saveOrder(true)">🧾 Lưu + In</button>
 
-  <div style="margin-top:10px;">
-    <b>Tiền trả lại khách:</b> <span id="change">0</span> VND
-  </div>
+    </div>
 
-  <label style="margin-top:10px;">Ghi chú đơn:</label>
-  <input id="note" type="text" style="width:100%;margin-top:6px;">
+    <!-- Lịch sử -->
+    <div id="tab-history">
+        <h3>Lịch sử đơn</h3>
+        <div id="historyBox" class="history"></div>
+    </div>
 
-  <br><br>
-  <button class="red" onclick="clearOrder()">Xóa tất cả</button>
-  <button class="blue" onclick="saveOrder()">Lưu đơn</button>
-  <button class="green" onclick="saveAndPrint()">Lưu + In bill</button>
-</div>
-
-<!-- ==============================
-      MỤC 3 – LỊCH SỬ ĐƠN
-================================ -->
-<div class="box">
-  <h2>Lịch sử đơn</h2>
-  <div id="history"></div>
-  <div style="margin-top:10px;">
-    <b>Tổng doanh thu:</b> <span id="revenue">0</span> VND
-  </div>
-</div>
-
-<!-- ==============================
-      MỤC 4 – LỊCH SỬ ĐÃ XOÁ (TRẢ LẠI)
-================================ -->
-<div class="box">
-  <h2>Lịch sử đã xoá</h2>
-  <div id="deletedHistory">Chưa có đơn xoá.</div>
-</div>
+    <!-- Lịch sử đã xoá -->
+    <div id="tab-deleted">
+        <h3>Lịch sử xoá</h3>
+        <div id="deletedBox" class="history"></div>
+    </div>
 
 </div>
 
+<!-- JS -->
+<script type="module">
+import { supabase } from "./js/supabase.js";
 
-<!-- ==============================
-      SCRIPT SUPABASE (GỐC)
-================================ -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
+let currentOrder = [];
+let menu = [];
 
-const SUPABASE_URL = "https://kcrchwedlrettpkucoct.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtjcmNod2VkbHJldHRwa3Vjb2N0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM4ODQ0MjgsImV4cCI6MjA3OTQ2MDQyOH0.g4WA9tci2zm4MIa6EvOe6tH_EhaoicdrdiP6swgjRgw";
+/* TAB */
+window.openTab = function(tab){
+    document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+    document.querySelectorAll("#tab-pos,#tab-history,#tab-deleted").forEach(t=>t.classList.remove("active"));
 
-const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    document.querySelector(`.tab[onclick="openTab('${tab}')"]`).classList.add("active");
+    document.querySelector(`#tab-${tab}`).classList.add("active");
+};
 
-/* ------------------------------
-   POS LOGIC GỐC – GIỮ NGUYÊN
--------------------------------- */
-let size = "M";
-const menu = [
-  {name:"Matcha Latte", price:25000},
-  {name:"Coffee", price:25000},
-  {name:"Trà sữa trân châu", price:30000},
-  {name:"Hồng trà sữa", price:28000},
-  {name:"Cacao đá", price:22000},
-  {name:"Bạc xỉu", price:20000},
-];
-
-let order = [];
-
-function setSize(s){ size=s; }
-
-function renderMenu(){
-  let h="";
-  menu.forEach((m,i)=>{
-    h += `<button class="blue" style="margin:6px;" onclick="addItem(${i})">${m.name}<br>${m.price.toLocaleString()}đ</button>`;
-  });
-  document.getElementById("menuList").innerHTML = h;
+/* LOAD MENU */
+async function loadMenu(){
+    let { data } = await supabase.from("menu").select("*").order("name");
+    menu = data || [];
+    
+    let html = "";
+    menu.forEach(m=>{
+        html += `
+        <div class="menu-item" onclick="addItem('${m.id}')">
+            <div class="menu-name">${m.name}</div>
+            <div class="menu-price">${m.price.toLocaleString()}đ</div>
+        </div>`;
+    });
+    document.getElementById("menuList").innerHTML = html;
 }
+window.addItem = function(id){
+    let item = menu.find(x=>x.id==id);
+    if(!item) return;
+    
+    let found = currentOrder.find(x=>x.id==id);
+    if(found) found.qty++;
+    else currentOrder.push({ ...item, qty:1 });
 
-function addItem(i){
-  const item = menu[i];
-  let price = item.price + (size==="L" ? 5000 : 0);
-  order.push({name:item.name, size, price});
-  renderOrder();
-}
+    renderOrder();
+};
 
+/* RENDER ORDER */
 function renderOrder(){
-  if(order.length===0){
-    document.getElementById("currentOrder").innerHTML="Chưa có món nào.";
-    document.getElementById("totalPrice").innerHTML=0;
-    return;
-  }
-  let h="";
-  let sum=0;
-  order.forEach(o=>{
-    h += `${o.name} (Size ${o.size}) — ${o.price.toLocaleString()}đ<br>`;
-    sum += o.price;
-  });
-  document.getElementById("currentOrder").innerHTML=h;
-  document.getElementById("totalPrice").innerHTML=sum.toLocaleString();
+    let list = document.getElementById("orderList");
+    list.innerHTML = "";
+
+    let total = 0;
+    currentOrder.forEach(it=>{
+        total += it.price * it.qty;
+        list.innerHTML += `<li>${it.qty}x ${it.name} – ${(it.price*it.qty).toLocaleString()}đ</li>`;
+    });
+
+    document.getElementById("orderTotal").innerText = `Tổng: ${total.toLocaleString()}đ`;
+
+    let cash = parseInt(document.getElementById("cashInput").value||0)*1000;
+    if(cash>0){
+        document.getElementById("orderCash").innerText =
+            `Khách đưa: ${cash.toLocaleString()}đ – Trả lại khách: ${(cash-total).toLocaleString()}đ`;
+    }else document.getElementById("orderCash").innerText = "";
+}
+document.getElementById("cashInput").addEventListener("input",renderOrder);
+
+/* HOÀN TÁC */
+window.undoItem = function(){
+    currentOrder.pop();
+    renderOrder();
+};
+
+/* XOÁ TẤT CẢ */
+window.clearOrder = function(){
+    if(confirm("Xoá toàn bộ đơn hiện tại?")){
+        currentOrder = [];
+        renderOrder();
+    }
+};
+
+/* LƯU ĐƠN */
+window.saveOrder = async function(print){
+    if(currentOrder.length===0) return alert("Chưa có món.");
+
+    let total = currentOrder.reduce((s,i)=>s+i.price*i.qty,0);
+    let cash = parseInt(document.getElementById("cashInput").value||0)*1000;
+
+    let payload = {
+        items: currentOrder,
+        total,
+        cash_given: cash,
+        change: cash-total,
+        deleted:false
+    };
+
+    await supabase.from("orders").insert([payload]);
+
+    if(print) printBill(payload);
+
+    currentOrder=[];
+    document.getElementById("cashInput").value="";
+    renderOrder();
+};
+
+/* IN BILL */
+function printBill(order){
+    let win = window.open("", "_blank");
+    win.document.write(`<pre>${JSON.stringify(order,null,2)}</pre>`);
+    win.print();
 }
 
-function clearOrder(){
-  order=[];
-  renderOrder();
-}
-
-async function saveOrder(){
-  if(order.length===0){ alert("Chưa có món."); return; }
-  const total = order.reduce((a,b)=>a+b.price,0);
-
-  const {data, error} = await db.from("orders").insert({
-    items: order,
-    total: total,
-    cash_given: Number(document.getElementById("cashGiven").value),
-    change: Number(document.getElementById("cashGiven").value) - total,
-    note: document.getElementById("note").value
-  });
-
-  if(error) alert("Lỗi lưu đơn");
-
-  loadHistory();
-  clearOrder();
-}
-
-function saveAndPrint(){
-  saveOrder();
-  setTimeout(()=>window.print(),500);
-}
-
+/* LỊCH SỬ */
 async function loadHistory(){
-  const {data} = await db.from("orders").select("*").order("created_at",{ascending:false});
-  let h="", rev=0;
-  data.forEach(d=>{
-    rev += d.total;
-    h += `${d.created_at.slice(0,19)} — ${d.total.toLocaleString()}đ<br>`;
-  });
-  document.getElementById("history").innerHTML=h;
-  document.getElementById("revenue").innerHTML=rev.toLocaleString();
-}
+    let { data } = await supabase.from("orders").select("*").order("id",{ascending:false});
+    
+    let htmlH="", htmlD="";
+    data.forEach(o=>{
+        let txt = `${o.id}. ${o.total.toLocaleString()}đ (${o.items.length} món)`;
+        if(o.deleted){
+            htmlD += `<div class="history-item deleted">${txt}</div>`;
+        }else{
+            htmlH += `<div class="history-item">${txt}
+                <span class="delete-btn" onclick="deleteOrder(${o.id})">Xoá</span></div>`;
+        }
+    });
 
-async function loadDeleted(){
-  const {data} = await db.from("deleted_orders").select("*").order("created_at",{ascending:false});
-  let h="";
-  data.forEach(d=>{
-    h += `${d.created_at.slice(0,19)} — ĐÃ XOÁ<br>`;
-  });
-  document.getElementById("deletedHistory").innerHTML=h||"Chưa có đơn xoá.";
+    document.getElementById("historyBox").innerHTML = htmlH;
+    document.getElementById("deletedBox").innerHTML = htmlD;
 }
+window.deleteOrder = async function(id){
+    await supabase.from("orders").update({deleted:true}).eq("id",id);
+    loadHistory();
+};
 
-renderMenu();
+/* INIT */
+loadMenu();
 loadHistory();
-loadDeleted();
+setInterval(loadHistory, 2000); // realtime đơn giản
 
 </script>
 
