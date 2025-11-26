@@ -342,22 +342,6 @@
       margin-top: 2px;
     }
 
-    .pill {
-      display: inline-flex;
-      align-items: center;
-      border-radius: 999px;
-      padding: 2px 8px;
-      font-size: 11px;
-      background: var(--accent-soft);
-      color: var(--accent-weak);
-      gap: 4px;
-    }
-
-    .pill-danger {
-      background: var(--danger-soft);
-      color: #fecaca;
-    }
-
     .list-history {
       max-height: 260px;
       overflow-y: auto;
@@ -503,6 +487,7 @@
       box-shadow: 0 6px 16px rgba(16,185,129,0.65);
     }
 
+    /* QR BOX */
     .qr-box {
       margin-top: 10px;
       font-size: 12px;
@@ -513,16 +498,68 @@
       padding: 8px;
     }
 
-    .qr-rows {
-      margin-top: 6px;
+    .qr-table-grid {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-columns: repeat(5, minmax(0, 1fr));
       gap: 4px;
-      font-size: 11px;
+      margin-top: 6px;
     }
 
-    .qr-row span {
+    .qr-table-btn {
+      border-radius: 999px;
+      border: 1px solid #334155;
+      background: #020617;
       color: #e5e7eb;
+      font-size: 11px;
+      padding: 4px 0;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.7);
+      transition: background 0.12s, box-shadow 0.12s, transform 0.06s, border-color 0.12s;
+    }
+
+    .qr-table-btn:hover {
+      border-color: #22c55e;
+    }
+
+    .qr-table-btn.active {
+      background: linear-gradient(135deg, #22c55e, #4ade80);
+      color: #022c22;
+      border-color: #22c55e;
+      box-shadow: 0 8px 20px rgba(34,197,94,0.65);
+      transform: translateY(-1px);
+    }
+
+    .qr-table-detail {
+      margin-top: 8px;
+      font-size: 12px;
+      color: #e5e7eb;
+      background: #020617;
+      border-radius: 10px;
+      padding: 6px 8px;
+      border: 1px solid #111827;
+    }
+
+    .qr-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .qr-header-row button {
+      font-size: 11px;
+      padding: 3px 10px;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      background: #1f2937;
+      color: #e5e7eb;
+    }
+
+    @media (max-width: 750px) {
+      .qr-table-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
     }
   </style>
 </head>
@@ -530,7 +567,7 @@
 <div class="app">
   <header>
     <h1>Tea Neko – Mini POS</h1>
-    <div class="subtitle">Realtime Supabase · QR Order 20 bàn · bản UI B</div>
+    <div class="subtitle">Realtime Supabase · QR Order 20 bàn · UI B</div>
   </header>
 
   <!-- TAB BAR -->
@@ -554,7 +591,7 @@
   ========================== -->
   <div id="page-pos" class="page active">
     <div class="grid-pos">
-      <!-- Cột trái: menu -->
+      <!-- Cột trái: menu + QR -->
       <div class="card">
         <div class="card-header">
           <div class="card-title">Menu đồ uống</div>
@@ -568,39 +605,29 @@
 
         <div class="menu-grid" id="menuMain"></div>
 
+        <!-- QR ĐẶT MÓN -->
         <div class="qr-box">
-          <div class="card-title" style="font-size:12px; text-transform:none; letter-spacing:0;">
-            QR đặt món cho khách
+          <div class="qr-header-row">
+            <div>
+              <div class="card-title" style="font-size:12px; text-transform:none; letter-spacing:0;">
+                QR đặt món cho khách
+              </div>
+              <div class="card-sub">
+                Chọn bàn để xem đơn khách order từ <code>order.html?table=n</code>.
+              </div>
+            </div>
+            <button id="btnReloadWebOrders">↻ Tải đơn mới</button>
           </div>
-          <div class="card-sub">
-            Mỗi bàn một QR: khách mở <code>order.html?table=n</code> để gửi đơn.
-          </div>
-          <div class="qr-rows">
-            <div>Bàn 1 → <span>?table=1</span></div>
-            <div>Bàn 2 → <span>?table=2</span></div>
-            <div>Bàn 3 → <span>?table=3</span></div>
-            <div>Bàn 4 → <span>?table=4</span></div>
-            <div>Bàn 5 → <span>?table=5</span></div>
-            <div>Bàn 6 → <span>?table=6</span></div>
-            <div>Bàn 7 → <span>?table=7</span></div>
-            <div>Bàn 8 → <span>?table=8</span></div>
-            <div>Bàn 9 → <span>?table=9</span></div>
-            <div>Bàn 10 → <span>?table=10</span></div>
-            <div>Bàn 11 → <span>?table=11</span></div>
-            <div>Bàn 12 → <span>?table=12</span></div>
-            <div>Bàn 13 → <span>?table=13</span></div>
-            <div>Bàn 14 → <span>?table=14</span></div>
-            <div>Bàn 15 → <span>?table=15</span></div>
-            <div>Bàn 16 → <span>?table=16</span></div>
-            <div>Bàn 17 → <span>?table=17</span></div>
-            <div>Bàn 18 → <span>?table=18</span></div>
-            <div>Bàn 19 → <span>?table=19</span></div>
-            <div>Bàn 20 → <span>?table=20</span></div>
+
+          <div class="qr-table-grid" id="qrTableGrid"></div>
+
+          <div id="qrTableDetail" class="qr-table-detail">
+            Chọn một bàn để xem / xử lý đơn QR.
           </div>
         </div>
       </div>
 
-      <!-- Cột phải: đơn hiện tại & QR web orders -->
+      <!-- Cột phải: đơn hiện tại -->
       <div class="card-plain">
         <div class="card-header">
           <div class="card-title">Đơn hiện tại</div>
@@ -626,22 +653,6 @@
         <div class="btn-row" style="margin-top:6px;">
           <button class="btn btn-secondary" id="btnSave">💾 Lưu đơn</button>
           <button class="btn btn-primary" id="btnPrint">🧾 Lưu + In bill</button>
-        </div>
-
-        <!-- ĐƠN KHÁCH QR -->
-        <div style="margin-top:10px;" class="card-plain">
-          <div class="card-header" style="margin-bottom:4px;">
-            <div class="card-title" style="font-size:13px;">Đơn khách QR (web)</div>
-            <button id="btnReloadWebOrders"
-                    style="font-size:11px; padding:4px 10px; border-radius:999px; border:none; cursor:pointer;
-                           background:rgba(31,41,55,0.9); color:#e5e7eb;">
-              ↻ Tải đơn mới
-            </button>
-          </div>
-          <div id="webOrdersList"
-               style="max-height:200px; overflow-y:auto; font-size:12px; border-radius:10px;
-                      background:#020617; padding:6px;">
-          </div>
         </div>
       </div>
     </div>
@@ -681,8 +692,7 @@
       </div>
 
       <div style="margin-top:10px; font-size:11px; color:var(--text-sub);">
-        Lưu ý: Doanh thu chỉ tính những đơn trong bảng <code>orders</code> chưa bị ghi lại vào
-        <code>deleted_orders</code>.
+        Doanh thu = tổng đơn trong <code>orders</code> (chưa bị trừ) − đơn đã nằm trong <code>deleted_orders</code>.
       </div>
     </div>
   </div>
@@ -768,6 +778,10 @@
   let historyOrders = [];
   let deletedOrders = [];
 
+  // QR web orders
+  let webOrdersPending = [];
+  let selectedTable = null;
+
   // ==========================
   // DOM
   // ==========================
@@ -787,7 +801,8 @@
   const btnSave = document.getElementById("btnSave");
   const btnPrint = document.getElementById("btnPrint");
 
-  const webOrdersList = document.getElementById("webOrdersList");
+  const qrTableGrid = document.getElementById("qrTableGrid");
+  const qrTableDetail = document.getElementById("qrTableDetail");
   const btnReloadWebOrders = document.getElementById("btnReloadWebOrders");
 
   const historyList = document.getElementById("historyList");
@@ -827,7 +842,7 @@
   // MENU & ORDER
   // ==========================
   function renderMenu() {
-    MENU.forEach((item, idx) => {
+    MENU.forEach((item) => {
       const div = document.createElement("div");
       div.className = "menu-item";
       div.innerHTML = `
@@ -874,6 +889,7 @@
     if (!currentOrder.length) {
       currentList.innerHTML =
         `<div style="font-size:12px; color:#6b7280;">Chưa có món nào trong đơn hiện tại.</div>`;
+      currentSummary.innerHTML = `<strong>Tổng:</strong> 0 VND`;
       orderInfoSub.textContent = "Chưa có món";
     } else {
       let total = 0;
@@ -1055,7 +1071,6 @@
     if (!order) return;
     if (!confirm("Xoá đơn này? Đơn sẽ chuyển sang Lịch sử xoá và trừ doanh thu.")) return;
 
-    // Ghi lại vào deleted_orders
     const payload = {
       order_id: order.id,
       items: order.items,
@@ -1070,7 +1085,6 @@
       return;
     }
 
-    // Xoá khỏi orders
     const { error: e2 } = await supa.from("orders").delete().eq("id", order.id);
     if (e2) {
       console.error(e2);
@@ -1086,25 +1100,21 @@
     if (!rec) return;
     if (!confirm("Khôi phục đơn này về lại lịch sử đơn?")) return;
 
-    // Khôi phục vào orders
     const payload = {
       items: rec.items,
       total: rec.total,
       cash_given: rec.cash_given,
       change: rec.change
     };
-    const { data, error: e1 } = await supa
+    const { error: e1 } = await supa
       .from("orders")
-      .insert([payload])
-      .select()
-      .single();
+      .insert([payload]);
     if (e1) {
       console.error(e1);
       alert("Không thể khôi phục vào orders.");
       return;
     }
 
-    // Không xoá bản ghi trong deleted_orders để giữ log
     await loadHistory();
   }
 
@@ -1246,11 +1256,9 @@
   // REVENUE
   // ==========================
   async function loadRevenue() {
-    // Tính doanh thu = sum(orders) - sum(deleted_orders theo order_id)
     const orders = historyOrders;
     const deleted = deletedOrders;
 
-    // map deleted_total theo order_id
     const deletedMap = {};
     deleted.forEach(d => {
       const id = d.order_id;
@@ -1262,7 +1270,7 @@
     const now = new Date();
     const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const startOfWeek = new Date(startOfToday);
-    startOfWeek.setDate(startOfWeek.getDate() - 6); // 7 ngày gần nhất
+    startOfWeek.setDate(startOfWeek.getDate() - 6);
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
     let revToday = 0;
@@ -1274,11 +1282,8 @@
       const id = o.id;
       const createdAt = o.created_at ? new Date(o.created_at) : null;
       const total = (o.total || 0) - (deletedMap[id] || 0);
-
       if (total <= 0) return;
-
       revAll += total;
-
       if (createdAt) {
         if (createdAt >= startOfToday) revToday += total;
         if (createdAt >= startOfWeek) revWeek += total;
@@ -1296,80 +1301,99 @@
   // WEB ORDERS (QR)
   // ==========================
   async function loadWebOrders() {
-    webOrdersList.innerHTML =
-      `<div style="color:#9ca3af;">Đang tải đơn từ web...</div>`;
-
     const { data, error } = await supa
       .from("web_orders")
       .select("*")
       .eq("status", "pending")
       .order("created_at", { ascending: false })
-      .limit(50);
+      .limit(100);
 
     if (error) {
       console.error(error);
-      webOrdersList.innerHTML =
+      qrTableDetail.innerHTML =
         `<div style="color:#fecaca;">Lỗi tải đơn QR.</div>`;
       return;
     }
-    const list = data || [];
-    if (!list.length) {
-      webOrdersList.innerHTML =
-        `<div style="color:#9ca3af;">Chưa có đơn nào từ QR.</div>`;
+    webOrdersPending = data || [];
+    renderSelectedTable(); // cập nhật detail bàn đang chọn
+  }
+
+  function initTableButtons() {
+    qrTableGrid.innerHTML = "";
+    for (let i = 1; i <= 20; i++) {
+      const btn = document.createElement("button");
+      btn.className = "qr-table-btn";
+      btn.textContent = "Bàn " + i;
+      btn.dataset.table = String(i);
+      btn.addEventListener("click", () => selectTable(i));
+      qrTableGrid.appendChild(btn);
+    }
+  }
+
+  function selectTable(tableNo) {
+    selectedTable = tableNo;
+    document.querySelectorAll(".qr-table-btn").forEach(b => {
+      b.classList.toggle("active", Number(b.dataset.table) === tableNo);
+    });
+    renderSelectedTable();
+  }
+
+  function renderSelectedTable() {
+    if (!selectedTable) {
+      qrTableDetail.innerHTML =
+        `Chọn một bàn để xem / xử lý đơn QR.`;
       return;
     }
 
-    let html = "";
-    list.forEach(order => {
-      const timeStr = order.created_at
-        ? new Date(order.created_at).toLocaleString("vi-VN")
-        : "";
-      const tableNo = order.table_no || "N/A";
+    const ordersForTable = webOrdersPending
+      .filter(o => o.table_no === selectedTable)
+      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
-      const itemsText = (order.items || [])
-        .map(it => `${it.qty || 1}x ${it.name || ""}`)
-        .join(", ");
+    if (!ordersForTable.length) {
+      qrTableDetail.innerHTML =
+        `<div style="color:#9ca3af;font-size:12px;">Chưa có đơn QR nào cho bàn ${selectedTable}.</div>`;
+      return;
+    }
 
-      const note = order.note
-        ? `<div style="margin-top:2px; font-size:11px; color:#e5e7eb;">Ghi chú: ${order.note}</div>`
-        : "";
+    const order = ordersForTable[0];
+    const timeStr = order.created_at
+      ? new Date(order.created_at).toLocaleString("vi-VN")
+      : "";
+    const itemsText = (order.items || [])
+      .map(it => `${it.qty || 1}x ${it.name}${it.size ? " (Size " + it.size + ")" : ""}`)
+      .join(", ");
 
-      html += `
-        <div style="
-          border-radius:8px;
-          border:1px solid #374151;
-          padding:6px 8px;
-          margin-bottom:6px;
-          background:#020617;
-          color:#e5e7eb;
-        ">
-          <div style="font-size:11px; color:#facc15; margin-bottom:3px;">
-            [WEB] Bàn ${tableNo} · ${timeStr}
-          </div>
-          <div style="font-size:12px;">
-            ${itemsText || "(Không có món)"}
-          </div>
-          ${note}
-          <div style="display:flex; gap:6px; margin-top:6px;">
-            <button onclick='acceptWebOrder("${order.id}")'
-                    style="flex:1; padding:4px 6px; border:none; border-radius:999px;
-                           background:#22c55e; color:#022c22; font-size:11px; cursor:pointer;">
-              ✅ Nhận vào POS
-            </button>
-            <button onclick='cancelWebOrder("${order.id}")'
-                    style="flex:1; padding:4px 6px; border:none; border-radius:999px;
-                           background:#ef4444; color:#fee2e2; font-size:11px; cursor:pointer;">
-              ✖ Hủy đơn
-            </button>
-          </div>
-        </div>
-      `;
-    });
-
-    webOrdersList.innerHTML = html;
+    qrTableDetail.innerHTML = `
+      <div style="font-size:11px;color:#facc15;margin-bottom:3px;">
+        Đơn mới nhất bàn ${selectedTable} – ${timeStr}
+      </div>
+      <div style="font-size:12px;margin-bottom:4px;">
+        ${itemsText || "(Không có món)"}
+      </div>
+      <div style="font-size:11px;margin-bottom:4px;color:#9ca3af;">
+        Tổng khách đặt: ${formatVND(order.total || 0)}
+      </div>
+      <div style="display:flex; gap:6px; margin-top:4px;">
+        <button onclick="loadTableToPOS('${order.id}')"
+                style="flex:1; padding:4px 6px; border:none; border-radius:999px;
+                       background:#22c55e; color:#022c22; font-size:11px; cursor:pointer;">
+          ➕ Nạp vào POS
+        </button>
+        <button onclick="payWebOrder('${order.id}')"
+                style="flex:1; padding:4px 6px; border:none; border-radius:999px;
+                       background:#0ea5e9; color:#e0f2fe; font-size:11px; cursor:pointer;">
+          💳 Thanh toán
+        </button>
+        <button onclick="cancelWebOrder('${order.id}', true)"
+                style="flex:1; padding:4px 6px; border:none; border-radius:999px;
+                       background:#ef4444; color:#fee2e2; font-size:11px; cursor:pointer;">
+          ✖ Huỷ đơn
+        </button>
+      </div>
+    `;
   }
 
-  async function acceptWebOrder(id) {
+  async function loadTableToPOS(id) {
     const { data, error } = await supa
       .from("web_orders")
       .select("*")
@@ -1377,31 +1401,29 @@
       .single();
     if (error || !data) {
       console.error(error);
-      alert("Không lấy được chi tiết đơn web.");
+      alert("Không lấy được chi tiết đơn QR.");
       return;
     }
     const items = data.items || [];
     if (!items.length) {
-      alert("Đơn web này không có món.");
+      alert("Đơn QR này không có món.");
       return;
     }
 
-    // Đổ vào currentOrder POS
     currentOrder = items.map(it => {
       const qty = it.qty || 1;
       const price = it.price || 0;
       return {
         name: it.name || "Món",
-        size: "M",
+        size: it.size || "M",
         qty,
         unitPrice: price,
         lineTotal: price * qty
       };
     });
-    clickStack = []; // reset stack
+    clickStack = [];
     renderCurrentOrder();
 
-    // Đánh dấu accepted
     await supa
       .from("web_orders")
       .update({
@@ -1410,13 +1432,59 @@
       })
       .eq("id", id);
 
-    await loadWebOrders();
-
-    // chuyển sang tab POS cho dễ thao tác
     setTab("page-pos");
   }
 
-  async function cancelWebOrder(id) {
+  async function payWebOrder(id) {
+    const { data, error } = await supa
+      .from("web_orders")
+      .select("*")
+      .eq("id", id)
+      .single();
+    if (error || !data) {
+      console.error(error);
+      alert("Không lấy được chi tiết đơn QR.");
+      return;
+    }
+    const items = data.items || [];
+    if (!items.length) {
+      alert("Đơn QR này không có món.");
+      return;
+    }
+
+    // Đổ vào POS
+    currentOrder = items.map(it => {
+      const qty = it.qty || 1;
+      const price = it.price || 0;
+      return {
+        name: it.name || "Món",
+        size: it.size || "M",
+        qty,
+        unitPrice: price,
+        lineTotal: price * qty
+      };
+    });
+    clickStack = [];
+    renderCurrentOrder();
+    setTab("page-pos");
+
+    const ok = confirm("Xác nhận thanh toán và in hoá đơn cho bàn " + (data.table_no || "") + " ?");
+    if (!ok) return;
+
+    await saveOrder(true);
+
+    await supa
+      .from("web_orders")
+      .update({
+        status: "paid",
+        paid_at: new Date().toISOString()
+      })
+      .eq("id", id);
+
+    await loadWebOrders();
+  }
+
+  async function cancelWebOrder(id, keepSelected) {
     if (!confirm("Hủy đơn này của khách?")) return;
     const { error } = await supa
       .from("web_orders")
@@ -1431,6 +1499,9 @@
       return;
     }
     await loadWebOrders();
+    if (!keepSelected) {
+      selectedTable = null;
+    }
   }
 
   function initWebOrdersRealtime() {
@@ -1562,11 +1633,11 @@
   btnReloadWebOrders.addEventListener("click", loadWebOrders);
   btnAddStock.addEventListener("click", addStockItem);
 
-  // expose functions for inline onclick
   window.printBillFromHistory = printBillFromHistory;
   window.deleteOrder = deleteOrder;
   window.restoreOrder = restoreOrder;
-  window.acceptWebOrder = acceptWebOrder;
+  window.loadTableToPOS = loadTableToPOS;
+  window.payWebOrder = payWebOrder;
   window.cancelWebOrder = cancelWebOrder;
 
   // ==========================
@@ -1576,6 +1647,7 @@
     renderMenu();
     renderCurrentOrder();
     loadStock();
+    initTableButtons();
     await loadHistory();
     await loadWebOrders();
     initWebOrdersRealtime();
