@@ -483,7 +483,20 @@
   <!-- LOGIC -->
   <script type="module">
     import { supabase } from "./js/supabase.js";
+/* ============ FIX NAVBAR KHÔNG BẤM ĐƯỢC ============ */
+nav {
+  position: relative;
+  z-index: 9999 !important;   /* navbar luôn nằm trên */
+}
 
+/* Nếu có DIV nào che lên (đúng hiện tượng bạn gặp) thì ép nó xuống dưới */
+.blocker,
+.overlay,
+.fullscreen,
+.page-cover {
+  pointer-events: none !important;
+  z-index: 1 !important;
+}
     // ====== MENU MẶC ĐỊNH (theo hình bạn gửi, rút gọn) ======
     const DEFAULT_MENU = [
       // Espresso
