@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Tea Neko – Quản lý menu</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+    body {
+        margin:0;
+        padding:14px;
+        background:#0b1220;
+        font-family:-apple-system,BlinkMacSystemFont,system-ui,sans-serif;
+        color:#fff;
+    }
+    h1 {
+        margin:0 0 12px;
+        font-size:22px;
+        font-weight:700;
+    }
+
+    /* card item */
+    .item-card{
+        background:#111a30;
+        border-radius:14px;
+        padding:10px;
+        margin-bottom:10px;
+        display:flex;
+        gap:12px;
+        align-items:center;
+        box-shadow:0 2px 6px #0005;
+    }
+    .item-img{
+        width:70px;height:70px;
+        border-radius:10px;
+        object-fit:cover;
+        background:#1f273d;
+    }
+    .item-main{
+        flex:1;
+    }
+    .item-name{
+        font-size:16px;
+        font-weight:600;
+    }
+    .item-cat{
+        font-size:12px;
+        color:#a3a3c0;
+        margin-top:2px;
+    }
+    .item-price{
+        font-size:14px;
+        color:#fbbf24;
+        margin-top:4px;
+        font-weight:600;
+    }
+    .item-actions{
+        display:flex;
+        flex-direction:column;
+        gap:6px;
+    }
+    .btn{
+        padding:6px 10px;
+        border-radius:8px;
+        border:0;
+        font-size:13px;
+        cursor:pointer;
+        font-weight:600;
+    }
+    .btn-edit{ background:#0ea5e9; color:#022c3a; }
+    .btn-del{ background:#ef4444; color:#390505; }
+
+    /* Add modal */
+    .modal-bg{
+        display:none;
+        position:fixed;left:0;right:0;top:0;bottom:0;
+        background:#0009;
+        backdrop-filter:blur(4px);
+        align-items:center;justify-content:center;
+        z-index:50;
+    }
+    .modal{
+        background:#111a30;
+        padding:16px;
+        border-radius:14px;
+        width:92%;
+        max-width:380px;
+    }
+    .modal h2{
+        margin-top:0;margin-bottom:12px;
+        font-size:20px;
+        text-align:center;
+    }
+    .modal input{
+        width:100%;
+        padding:10px;
+        border-radius:10px;
+        border:0;
+        margin-bottom:10px;
+        background:#1b243b;
+        color:#fff;
+        font-size:14px;
+    }
+    .modal .btn-save{
+        background:#22c55e;
+        color:#022c22;
+        width:100%;
+        padding:12px;
+        border-radius:10px;
+        border:0;
+        font-size:15px;
+        font-weight:700;
+        cursor:pointer;
+    }
+    .add-btn{
+        background:#22c55e;
+        padding:12px;
+        text-align:center;
+        border-radius:12px;
+        font-weight:700;
+        margin-bottom:14px;
+        cursor:pointer;
+        font-size:16px;
+        color:#022c22;
+    }
+</style>
+</head>
+<body>
+
+<h1>Quản lý Menu – Tea Neko</h1>
+
+<div class="add-btn" id="btnAdd">+ Thêm món mới</div>
+
+<div id="menuList"></div>
+
+<!-- Modal Add/Edit -->
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <h2 id="modalTitle">Thêm món</h2>
+
+    <input id="inpName" placeholder="Tên món">
+    <input id="inpPrice" placeholder="Giá (vd: 25000)" type="number">
+    <input id="inpCategory" placeholder="Danh mục (Trà sữa / Latte / Coffee...)">
+    <input id="inpImg" placeholder="Link ảnh món (URL)">
+
+    <button class="btn-save" id="btnSaveModal">Lưu</button>
+  </div>
+</div>
+
+<script type="module">
+import { supabase } from "./js/supabase.js";
+
+/* --------- STATE ---------- */
+let editingId = null;
+
+/* --------- LOAD MENU ---------- */
+async function loadMenu(){
+    const {data, error} = await supabase
+        .from("menu_items")
+        .select("*")
+        .order("category",{ascending:true})
+        .order("name",{ascending:true});
+
+    if(error){
+        alert("Lỗi tải menu!");
+        return;
+    }
+    renderMenu(data);
+}
+
+/* --------- RENDER LIST ---------- */
+function renderMenu(list){
+    const box = document.getElementById("menuList");
+    box.innerHTML = "";
+
+    list.forEach(item=>{
+        const div = document.createElement("div");
+        div.className="item-card";
+        div.innerHTML=`
+            <img src="${item.img||""}" class="item-img">
+            <div class="item-main">
+                <div class="item-name">${item.name}</div>
+                <div class="item-cat">${item.category||""}</div>
+                <div class="item-price">${item.price.toLocaleString("vi-VN")}đ</div>
+            </div>
+            <div class="item-actions">
+                <button class="btn btn-edit" data-id="${item.id}">Sửa</button>
+                <button class="btn btn-del" data-id="${item.id}">Xoá</button>
+            </div>
+        `;
+        box.appendChild(div);
+    });
+
+    document.querySelectorAll(".btn-edit").forEach(btn=>{
+        btn.onclick = ()=> openEdit(btn.dataset.id);
+    });
+    document.querySelectorAll(".btn-del").forEach(btn=>{
+        btn.onclick = ()=> deleteItem(btn.dataset.id);
+    });
+}
+
+/* --------- MODAL ---------- */
+const modalBg = document.getElementById("modalBg");
+const inpName = document.getElementById("inpName");
+const inpPrice = document.getElementById("inpPrice");
+const inpCategory = document.getElementById("inpCategory");
+const inpImg = document.getElementById("inpImg");
+const modalTitle = document.getElementById("modalTitle");
+
+document.getElementById("btnAdd").onclick = ()=>{
+    editingId = null;
+    modalTitle.textContent = "Thêm món mới";
+    inpName.value = "";
+    inpPrice.value = "";
+    inpCategory.value = "";
+    inpImg.value = "";
+    modalBg.style.display="flex";
+};
+
+modalBg.onclick = (e)=>{
+    if(e.target === modalBg) modalBg.style.display="none";
+};
+
+/* --------- SAVE ADD/EDIT ---------- */
+document.getElementById("btnSaveModal").onclick = async ()=>{
+    const name = inpName.value.trim();
+    const price = Number(inpPrice.value.trim());
+    const category = inpCategory.value.trim();
+    const img = inpImg.value.trim();
+
+    if(!name || !price){
+        alert("Tên và giá không được để trống");
+        return;
+    }
+
+    if(editingId){
+        // UPDATE
+        const {error} = await supabase
+            .from("menu_items")
+            .update({name, price, category, img})
+            .eq("id", editingId);
+
+        if(error) alert("Lỗi sửa món!");
+    } else {
+        // INSERT
+        const {error} = await supabase
+            .from("menu_items")
+            .insert([{name, price, category, img}]);
+
+        if(error) alert("Lỗi thêm món!");
+    }
+
+    modalBg.style.display="none";
+    loadMenu();
+};
+
+/* --------- EDIT ---------- */
+async function openEdit(id){
+    editingId = id;
+
+    const {data} = await supabase
+        .from("menu_items")
+        .select("*")
+        .eq("id", id)
+        .single();
+
+    modalTitle.textContent="Sửa món";
+    inpName.value = data.name;
+    inpPrice.value = data.price;
+    inpCategory.value = data.category;
+    inpImg.value = data.img;
+    modalBg.style.display="flex";
+}
+
+/* --------- DELETE ---------- */
+async function deleteItem(id){
+    if(!confirm("Bạn có chắc muốn xoá món này?")) return;
+
+    const {error} = await supabase
+        .from("menu_items")
+        .delete()
+        .eq("id", id);
+
+    if(error) alert("Lỗi xoá món!");
+
+    loadMenu();
+}
+
+/* --------- INIT ---------- */
+loadMenu();
+</script>
+
+</body>
+</html>
