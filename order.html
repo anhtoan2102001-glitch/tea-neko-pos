@@ -1,161 +1,575 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Đặt món – Tea Neko</title>
+  <meta charset="UTF-8" />
+  <title>Tea Neko – Đặt món QR</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 
-<style>
+  <style>
+    :root {
+      --bg: #020617;
+      --card: #0f172a;
+      --accent: #22c55e;
+      --accent-soft: rgba(34,197,94,0.15);
+      --accent-weak: #4ade80;
+      --text: #e5e7eb;
+      --text-sub: #9ca3af;
+      --border: #1f2937;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
     body {
-        margin: 0;
-        font-family: system-ui, Arial;
-        background: #f3f3f3;
-        padding: 20px;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", Arial, sans-serif;
+      background: radial-gradient(circle at top, #0f172a 0, #020617 35%, #000 100%);
+      color: var(--text);
+      padding: 12px;
     }
 
-    .box {
-        max-width: 480px;
-        margin: auto;
-        background: white;
-        padding: 16px;
-        border-radius: 14px;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    .wrap {
+      max-width: 480px;
+      margin: 0 auto;
     }
 
-    h2 {
-        text-align: center;
-        margin-top: 0;
+    header {
+      text-align: center;
+      margin-bottom: 10px;
     }
 
-    .menu-item {
-        padding: 10px;
-        border: 1px solid #ddd;
-        border-radius: 10px;
-        margin-bottom: 10px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        background: #fafafa;
+    header h1 {
+      font-size: 20px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #f9fafb;
     }
 
-    button {
-        padding: 10px;
-        width: 100%;
-        border: none;
-        border-radius: 10px;
-        background: #007AFF;
-        color: white;
-        font-size: 17px;
-        margin-top: 14px;
+    header .subtitle {
+      font-size: 12px;
+      color: var(--text-sub);
+      margin-top: 4px;
     }
 
-    textarea {
-        width: 100%;
-        padding: 10px;
-        border-radius: 10px;
-        border: 1px solid #ccc;
-        margin-top: 10px;
+    .card {
+      background: rgba(15,23,42,0.95);
+      border-radius: 18px;
+      border: 1px solid var(--border);
+      box-shadow: 0 10px 28px rgba(0,0,0,0.6);
+      padding: 12px;
+      margin-bottom: 10px;
     }
 
-</style>
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      border-radius: 999px;
+      padding: 2px 10px;
+      background: var(--accent-soft);
+      color: var(--accent-weak);
+      border: 1px solid rgba(34,197,94,0.6);
+    }
+
+    .section-title {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .section-sub {
+      font-size: 11px;
+      color: var(--text-sub);
+    }
+
+    .size-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .size-btn {
+      flex: 1;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      padding: 6px 0;
+      font-size: 12px;
+      cursor: pointer;
+      background: #020617;
+      color: var(--text-sub);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.6);
+      transition: background 0.12s, color 0.12s, border-color 0.12s;
+    }
+
+    .size-btn.active {
+      background: linear-gradient(135deg, #22c55e, #4ade80);
+      color: #022c22;
+      border-color: #4ade80;
+    }
+
+    .menu-grid {
+      margin-top: 8px;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .drink-card {
+      border-radius: 14px;
+      background: radial-gradient(circle at top left, rgba(59,130,246,0.18), #020617 60%);
+      border: 1px solid #1f2937;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 10px 24px rgba(15,23,42,0.9);
+    }
+
+    .drink-img {
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      background-size: cover;
+      background-position: center;
+    }
+
+    .drink-body {
+      padding: 6px 8px 8px;
+      font-size: 12px;
+    }
+
+    .drink-name {
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+
+    .drink-price {
+      font-size: 11px;
+      color: var(--text-sub);
+      margin-bottom: 4px;
+    }
+
+    .drink-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 4px;
+    }
+
+    .qty-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: rgba(15,23,42,0.9);
+      border: 1px solid #1f2937;
+      font-size: 11px;
+    }
+
+    .qty-btn {
+      border: none;
+      background: none;
+      color: #e5e7eb;
+      font-size: 14px;
+      cursor: pointer;
+      padding: 0 3px;
+    }
+
+    .cart {
+      margin-top: 6px;
+      border-radius: 12px;
+      background: #020617;
+      border: 1px solid #111827;
+      padding: 8px;
+      font-size: 12px;
+      max-height: 220px;
+      overflow-y: auto;
+    }
+
+    .cart-line {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+
+    .cart-line span.size {
+      font-size: 11px;
+      color: var(--text-sub);
+      margin-left: 4px;
+    }
+
+    .note-input {
+      width: 100%;
+      margin-top: 6px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      padding: 6px 8px;
+      font-size: 12px;
+      background: #020617;
+      color: var(--text);
+      min-height: 44px;
+      resize: vertical;
+    }
+
+    .btn-submit {
+      width: 100%;
+      margin-top: 10px;
+      border-radius: 999px;
+      border: none;
+      padding: 10px 0;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      background: linear-gradient(135deg, #22c55e, #4ade80);
+      color: #022c22;
+      box-shadow: 0 12px 30px rgba(34,197,94,0.7);
+    }
+
+    .btn-submit:active {
+      transform: translateY(1px);
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.7);
+    }
+
+    .status {
+      margin-top: 6px;
+      font-size: 12px;
+      color: var(--text-sub);
+    }
+
+    .status.ok {
+      color: #bbf7d0;
+    }
+
+    .status.err {
+      color: #fecaca;
+    }
+
+    @media (max-width: 480px) {
+      .menu-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+  </style>
 </head>
 <body>
+<div class="wrap">
+  <header>
+    <h1>Tea Neko</h1>
+    <div class="subtitle" id="tableLabel">Bàn ...</div>
+  </header>
 
-<div class="box">
-    <h2>Đặt món – Tea Neko</h2>
+  <div class="card">
+    <div class="badge">💡 Chọn size trước rồi bấm món</div>
+    <div style="margin-top:6px;">
+      <div class="section-title">Kích cỡ</div>
+      <div class="section-sub">Size M giá cơ bản · Size L +5.000đ mỗi ly.</div>
+    </div>
+    <div class="size-row">
+      <button id="sizeM" class="size-btn active">Size M</button>
+      <button id="sizeL" class="size-btn">Size L (+5.000)</button>
+    </div>
+  </div>
 
-    <div id="tableInfo" style="margin:10px 0; font-size:16px; font-weight:600;"></div>
+  <div class="card">
+    <div class="section-title">Menu đồ uống</div>
+    <div class="section-sub">Chạm dấu + / − để tăng giảm số lượng.</div>
 
-    <h3>Menu</h3>
+    <div class="menu-grid" id="menuGrid"></div>
+  </div>
 
-    <div id="menuList"></div>
+  <div class="card">
+    <div class="section-title">Đơn của bạn</div>
+    <div class="section-sub">Kiểm tra lại trước khi gửi đến quầy.</div>
 
-    <textarea id="note" placeholder="Ghi chú cho quán (Nếu có)..."></textarea>
+    <div class="cart" id="cartList">
+      Chưa có món nào. Hãy chọn món trong menu phía trên.
+    </div>
 
-    <button onclick="submitOrder()">Gửi đơn</button>
+    <textarea id="noteInput" class="note-input"
+              placeholder="Ghi chú cho quán (ít đá, ít ngọt, không trân châu...)"></textarea>
 
-    <p id="status" style="text-align:center; margin-top:15px; color:green;"></p>
+    <button id="btnSend" class="btn-submit">Gửi order đến Tea Neko</button>
+
+    <div id="statusMsg" class="status"></div>
+  </div>
 </div>
 
 <script>
-/* ========== Supabase ========== */
-const SUPABASE_URL = "https://YOUR_PROJECT.supabase.co";  
-const SUPABASE_KEY = "YOUR_PUBLIC_ANON_KEY";
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  // =============== SUPABASE CONFIG ===============
+  const SUPABASE_URL = "https://kcrchwedlrettpkucoct.supabase.co";
+  const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtjcmNod2VkbHJldHRwa3Vjb2N0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM4ODQ0MjgsImV4cCI6MjA3OTQ2MDQyOH0.g4WA9tci2zm4MIa6EvOe6tH_EhaoicdrdiP6swgjRgw";
+  const supa = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-/* ========== Số bàn ========== */
-const urlParams = new URLSearchParams(window.location.search);
-const tableNo = urlParams.get("table") || "Không xác định";
-document.getElementById("tableInfo").innerText = "Bàn: " + tableNo;
-
-/* ========== MENU MATCH POS ========== */
-const MENU = [
-    { name: "Matcha Latte", price: 25000 },
-    { name: "Trà sữa trân châu", price: 30000 },
-    { name: "Cacao đá", price: 22000 },
-    { name: "Coffee", price: 25000 },
-    { name: "Hồng trà sữa", price: 28000 },
-    { name: "Bạc xỉu", price: 20000 },
-];
-
-let selectedItems = [];
-
-/* Hiển thị menu */
-function renderMenu() {
-    let html = "";
-    MENU.forEach((item, i) => {
-        html += `
-            <div class="menu-item">
-                <div>
-                    <b>${item.name}</b><br>
-                    ${item.price.toLocaleString()} VND
-                </div>
-                <button style="width:90px; background:#28a745;" onclick="addItem(${i})">+ Chọn</button>
-            </div>
-        `;
-    });
-    document.getElementById("menuList").innerHTML = html;
-}
-renderMenu();
-
-/* Chọn món */
-function addItem(i) {
-    selectedItems.push({
-        name: MENU[i].name,
-        price: MENU[i].price,
-        qty: 1
-    });
-    alert("Đã thêm: " + MENU[i].name);
-}
-
-/* Gửi order lên Supabase */
-async function submitOrder() {
-    if (selectedItems.length === 0) {
-        alert("Bạn chưa chọn món!");
-        return;
+  // =============== STATE & MENU ===============
+  const MENU = [
+    {
+      key: "matcha",
+      name: "Matcha Latte",
+      price: 25000,
+      img: "https://images.unsplash.com/photo-1541167760496-1628856ab772?auto=format&fit=crop&w=600&q=80"
+    },
+    {
+      key: "tranchau",
+      name: "Trà sữa trân châu",
+      price: 30000,
+      img: "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?auto=format&fit=crop&w=600&q=80"
+    },
+    {
+      key: "cacao",
+      name: "Cacao đá",
+      price: 22000,
+      img: "https://images.unsplash.com/photo-1521017432531-fbd92d768814?auto=format&fit=crop&w=600&q=80"
+    },
+    {
+      key: "coffee",
+      name: "Coffee",
+      price: 25000,
+      img: "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=600&q=80"
+    },
+    {
+      key: "hongtrasua",
+      name: "Hồng trà sữa",
+      price: 28000,
+      img: "https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=600&q=80"
+    },
+    {
+      key: "bacxiu",
+      name: "Bạc xỉu",
+      price: 20000,
+      img: "https://images.unsplash.com/photo-1511537190424-bbbab87ac5eb?auto=format&fit=crop&w=600&q=80"
     }
+  ];
 
-    const note = document.getElementById("note").value || "";
+  let tableNo = null;
+  let currentSize = "M"; // size hiện tại (M/L)
+  let cart = []; // [{key,name,size,qty,price,lineTotal}]
 
-    const { error } = await sb
-        .from("web_orders")
-        .insert({
-            table_no: String(tableNo),
-            items: selectedItems,
-            note: note,
-            status: "pending"
+  // =============== DOM ===============
+  const tableLabel = document.getElementById("tableLabel");
+  const sizeMBtn = document.getElementById("sizeM");
+  const sizeLBtn = document.getElementById("sizeL");
+  const menuGrid = document.getElementById("menuGrid");
+  const cartList = document.getElementById("cartList");
+  const noteInput = document.getElementById("noteInput");
+  const btnSend = document.getElementById("btnSend");
+  const statusMsg = document.getElementById("statusMsg");
+
+  // =============== UTILS ===============
+  function formatVND(x) {
+    return (x || 0).toLocaleString("vi-VN") + " VND";
+  }
+
+  function parseTable() {
+    const params = new URLSearchParams(window.location.search);
+    const t = parseInt(params.get("table") || "0", 10);
+    if (!t || t < 1) {
+      tableLabel.textContent = "Không xác định số bàn";
+      btnSend.disabled = true;
+      statusMsg.textContent = "QR không hợp lệ: thiếu thông tin số bàn.";
+      statusMsg.className = "status err";
+      return;
+    }
+    tableNo = t;
+    tableLabel.textContent = "Bàn " + tableNo;
+  }
+
+  // =============== SIZE SELECT ===============
+  sizeMBtn.addEventListener("click", () => {
+    currentSize = "M";
+    sizeMBtn.classList.add("active");
+    sizeLBtn.classList.remove("active");
+  });
+
+  sizeLBtn.addEventListener("click", () => {
+    currentSize = "L";
+    sizeLBtn.classList.add("active");
+    sizeMBtn.classList.remove("active");
+  });
+
+  // =============== MENU RENDER ===============
+  function renderMenu() {
+    MENU.forEach((item, idx) => {
+      const card = document.createElement("div");
+      card.className = "drink-card";
+
+      const imgDiv = document.createElement("div");
+      imgDiv.className = "drink-img";
+      imgDiv.style.backgroundImage = `url('${item.img}')`;
+
+      const body = document.createElement("div");
+      body.className = "drink-body";
+      body.innerHTML = `
+        <div class="drink-name">${item.name}</div>
+        <div class="drink-price">
+          ${item.price.toLocaleString("vi-VN")}đ (Size M)
+        </div>
+      `;
+
+      const actions = document.createElement("div");
+      actions.className = "drink-actions";
+
+      const qtySpan = document.createElement("span");
+      qtySpan.className = "qty-pill";
+      qtySpan.innerHTML = `
+        <button class="qty-btn">−</button>
+        <span class="qty-val">0</span>
+        <button class="qty-btn">+</button>
+      `;
+
+      const note = document.createElement("span");
+      note.style.fontSize = "11px";
+      note.style.color = "#9ca3af";
+      note.textContent = "Theo size đang chọn";
+
+      actions.appendChild(qtySpan);
+      actions.appendChild(note);
+      body.appendChild(actions);
+
+      card.appendChild(imgDiv);
+      card.appendChild(body);
+      menuGrid.appendChild(card);
+
+      const minusBtn = qtySpan.querySelectorAll(".qty-btn")[0];
+      const plusBtn = qtySpan.querySelectorAll(".qty-btn")[1];
+      const qtyVal = qtySpan.querySelector(".qty-val");
+
+      plusBtn.addEventListener("click", () => {
+        changeQty(item, +1, qtyVal);
+      });
+      minusBtn.addEventListener("click", () => {
+        changeQty(item, -1, qtyVal);
+      });
+    });
+  }
+
+  function changeQty(item, delta, qtyLabel) {
+    const unitPrice = item.price + (currentSize === "L" ? 5000 : 0);
+    const line = cart.find(l => l.key === item.key && l.size === currentSize);
+    if (delta > 0) {
+      if (line) {
+        line.qty += delta;
+        line.lineTotal += unitPrice * delta;
+      } else {
+        cart.push({
+          key: item.key,
+          name: item.name,
+          size: currentSize,
+          qty: 1,
+          price: unitPrice,
+          lineTotal: unitPrice
         });
-
-    if (error) {
-        alert("Lỗi gửi đơn!");
-        console.log(error);
+      }
     } else {
-        document.getElementById("status").innerText = "Gửi đơn thành công! 🎉";
-        selectedItems = [];
+      if (!line) {
+        renderCart();
+        return;
+      }
+      line.qty += delta;
+      line.lineTotal += unitPrice * delta;
+      if (line.qty <= 0) {
+        const idx = cart.indexOf(line);
+        if (idx >= 0) cart.splice(idx, 1);
+      }
     }
-}
+
+    const totalQtyThisItem = cart
+      .filter(c => c.key === item.key)
+      .reduce((s, l) => s + l.qty, 0);
+
+    qtyLabel.textContent = totalQtyThisItem;
+    renderCart();
+  }
+
+  // =============== CART ===============
+  function renderCart() {
+    cartList.innerHTML = "";
+    if (!cart.length) {
+      cartList.textContent = "Chưa có món nào. Hãy chọn món trong menu phía trên.";
+      return;
+    }
+    let total = 0;
+    cart.forEach(line => {
+      total += line.lineTotal;
+      const div = document.createElement("div");
+      div.className = "cart-line";
+      div.innerHTML = `
+        <div>
+          ${line.qty}x ${line.name}
+          <span class="size">(Size ${line.size})</span>
+        </div>
+        <div>${formatVND(line.lineTotal)}</div>
+      `;
+      cartList.appendChild(div);
+    });
+    const sumDiv = document.createElement("div");
+    sumDiv.className = "cart-line";
+    sumDiv.style.marginTop = "4px";
+    sumDiv.innerHTML = `
+      <div><strong>Tổng:</strong></div>
+      <div><strong>${formatVND(total)}</strong></div>
+    `;
+    cartList.appendChild(sumDiv);
+  }
+
+  // =============== SEND ===============
+  async function sendOrder() {
+    statusMsg.textContent = "";
+    statusMsg.className = "status";
+    if (!tableNo) {
+      statusMsg.textContent = "QR không hợp lệ (thiếu số bàn).";
+      statusMsg.className = "status err";
+      return;
+    }
+    if (!cart.length) {
+      statusMsg.textContent = "Bạn chưa chọn món nào.";
+      statusMsg.className = "status err";
+      return;
+    }
+    const total = cart.reduce((s, l) => s + l.lineTotal, 0);
+    const note = noteInput.value.trim();
+
+    btnSend.disabled = true;
+    btnSend.textContent = "Đang gửi order...";
+
+    const payload = {
+      table_no: tableNo,
+      items: cart,
+      total,
+      note,
+      status: "pending"
+    };
+
+    const { error } = await supa.from("web_orders").insert([payload]);
+    if (error) {
+      console.error(error);
+      statusMsg.textContent = "Gửi order thất bại. Bạn vui lòng thử lại.";
+      statusMsg.className = "status err";
+      btnSend.disabled = false;
+      btnSend.textContent = "Gửi order đến Tea Neko";
+      return;
+    }
+
+    statusMsg.textContent = "Đã gửi order thành công! Vui lòng chờ quán xác nhận.";
+    statusMsg.className = "status ok";
+    cart = [];
+    renderCart();
+    noteInput.value = "";
+    btnSend.disabled = false;
+    btnSend.textContent = "Gửi order đến Tea Neko";
+  }
+
+  btnSend.addEventListener("click", sendOrder);
+
+  // =============== INIT ===============
+  (function init() {
+    parseTable();
+    renderMenu();
+    renderCart();
+  })();
 </script>
 </body>
 </html>
