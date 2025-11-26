@@ -1,750 +1,862 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8">
-  <title>Mini POS – Tea Neko (Multi-Page)</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <title>Mini POS – Tea Neko (Realtime + QR)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- ===== CSS ===== -->
+  <!-- Supabase JS -->
+  <script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+
   <style>
-    * { box-sizing: border-box; }
+    :root {
+      --bg: #05060a;
+      --card: #111827;
+      --accent: #22c55e;
+      --accent-soft: rgba(34,197,94,0.12);
+      --accent-weak: #4ade80;
+      --danger: #ef4444;
+      --danger-soft: rgba(239,68,68,0.15);
+      --text: #e5e7eb;
+      --text-sub: #9ca3af;
+      --border: #1f2937;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
     body {
-      margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif;
-      background: #101018;
-      color: #f5f5f5;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", Arial, sans-serif;
+      background: radial-gradient(circle at top, #0f172a 0, #020617 45%, #000 100%);
+      color: var(--text);
+      padding: 12px;
     }
 
     .app {
-      max-width: 520px;
+      max-width: 960px;
       margin: 0 auto;
-      min-height: 100vh;
-      padding-bottom: 40px;
     }
 
-    /* ===== TAB BAR ===== */
+    header {
+      text-align: center;
+      margin-bottom: 10px;
+    }
+
+    header h1 {
+      font-size: 20px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #f9fafb;
+    }
+
+    header .subtitle {
+      font-size: 12px;
+      color: var(--text-sub);
+      margin-top: 3px;
+    }
+
     .tab-bar {
       display: flex;
-      background: #181825;
-      padding: 8px 10px 0;
-      position: sticky;
-      top: 0;
-      z-index: 20;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+      gap: 8px;
+      margin: 10px 0 12px;
     }
 
     .tab-btn {
       flex: 1;
-      text-align: center;
-      padding: 10px 0 6px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      padding: 6px 0;
+      font-size: 13px;
       cursor: pointer;
-      font-size: 14px;
-      font-weight: 600;
-      color: #a0a0b5;
-      position: relative;
-      transition: transform .06s ease, background .12s ease, color .12s ease;
-      border-radius: 10px 10px 0 0;
+      background: rgba(15,23,42,0.9);
+      color: var(--text-sub);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: background 0.12s, color 0.12s, box-shadow 0.12s, transform 0.05s;
+    }
+
+    .tab-btn span.icon {
+      font-size: 15px;
     }
 
     .tab-btn.active {
-      color: #ffffff;
-      background: #242436;
-      transform: translateY(1px);
+      background: linear-gradient(135deg, #16a34a, #22c55e);
+      color: #020617;
+      border-color: #22c55e;
+      box-shadow: 0 0 0 1px rgba(34,197,94,0.55), 0 12px 30px rgba(34,197,94,0.25);
+      transform: translateY(-1px);
     }
 
     .tab-btn:active {
-      transform: translateY(2px) scale(0.98);
+      transform: translateY(1px);
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.6);
     }
 
-    .tab-underline {
-      height: 3px;
-      background: #0a84ff;
-      width: 25%; /* 4 tab = 25% */
-      transform: translateX(0%);
-      transition: transform .18s ease;
-    }
-
-    /* ===== PAGE WRAPPER ===== */
     .page {
       display: none;
-      padding: 12px;
     }
-    .page.active { display: block; }
 
-    .box {
-      background: #181825;
+    .page.active {
+      display: block;
+    }
+
+    .grid-pos {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.1fr);
+      gap: 10px;
+    }
+
+    @media (max-width: 750px) {
+      .grid-pos {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .card {
+      background: radial-gradient(circle at top left, rgba(34,197,94,0.12), #020617 60%);
       border-radius: 16px;
-      border: 1px solid #403b3b;
-      padding: 14px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+      padding: 10px;
+      border: 1px solid var(--border);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.45);
     }
 
-    h2, h3 {
-      margin: 0 0 8px;
-      text-align: center;
+    .card-plain {
+      background: rgba(15,23,42,0.95);
+      border-radius: 16px;
+      padding: 10px;
+      border: 1px solid var(--border);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.45);
     }
-    h2 { font-size: 18px; }
-    h3 { font-size: 15px; }
 
-    .section-title {
-      margin-top: 10px;
-      font-size: 13px;
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 6px;
+    }
+
+    .card-title {
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
       text-transform: uppercase;
-      letter-spacing: 0.8px;
-      color: #a0a0c5;
-      border-left: 3px solid #0a84ff;
-      padding-left: 6px;
+      color: #e5e7eb;
     }
 
-    /* ===== MENU ===== */
+    .card-sub {
+      font-size: 11px;
+      color: var(--text-sub);
+    }
+
     .menu-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 8px;
-      margin-top: 8px;
+      margin-top: 4px;
     }
 
     .menu-item {
       border-radius: 12px;
       padding: 8px;
-      background: #222233;
-      border: 1px solid #3a3a4a;
+      border: 1px solid rgba(148,163,184,0.2);
+      background: linear-gradient(145deg, rgba(15,23,42,0.95), rgba(15,23,42,0.9));
       cursor: pointer;
-      transition: transform 0.06s ease, box-shadow 0.1s ease, background 0.1s ease;
       font-size: 13px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.65);
+      transition: transform 0.07s ease, box-shadow 0.08s ease, border-color 0.08s, background 0.15s;
     }
 
     .menu-item:hover {
-      background: #25253a;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+      border-color: rgba(34,197,94,0.6);
+      box-shadow: 0 10px 25px rgba(34,197,94,0.35);
     }
 
     .menu-item:active {
       transform: translateY(1px) scale(0.98);
-      box-shadow: 0 1px 3px rgba(0,0,0,0.4) inset;
-      background: #313153;
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.7);
+      background: linear-gradient(145deg, rgba(22,163,74,0.18), rgba(15,23,42,0.95));
     }
 
-    .menu-item-name {
+    .menu-name {
       font-weight: 600;
-    }
-    .menu-item-price {
-      font-size: 12px;
-      color: #b0b0c8;
-      margin-top: 2px;
+      font-size: 13px;
     }
 
-    /* ===== SIZE & CASH ===== */
-    .size-row,
-    .cash-row {
+    .menu-price {
+      font-size: 11px;
+      color: var(--text-sub);
+    }
+
+    .size-row {
       display: flex;
       gap: 8px;
-      margin-top: 10px;
-      align-items: center;
-      font-size: 14px;
+      margin-top: 8px;
     }
 
-    .size-row button {
+    .size-btn {
       flex: 1;
-      padding: 8px 0;
       border-radius: 999px;
-      border: 1px solid #3a3a4a;
-      background: #222233;
-      color: #f5f5f5;
+      border: 1px solid var(--border);
+      padding: 6px 0;
+      font-size: 12px;
       cursor: pointer;
+      background: #020617;
+      color: var(--text-sub);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.6);
+      transition: background 0.12s, color 0.12s, box-shadow 0.12s, border-color 0.12s;
+    }
+
+    .size-btn.active {
+      background: linear-gradient(135deg, #22c55e, #4ade80);
+      color: #020617;
+      border-color: #4ade80;
+      box-shadow: 0 0 0 1px rgba(74,222,128,0.75), 0 10px 26px rgba(34,197,94,0.5);
+    }
+
+    .cash-row {
+      margin-top: 8px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
       font-size: 13px;
-      font-weight: 500;
-      transition: background 0.12s ease, box-shadow 0.12s ease, transform 0.06s ease;
     }
 
-    .size-row button.active {
-      background: #0a84ff;
-      border-color: #0a84ff;
-      box-shadow: 0 0 0 1px rgba(10,132,255,0.5);
-    }
-
-    .size-row button:active {
-      transform: translateY(1px);
-    }
-
-    .cash-row span {
-      white-space: nowrap;
-      font-size: 13px;
+    .cash-row label {
+      font-size: 12px;
+      color: var(--text-sub);
     }
 
     .cash-row input {
       flex: 1;
-      padding: 8px 10px;
-      border-radius: 10px;
-      border: 1px solid #3a3a4a;
-      background: #101018;
-      color: #f5f5f5;
-      font-size: 14px;
+      padding: 6px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: #020617;
+      color: var(--text);
+      font-size: 13px;
+      outline: none;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.6) inset;
     }
 
-    /* ===== BUTTONS ===== */
     .btn-row {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 8px;
-      margin-top: 10px;
+      margin-top: 8px;
     }
 
     .btn {
       border-radius: 999px;
       border: none;
-      padding: 9px 0;
+      padding: 8px 0;
       cursor: pointer;
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 600;
-      color: #fff;
-      transition: opacity 0.08s ease, transform 0.06s ease, box-shadow 0.12s ease;
+      color: #f9fafb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.7);
+      transition: transform 0.07s, box-shadow 0.08s, filter 0.06s;
     }
-    .btn:active {
-      opacity: 0.9;
-      transform: translateY(1px);
-      box-shadow: 0 1px 3px rgba(0,0,0,0.5) inset;
-    }
-    .btn-undo { background: #7a7a85; }
-    .btn-clear { background: #ff3b30; }
-    .btn-save { background: #1c60ff; }
-    .btn-print { background: #30c759; }
 
-    .list-box {
-      margin-top: 12px;
-      padding: 10px;
-      border-radius: 14px;
-      background: #141420;
-      border: 1px solid #3a3a4a;
+    .btn:active {
+      transform: translateY(1px);
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.7);
+      filter: brightness(0.9);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #22c55e, #4ade80);
+      color: #020617;
+    }
+
+    .btn-secondary {
+      background: linear-gradient(135deg, #0ea5e9, #38bdf8);
+    }
+
+    .btn-ghost {
+      background: rgba(15,23,42,0.8);
+      border: 1px solid var(--border);
+      color: var(--text-sub);
+    }
+
+    .btn-danger {
+      background: linear-gradient(135deg, #ef4444, #f97373);
+    }
+
+    .order-list {
+      margin-top: 6px;
+      padding: 8px;
+      border-radius: 12px;
+      background: rgba(15,23,42,0.9);
+      max-height: 220px;
+      overflow-y: auto;
       font-size: 13px;
     }
 
-    ul {
-      margin: 6px 0 0;
-      padding-left: 18px;
-      max-height: 220px;
-      overflow-y: auto;
+    .order-line {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 4px;
     }
 
-    .summary {
+    .order-line-name {
+      font-size: 12px;
+    }
+
+    .order-line-qty {
+      color: var(--accent-weak);
+      font-size: 11px;
+      margin-left: 4px;
+    }
+
+    .order-line-price {
+      font-size: 12px;
+      color: #e5e7eb;
+    }
+
+    .summary-block {
       margin-top: 6px;
       font-size: 13px;
     }
-    .summary strong { font-size: 14px; }
 
-    .history-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 4px;
-      font-size: 13px;
+    .summary-block strong {
+      font-size: 14px;
+      color: #f9fafb;
     }
 
-    .chip-btn {
-      padding: 4px 10px;
-      border-radius: 999px;
-      border: 1px solid #3a3a4a;
-      background: #242438;
-      color: #f5f5f5;
-      font-size: 11px;
-      cursor: pointer;
-    }
-
-    .chip-btn:active {
-      transform: translateY(1px);
-      background: #333355;
-    }
-
-    .history-list {
-      max-height: 220px;
-      overflow-y: auto;
-      margin-top: 4px;
+    .summary-sub {
       font-size: 12px;
+      color: var(--text-sub);
+      margin-top: 2px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-size: 11px;
+      background: var(--accent-soft);
+      color: var(--accent-weak);
+      gap: 4px;
+    }
+
+    .pill-danger {
+      background: var(--danger-soft);
+      color: #fecaca;
+    }
+
+    .list-history {
+      max-height: 260px;
+      overflow-y: auto;
+      font-size: 12px;
+      margin-top: 4px;
     }
 
     .history-item {
-      border-bottom: 1px dashed #3a3a4a;
-      padding: 4px 0;
+      border-radius: 10px;
+      padding: 6px 8px;
+      background: rgba(15,23,42,0.95);
+      border: 1px solid rgba(31,41,55,0.9);
+      margin-bottom: 6px;
+    }
+
+    .history-header-line {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      margin-bottom: 3px;
+      color: var(--text-sub);
+    }
+
+    .history-main-line {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      margin-bottom: 4px;
+      color: #e5e7eb;
+    }
+
+    .history-actions {
       display: flex;
       gap: 6px;
-      align-items: flex-start;
-      justify-content: space-between;
-    }
-
-    .history-main {
-      flex: 1;
-    }
-    .history-code {
-      color: #ffd85d;
-      font-weight: 600;
-    }
-    .history-meta {
-      color: #c0c0d0;
-    }
-
-    .btn-small-red {
-      padding: 2px 8px;
-      border-radius: 999px;
-      border: none;
-      background: #ff3b30;
-      color: #fff;
-      font-size: 11px;
-      cursor: pointer;
-      margin-left: 4px;
-    }
-
-    .btn-small-green {
-      padding: 2px 8px;
-      border-radius: 999px;
-      border: none;
-      background: #30c759;
-      color: #fff;
-      font-size: 11px;
-      cursor: pointer;
-      margin-left: 4px;
-    }
-
-    .btn-small-blue {
-      padding: 2px 8px;
-      border-radius: 999px;
-      border: none;
-      background: #1c60ff;
-      color: #fff;
-      font-size: 11px;
-      cursor: pointer;
-      margin-left: 4px;
-    }
-
-    .footer {
-      margin-top: 10px;
-      text-align: center;
-      font-size: 12px;
-      color: #b0b0c8;
-    }
-
-    /* ===== REVENUE PAGE ===== */
-    .card-row {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 8px;
-      margin-top: 8px;
-    }
-
-    .rev-card {
-      background: #1c1c2a;
-      border-radius: 12px;
-      padding: 8px;
-      border: 1px solid #34344a;
-      font-size: 11px;
-    }
-
-    .rev-label {
-      color: #b0b0d0;
-      margin-bottom: 4px;
-    }
-
-    .rev-value {
-      font-weight: 700;
-      font-size: 12px;
-    }
-
-    .rev-list {
-      margin-top: 10px;
-      font-size: 12px;
-      max-height: 260px;
-      overflow-y: auto;
-    }
-
-    /* ===== HISTORY PAGE ===== */
-    .search-row {
-      margin-top: 6px;
-    }
-    .search-row input {
-      width: 100%;
-      padding: 7px 9px;
-      border-radius: 10px;
-      border: 1px solid #3a3a4a;
-      background: #101018;
-      color: #f5f5f5;
-      font-size: 13px;
-    }
-
-    .history-section-title {
-      margin-top: 10px;
-      font-size: 13px;
-      color: #e5e5ff;
-      font-weight: 600;
-    }
-
-    .history-note {
-      font-size: 11px;
-      color: #c0c0d0;
       margin-top: 4px;
     }
 
-    /* ===== STOCK PAGE ===== */
-    .stock-actions {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin: 6px 0 8px;
-      font-size: 13px;
+    .history-actions button {
+      flex: 1;
+      border-radius: 999px;
+      padding: 3px 0;
+      font-size: 11px;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.7);
+    }
+
+    .history-actions button:active {
+      transform: translateY(1px);
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.7);
+    }
+
+    .history-actions .btn-delete {
+      background: linear-gradient(135deg, #ef4444, #f97373);
+      color: #fee2e2;
+    }
+
+    .history-actions .btn-print {
+      background: linear-gradient(135deg, #22c55e, #4ade80);
+      color: #022c22;
+    }
+
+    .history-actions .btn-restore {
+      background: linear-gradient(135deg, #0ea5e9, #38bdf8);
+      color: #e0f2fe;
+    }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 6px;
+    }
+
+    .kpi-card {
+      border-radius: 12px;
+      padding: 8px;
+      background: radial-gradient(circle at top left, rgba(56,189,248,0.25), #020617 55%);
+      border: 1px solid rgba(30,64,175,0.8);
+      box-shadow: 0 10px 28px rgba(30,64,175,0.75);
+    }
+
+    .kpi-label {
+      font-size: 11px;
+      color: var(--text-sub);
+    }
+
+    .kpi-value {
+      font-size: 16px;
+      font-weight: 600;
+      margin-top: 4px;
+    }
+
+    .kpi-note {
+      font-size: 11px;
+      color: rgba(191,219,254,0.9);
+      margin-top: 2px;
     }
 
     .stock-list {
-      margin-top: 4px;
-      max-height: 260px;
+      margin-top: 6px;
+      max-height: 230px;
       overflow-y: auto;
       font-size: 12px;
     }
 
     .stock-item {
-      border-bottom: 1px dashed #3a3a4a;
-      padding: 5px 0;
+      border-radius: 10px;
+      padding: 6px 8px;
+      background: rgba(15,23,42,0.95);
+      border: 1px solid rgba(31,41,55,0.9);
+      margin-bottom: 6px;
       display: flex;
       justify-content: space-between;
-      gap: 8px;
-      align-items: flex-start;
+      align-items: center;
     }
 
-    .stock-main {
-      flex: 1;
-    }
-
-    .stock-name {
-      font-weight: 600;
-    }
-
-    .stock-meta {
-      color: #c0c0d0;
-    }
-
-    .stock-form {
-      margin-top: 8px;
-      padding: 8px;
-      border-radius: 10px;
-      background: #141420;
-      border: 1px dashed #3a3a4a;
-      font-size: 12px;
-    }
-
-    .stock-form-row {
+    .stock-input-row {
       display: flex;
       gap: 6px;
-      margin-bottom: 6px;
+      margin-top: 8px;
     }
 
-    .stock-form-row input {
+    .stock-input-row input {
       flex: 1;
+      border-radius: 999px;
+      border: 1px solid var(--border);
       padding: 6px 8px;
-      border-radius: 8px;
-      border: 1px solid #3a3a4a;
-      background: #101018;
-      color: #f5f5f5;
       font-size: 12px;
+      background: #020617;
+      color: var(--text);
+      outline: none;
     }
 
-    .btn-small {
-      padding: 4px 10px;
+    .stock-input-row button {
+      padding: 6px 10px;
       border-radius: 999px;
       border: none;
-      font-size: 11px;
+      font-size: 12px;
       cursor: pointer;
+      background: linear-gradient(135deg, #22c55e, #4ade80);
+      color: #020617;
+      box-shadow: 0 6px 16px rgba(16,185,129,0.65);
     }
 
-    .btn-small-gray {
-      background: #7a7a85;
-      color: #fff;
+    .qr-box {
+      margin-top: 10px;
+      font-size: 12px;
+      color: var(--text-sub);
+      background: rgba(15,23,42,0.9);
+      border-radius: 14px;
+      border: 1px dashed rgba(148,163,184,0.5);
+      padding: 8px;
     }
 
-    .btn-small-save {
-      background: #30c759;
-      color: #fff;
+    .qr-rows {
+      margin-top: 6px;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 4px;
+      font-size: 11px;
     }
 
-    @media (max-width: 480px) {
-      .app { padding-bottom: 24px; }
-      .box { border-radius: 12px; }
+    .qr-row span {
+      color: #e5e7eb;
     }
   </style>
-
-  <script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 </head>
 <body>
 <div class="app">
+  <header>
+    <h1>Tea Neko – Mini POS</h1>
+    <div class="subtitle">Realtime Supabase · QR Order 20 bàn · bản UI B</div>
+  </header>
 
-  <!-- ===== TAB MENU ===== -->
+  <!-- TAB BAR -->
   <div class="tab-bar">
-    <div class="tab-btn active" data-page="page-pos">POS</div>
-    <div class="tab-btn" data-page="page-revenue">Doanh thu</div>
-    <div class="tab-btn" data-page="page-history">Lịch sử</div>
-    <div class="tab-btn" data-page="page-stock">Tồn kho</div>
+    <button class="tab-btn active" data-page="page-pos">
+      <span class="icon">🧾</span> POS
+    </button>
+    <button class="tab-btn" data-page="page-revenue">
+      <span class="icon">💰</span> Doanh thu
+    </button>
+    <button class="tab-btn" data-page="page-history">
+      <span class="icon">📚</span> Lịch sử
+    </button>
+    <button class="tab-btn" data-page="page-stock">
+      <span class="icon">📦</span> Tồn kho
+    </button>
   </div>
-  <div class="tab-underline" id="tabUnderline"></div>
 
-  <!-- ===== PAGE 1 – POS ===== -->
+  <!-- =========================
+       PAGE POS
+  ========================== -->
   <div id="page-pos" class="page active">
-    <div class="box">
-
-      <h2>Mini POS – Tea Neko</h2>
-
-      <div class="section-title">Latte / Coffee / Trà sữa</div>
-      <div id="menuMain" class="menu-grid"></div>
-
-      <div class="section-title">Tùy chọn size</div>
-      <div class="size-row">
-        <button id="sizeM" class="active">Size M</button>
-        <button id="sizeL">Size L (+5.000)</button>
-      </div>
-
-      <div class="cash-row">
-        <span>Khách đưa (nghìn):</span>
-        <input id="cashInput" type="number" min="0" placeholder="VD: 50">
-      </div>
-
-      <div class="btn-row">
-        <button class="btn btn-undo" id="btnUndo">↩ Hoàn tác</button>
-        <button class="btn btn-clear" id="btnClear">Xóa tất cả</button>
-      </div>
-      <div class="btn-row" style="margin-top:6px;">
-        <button class="btn btn-save" id="btnSave">💾 Lưu đơn</button>
-        <button class="btn btn-print" id="btnPrint">🧾 Lưu + In bill</button>
-      </div>
-
-      <div class="list-box" id="currentBox">
-        <div><strong>Đơn hiện tại:</strong></div>
-        <ul id="currentList"></ul>
-        <div class="summary" id="currentSummary">Tổng: 0 VND</div>
-        <div class="summary" id="cashSummary"></div>
-      </div>
-
-      <div class="list-box">
-        <div class="history-header">
-          <span><strong>Lịch sử đơn (Realtime)</strong></span>
-          <button class="chip-btn" id="btnRefreshPosHistory">↻ Tải lại</button>
+    <div class="grid-pos">
+      <!-- Cột trái: menu -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Menu đồ uống</div>
+          <div class="card-sub">Chạm để thêm món · SL tăng theo số lần bấm</div>
         </div>
-        <div class="history-list" id="posHistoryList"></div>
-        <div class="summary" id="posHistoryTotal">Tổng doanh thu: 0 VND</div>
+
+        <div class="size-row">
+          <button id="sizeM" class="size-btn active">Size M</button>
+          <button id="sizeL" class="size-btn">Size L (+5.000)</button>
+        </div>
+
+        <div class="menu-grid" id="menuMain"></div>
+
+        <div class="qr-box">
+          <div class="card-title" style="font-size:12px; text-transform:none; letter-spacing:0;">
+            QR đặt món cho khách
+          </div>
+          <div class="card-sub">
+            Mỗi bàn một QR: khách mở <code>order.html?table=n</code> để gửi đơn.
+          </div>
+          <div class="qr-rows">
+            <div>Bàn 1 → <span>?table=1</span></div>
+            <div>Bàn 2 → <span>?table=2</span></div>
+            <div>Bàn 3 → <span>?table=3</span></div>
+            <div>Bàn 4 → <span>?table=4</span></div>
+            <div>Bàn 5 → <span>?table=5</span></div>
+            <div>Bàn 6 → <span>?table=6</span></div>
+            <div>Bàn 7 → <span>?table=7</span></div>
+            <div>Bàn 8 → <span>?table=8</span></div>
+            <div>Bàn 9 → <span>?table=9</span></div>
+            <div>Bàn 10 → <span>?table=10</span></div>
+            <div>Bàn 11 → <span>?table=11</span></div>
+            <div>Bàn 12 → <span>?table=12</span></div>
+            <div>Bàn 13 → <span>?table=13</span></div>
+            <div>Bàn 14 → <span>?table=14</span></div>
+            <div>Bàn 15 → <span>?table=15</span></div>
+            <div>Bàn 16 → <span>?table=16</span></div>
+            <div>Bàn 17 → <span>?table=17</span></div>
+            <div>Bàn 18 → <span>?table=18</span></div>
+            <div>Bàn 19 → <span>?table=19</span></div>
+            <div>Bàn 20 → <span>?table=20</span></div>
+          </div>
+        </div>
       </div>
 
-      <div class="footer">Cảm ơn quý khách đã ghé Tea Neko 💜</div>
+      <!-- Cột phải: đơn hiện tại & QR web orders -->
+      <div class="card-plain">
+        <div class="card-header">
+          <div class="card-title">Đơn hiện tại</div>
+          <div class="card-sub" id="orderInfoSub">Chưa có món</div>
+        </div>
+
+        <div class="order-list" id="currentList"></div>
+
+        <div class="cash-row">
+          <label for="cashInput">Khách đưa (nghìn):</label>
+          <input id="cashInput" type="number" min="0" placeholder="VD: 50 (tức 50.000)" />
+        </div>
+
+        <div class="summary-block">
+          <div id="currentSummary"><strong>Tổng:</strong> 0 VND</div>
+          <div id="cashSummary" class="summary-sub"></div>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn btn-ghost" id="btnUndo">↩ Hoàn tác 1 lần bấm</button>
+          <button class="btn btn-danger" id="btnClear">🧹 Xóa hết món</button>
+        </div>
+        <div class="btn-row" style="margin-top:6px;">
+          <button class="btn btn-secondary" id="btnSave">💾 Lưu đơn</button>
+          <button class="btn btn-primary" id="btnPrint">🧾 Lưu + In bill</button>
+        </div>
+
+        <!-- ĐƠN KHÁCH QR -->
+        <div style="margin-top:10px;" class="card-plain">
+          <div class="card-header" style="margin-bottom:4px;">
+            <div class="card-title" style="font-size:13px;">Đơn khách QR (web)</div>
+            <button id="btnReloadWebOrders"
+                    style="font-size:11px; padding:4px 10px; border-radius:999px; border:none; cursor:pointer;
+                           background:rgba(31,41,55,0.9); color:#e5e7eb;">
+              ↻ Tải đơn mới
+            </button>
+          </div>
+          <div id="webOrdersList"
+               style="max-height:200px; overflow-y:auto; font-size:12px; border-radius:10px;
+                      background:#020617; padding:6px;">
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- ===== PAGE 2 – REVENUE ===== -->
+  <!-- =========================
+       PAGE REVENUE
+  ========================== -->
   <div id="page-revenue" class="page">
-    <div class="box">
-      <h2>Doanh thu</h2>
-      <div class="history-header" style="margin-bottom:6px;">
-        <span style="font-size:13px;">Tổng thu nhập (từ các đơn chưa xoá)</span>
-        <button class="chip-btn" id="btnRefreshRevenue">↻ Tải lại</button>
+    <div class="card-plain">
+      <div class="card-header">
+        <div class="card-title">Tổng doanh thu</div>
+        <div class="card-sub">Đã trừ các đơn bị xoá</div>
       </div>
 
-      <div class="card-row">
-        <div class="rev-card">
-          <div class="rev-label">Hôm nay</div>
-          <div class="rev-value" id="revToday">0 VND</div>
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">Hôm nay</div>
+          <div class="kpi-value" id="revToday">0 VND</div>
+          <div class="kpi-note">Từ 00:00 đến hiện tại</div>
         </div>
-        <div class="rev-card">
-          <div class="rev-label">7 ngày gần nhất</div>
-          <div class="rev-value" id="revWeek">0 VND</div>
+        <div class="kpi-card">
+          <div class="kpi-label">7 ngày gần nhất</div>
+          <div class="kpi-value" id="revWeek">0 VND</div>
+          <div class="kpi-note">Bao gồm hôm nay</div>
         </div>
-        <div class="rev-card">
-          <div class="rev-label">Tháng này</div>
-          <div class="rev-value" id="revMonth">0 VND</div>
+        <div class="kpi-card">
+          <div class="kpi-label">Tháng này</div>
+          <div class="kpi-value" id="revMonth">0 VND</div>
+          <div class="kpi-note">Theo lịch hiện tại</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Tổng tất cả</div>
+          <div class="kpi-value" id="revAll">0 VND</div>
+          <div class="kpi-note">Từ trước tới nay</div>
         </div>
       </div>
 
-      <div class="section-title" style="margin-top:14px;">Chi tiết theo ngày</div>
-      <div class="rev-list" id="revByDayList"></div>
+      <div style="margin-top:10px; font-size:11px; color:var(--text-sub);">
+        Lưu ý: Doanh thu chỉ tính những đơn trong bảng <code>orders</code> chưa bị ghi lại vào
+        <code>deleted_orders</code>.
+      </div>
     </div>
   </div>
 
-  <!-- ===== PAGE 3 – HISTORY ===== -->
+  <!-- =========================
+       PAGE HISTORY
+  ========================== -->
   <div id="page-history" class="page">
-    <div class="box">
-      <h2>Lịch sử đơn</h2>
-
-      <div class="history-header">
-        <span style="font-size:13px;">Xem / xoá / khôi phục / in hoá đơn</span>
-        <button class="chip-btn" id="btnRefreshHistoryPage">↻ Tải lại</button>
+    <div class="card-plain">
+      <div class="card-header">
+        <div class="card-title">Lịch sử đơn</div>
+        <div class="card-sub">Xem, in, xoá đơn · Lịch sử xoá có thể khôi phục</div>
       </div>
 
-      <div class="search-row">
-        <input id="searchOrder" placeholder="Tìm theo mã đơn (#0001), món, ...">
+      <div style="display:grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap:10px;">
+        <!-- Lịch sử đơn -->
+        <div>
+          <div class="card-title" style="font-size:12px; margin-bottom:2px;">Đơn đã lưu</div>
+          <div class="card-sub" style="font-size:11px;">Nguồn: bảng <code>orders</code></div>
+          <div class="list-history" id="historyList"></div>
+        </div>
+
+        <!-- Lịch sử xoá -->
+        <div>
+          <div class="card-title" style="font-size:12px; margin-bottom:2px;">Lịch sử xoá</div>
+          <div class="card-sub" style="font-size:11px;">
+            Không xoá được – chỉ có thể khôi phục.
+          </div>
+          <div class="list-history" id="deletedList"></div>
+        </div>
       </div>
-
-      <div class="history-section-title">Đơn đang hoạt động</div>
-      <div class="history-list" id="historyActiveList"></div>
-
-      <div class="history-section-title" style="margin-top:10px;">Đơn đã xoá (không xoá tiếp)</div>
-      <div class="history-note">Bạn chỉ có thể khôi phục đơn đã xoá sang bảng đơn đang hoạt động.</div>
-      <div class="history-list" id="historyDeletedList"></div>
     </div>
   </div>
 
-  <!-- ===== PAGE 4 – STOCK / TỒN KHO ===== -->
+  <!-- =========================
+       PAGE STOCK
+  ========================== -->
   <div id="page-stock" class="page">
-    <div class="box">
-      <h2>Tồn kho nguyên liệu</h2>
-
-      <div class="stock-actions">
-        <span>Cuối buổi kiểm hàng rồi cập nhật số lượng.</span>
-        <button class="chip-btn" id="btnRefreshStock">↻ Tải lại</button>
+    <div class="card-plain">
+      <div class="card-header">
+        <div class="card-title">Tồn kho nguyên liệu</div>
+        <div class="card-sub">Lưu cục bộ trên thiết bị · Không đồng bộ Supabase</div>
       </div>
 
-      <button class="btn-small btn-small-gray" id="btnToggleStockForm">➕ Thêm nguyên liệu</button>
-
-      <div class="stock-form" id="stockForm" style="display:none;">
-        <div class="stock-form-row">
-          <input id="stockName" placeholder="Tên nguyên liệu (VD: Bột matcha)">
-        </div>
-        <div class="stock-form-row">
-          <input id="stockQuantity" type="number" step="0.01" placeholder="Số lượng hiện có">
-          <input id="stockUnit" placeholder="Đơn vị (VD: kg, g, ml)">
-        </div>
-        <div style="text-align:right;">
-          <button class="btn-small btn-small-gray" id="btnCancelStockAdd">Hủy</button>
-          <button class="btn-small btn-small-save" id="btnSaveStock">Lưu</button>
-        </div>
+      <div class="stock-input-row">
+        <input id="stockName" placeholder="Tên nguyên liệu (VD: Bột matcha)"/>
+        <input id="stockQty" type="number" placeholder="SL hiện tại"/>
+        <button id="btnAddStock">Thêm</button>
       </div>
 
-      <div class="section-title" style="margin-top:10px;">Danh sách hiện tại</div>
       <div class="stock-list" id="stockList"></div>
+
+      <div style="font-size:11px; color:var(--text-sub); margin-top:6px;">
+        Dữ liệu tồn kho được lưu trong trình duyệt (localStorage). Cuối buổi bạn có thể sửa số lượng thực tế.
+      </div>
     </div>
   </div>
-
 </div>
 
-<!-- ===== JS ===== -->
 <script>
-  // ===== SUPABASE CONFIG =====
+  // ==========================
+  // SUPABASE CONFIG
+  // ==========================
   const SUPABASE_URL = "https://kcrchwedlrettpkucoct.supabase.co";
   const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtjcmNod2VkbHJldHRwa3Vjb2N0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM4ODQ0MjgsImV4cCI6MjA3OTQ2MDQyOH0.g4WA9tci2zm4MIa6EvOe6tH_EhaoicdrdiP6swgjRgw";
   const supa = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-  // ===== MENU DATA =====
+  // ==========================
+  // STATE & MENU
+  // ==========================
   const MENU = [
-    { name: "Matcha Latte",      price: 25000 },
-    { name: "Coffee",            price: 25000 },
+    { name: "Matcha Latte", price: 25000 },
     { name: "Trà sữa trân châu", price: 30000 },
-    { name: "Hồng trà sữa",      price: 28000 },
-    { name: "Cacao đá",          price: 22000 },
-    { name: "Bạc xỉu",           price: 20000 }
+    { name: "Cacao đá", price: 22000 },
+    { name: "Coffee", price: 25000 },
+    { name: "Hồng trà sữa", price: 28000 },
+    { name: "Bạc xỉu", price: 20000 }
   ];
 
-  // ===== STATE =====
   let currentSize = "M";
-  let currentOrder = [];              // {name,size,qty,unitPrice,lineTotal}
-  let activeOrders = [];              // from public.orders
-  let deletedOrders = [];             // from public.deleted_orders
-  let inventoryItems = [];            // from public.inventory
-  let revenueStats = { today:0, week:0, month:0, byDay:[] };
+  let currentOrder = [];     // [{name,size,qty,unitPrice,lineTotal}]
+  let clickStack = [];       // mỗi lần bấm: {name,size,unitPrice}
+  let historyOrders = [];
+  let deletedOrders = [];
 
-  // ===== DOM SHORTCUTS =====
+  // ==========================
+  // DOM
+  // ==========================
   const tabBtns = document.querySelectorAll(".tab-btn");
   const pages = document.querySelectorAll(".page");
-  const tabUnderline = document.getElementById("tabUnderline");
 
   const menuMain = document.getElementById("menuMain");
   const sizeMBtn = document.getElementById("sizeM");
   const sizeLBtn = document.getElementById("sizeL");
+  const currentList = document.getElementById("currentList");
+  const currentSummary = document.getElementById("currentSummary");
+  const cashSummary = document.getElementById("cashSummary");
   const cashInput = document.getElementById("cashInput");
+  const orderInfoSub = document.getElementById("orderInfoSub");
   const btnUndo = document.getElementById("btnUndo");
   const btnClear = document.getElementById("btnClear");
   const btnSave = document.getElementById("btnSave");
   const btnPrint = document.getElementById("btnPrint");
-  const currentList = document.getElementById("currentList");
-  const currentSummary = document.getElementById("currentSummary");
-  const cashSummary = document.getElementById("cashSummary");
 
-  const posHistoryList = document.getElementById("posHistoryList");
-  const posHistoryTotal = document.getElementById("posHistoryTotal");
-  const btnRefreshPosHistory = document.getElementById("btnRefreshPosHistory");
+  const webOrdersList = document.getElementById("webOrdersList");
+  const btnReloadWebOrders = document.getElementById("btnReloadWebOrders");
 
-  const revToday = document.getElementById("revToday");
-  const revWeek = document.getElementById("revWeek");
-  const revMonth = document.getElementById("revMonth");
-  const revByDayList = document.getElementById("revByDayList");
-  const btnRefreshRevenue = document.getElementById("btnRefreshRevenue");
+  const historyList = document.getElementById("historyList");
+  const deletedList = document.getElementById("deletedList");
 
-  const historyActiveList = document.getElementById("historyActiveList");
-  const historyDeletedList = document.getElementById("historyDeletedList");
-  const btnRefreshHistoryPage = document.getElementById("btnRefreshHistoryPage");
-  const searchOrderInput = document.getElementById("searchOrder");
+  const revTodayEl = document.getElementById("revToday");
+  const revWeekEl = document.getElementById("revWeek");
+  const revMonthEl = document.getElementById("revMonth");
+  const revAllEl = document.getElementById("revAll");
 
-  const btnRefreshStock = document.getElementById("btnRefreshStock");
-  const btnToggleStockForm = document.getElementById("btnToggleStockForm");
-  const stockForm = document.getElementById("stockForm");
   const stockNameInput = document.getElementById("stockName");
-  const stockQuantityInput = document.getElementById("stockQuantity");
-  const stockUnitInput = document.getElementById("stockUnit");
-  const btnCancelStockAdd = document.getElementById("btnCancelStockAdd");
-  const btnSaveStock = document.getElementById("btnSaveStock");
+  const stockQtyInput = document.getElementById("stockQty");
+  const btnAddStock = document.getElementById("btnAddStock");
   const stockList = document.getElementById("stockList");
 
-  // ===== UTILS =====
+  // ==========================
+  // UTILS
+  // ==========================
   function formatVND(x) {
     return (x || 0).toLocaleString("vi-VN") + " VND";
   }
 
-  function formatDateTime(str) {
-    if (!str) return "";
-    const d = new Date(str);
-    return d.toLocaleString("vi-VN");
-  }
-
-  function formatDate(str) {
-    if (!str) return "";
-    const d = new Date(str);
-    return d.toLocaleDateString("vi-VN");
-  }
-
-  // Lấy mã đơn mới: #0001, #0002, ... dựa trên max của orders + deleted_orders
-  async function getNextOrderCode() {
-    let maxNum = 0;
-
-    const { data: dataA } = await supa.from("orders").select("order_code");
-    const { data: dataB } = await supa.from("deleted_orders").select("order_code");
-
-    [...(dataA || []), ...(dataB || [])].forEach(row => {
-      if (!row.order_code) return;
-      const m = /#(\d+)/.exec(row.order_code);
-      if (!m) return;
-      const num = parseInt(m[1], 10);
-      if (!isNaN(num) && num > maxNum) maxNum = num;
+  function setTab(pageId) {
+    tabBtns.forEach(btn => {
+      btn.classList.toggle("active", btn.dataset.page === pageId);
     });
-
-    const next = maxNum + 1;
-    return "#" + String(next).padStart(4, "0");
+    pages.forEach(p => {
+      p.classList.toggle("active", p.id === pageId);
+    });
   }
 
-  // ===== RENDER MENU & ORDER =====
+  tabBtns.forEach(btn => {
+    btn.addEventListener("click", () => setTab(btn.dataset.page));
+  });
+
+  // ==========================
+  // MENU & ORDER
+  // ==========================
   function renderMenu() {
-    MENU.forEach(item => {
+    MENU.forEach((item, idx) => {
       const div = document.createElement("div");
       div.className = "menu-item";
       div.innerHTML = `
-        <div class="menu-item-name">${item.name}</div>
-        <div class="menu-item-price">${item.price.toLocaleString("vi-VN")} VND (Size M)</div>
+        <div class="menu-name">${item.name}</div>
+        <div class="menu-price">${item.price.toLocaleString("vi-VN")} VND (Size M)</div>
       `;
-      div.addEventListener("click", () => addItem(item));
+      div.addEventListener("click", () => addItemFromMenu(item));
       menuMain.appendChild(div);
     });
   }
 
-  function addItem(item) {
-    const isL = currentSize === "L";
-    const unitPrice = item.price + (isL ? 5000 : 0);
+  function addItemFromMenu(item) {
+    const basePrice = item.price;
+    const unitPrice = basePrice + (currentSize === "L" ? 5000 : 0);
 
-    const existing = currentOrder.find(
-      line => line.name === item.name && line.size === currentSize
+    // Ghi lại mỗi lần bấm
+    clickStack.push({
+      name: item.name,
+      size: currentSize,
+      unitPrice
+    });
+
+    // Tìm trong currentOrder xem đã có hay chưa
+    const line = currentOrder.find(
+      l => l.name === item.name && l.size === currentSize
     );
-
-    if (existing) {
-      existing.qty += 1;
-      existing.lineTotal = existing.qty * existing.unitPrice;
+    if (line) {
+      line.qty += 1;
+      line.lineTotal += unitPrice;
     } else {
       currentOrder.push({
         name: item.name,
@@ -754,30 +866,43 @@
         lineTotal: unitPrice
       });
     }
-
     renderCurrentOrder();
   }
 
   function renderCurrentOrder() {
     currentList.innerHTML = "";
-    let total = 0;
+    if (!currentOrder.length) {
+      currentList.innerHTML =
+        `<div style="font-size:12px; color:#6b7280;">Chưa có món nào trong đơn hiện tại.</div>`;
+      orderInfoSub.textContent = "Chưa có món";
+    } else {
+      let total = 0;
+      currentOrder.forEach(line => {
+        total += line.lineTotal;
+        const row = document.createElement("div");
+        row.className = "order-line";
+        row.innerHTML = `
+          <div>
+            <span class="order-line-name">${line.name}</span>
+            <span class="order-line-qty">${line.qty}x · Size ${line.size}</span>
+          </div>
+          <div class="order-line-price">${formatVND(line.lineTotal)}</div>
+        `;
+        currentList.appendChild(row);
+      });
+      currentSummary.innerHTML = `<strong>Tổng:</strong> ${formatVND(total)}`;
+      orderInfoSub.textContent = `${currentOrder.length} dòng món · ${clickStack.length} lần bấm`;
+    }
 
-    currentOrder.forEach(line => {
-      total += line.lineTotal;
-      const li = document.createElement("li");
-      li.textContent = `${line.qty} x ${line.name} (Size ${line.size}) – ${formatVND(line.lineTotal)}`;
-      currentList.appendChild(li);
-    });
-
-    currentSummary.innerHTML = `<strong>Tổng:</strong> ${formatVND(total)}`;
-
+    // Tính tiền khách đưa
     const cashThousand = parseInt(cashInput.value || "0", 10);
     const cash = cashThousand * 1000;
+    const total = currentOrder.reduce((s, l) => s + l.lineTotal, 0);
+
     if (cash > 0) {
       const diff = cash - total;
       cashSummary.textContent =
-        `Khách đưa: ${formatVND(cash)} – ` +
-        `Tiền trả lại khách: ${formatVND(Math.max(diff, 0))}`;
+        `Khách đưa: ${formatVND(cash)} · Tiền trả lại khách: ${formatVND(Math.max(diff, 0))}`;
     } else {
       cashSummary.textContent = "";
     }
@@ -785,406 +910,218 @@
 
   function clearCurrentOrder() {
     currentOrder = [];
+    clickStack = [];
     cashInput.value = "";
     renderCurrentOrder();
   }
 
-  // ===== LOAD DATA FROM SERVER =====
-  async function loadAllData() {
-    const [{ data: active, error: e1 }, { data: deleted, error: e2 }, { data: inv, error: e3 }] =
-      await Promise.all([
-        supa.from("orders").select("*").order("created_at", { ascending: false }),
-        supa.from("deleted_orders").select("*").order("deleted_at", { ascending: false }),
-        supa.from("inventory").select("*").order("updated_at", { ascending: false })
-      ]);
-
-    if (e1 || e2 || e3) {
-      console.error(e1 || e2 || e3);
-      alert("Không tải được dữ liệu từ Supabase.");
-      return;
-    }
-
-    activeOrders = active || [];
-    deletedOrders = deleted || [];
-    inventoryItems = inv || [];
-
-    renderPosHistory();
-    recomputeRevenue();
-    renderRevenuePage();
-    renderHistoryPage();
-    renderStock();
-  }
-
-  function renderPosHistory() {
-    posHistoryList.innerHTML = "";
-    let total = 0;
-
-    activeOrders.forEach(order => {
-      total += order.total || 0;
-      const div = document.createElement("div");
-      div.className = "history-item";
-      const itemsText = (order.items || [])
-        .map(it => `${it.qty}x ${it.name} (${it.size})`)
-        .join(", ");
-
-      div.innerHTML = `
-        <div class="history-main">
-          <div>
-            <span class="history-code">${order.order_code || ""}</span>
-            <span class="history-meta">[${formatDateTime(order.created_at)}]</span>
-          </div>
-          <div>${itemsText}</div>
-          <div><strong>${formatVND(order.total || 0)}</strong></div>
-        </div>
-        <div>
-          <button class="btn-small-blue">In</button>
-          <button class="btn-small-red">Xóa</button>
-        </div>
-      `;
-      const btnPrintMini = div.querySelector(".btn-small-blue");
-      const btnDeleteMini = div.querySelector(".btn-small-red");
-      btnPrintMini.addEventListener("click", () => printOrderFromActive(order.id));
-      btnDeleteMini.addEventListener("click", () => onDeleteOrder(order.id));
-      posHistoryList.appendChild(div);
-    });
-
-    posHistoryTotal.textContent = `Tổng doanh thu: ${formatVND(total)}`;
-  }
-
-  // ===== DOANH THU =====
-  function recomputeRevenue() {
-    const now = new Date();
-    const todayStr = now.toISOString().slice(0,10);
-
-    let today = 0, week = 0, month = 0;
-    const byDayMap = new Map();
-
-    activeOrders.forEach(order => {
-      const t = order.created_at ? new Date(order.created_at) : now;
-      const dateStr = t.toISOString().slice(0,10);
-      const total = order.total || 0;
-
-      if (dateStr === todayStr) today += total;
-
-      const diffDays = (now - t) / (1000*60*60*24);
-      if (diffDays <= 7) week += total;
-
-      if (t.getFullYear() === now.getFullYear() &&
-          t.getMonth() === now.getMonth()) {
-        month += total;
-      }
-
-      byDayMap.set(dateStr, (byDayMap.get(dateStr) || 0) + total);
-    });
-
-    const byDay = Array.from(byDayMap.entries())
-      .sort((a,b) => a[0] < b[0] ? 1 : -1)
-      .map(([date,total]) => ({date,total}));
-
-    revenueStats = { today, week, month, byDay };
-  }
-
-  function renderRevenuePage() {
-    revToday.textContent = formatVND(revenueStats.today);
-    revWeek.textContent = formatVND(revenueStats.week);
-    revMonth.textContent = formatVND(revenueStats.month);
-
-    revByDayList.innerHTML = "";
-    if (!revenueStats.byDay.length) {
-      revByDayList.textContent = "Chưa có dữ liệu.";
-      return;
-    }
-
-    revenueStats.byDay.forEach(row => {
-      const div = document.createElement("div");
-      div.style.marginBottom = "4px";
-      div.textContent = `${formatDate(row.date)} – ${formatVND(row.total)}`;
-      revByDayList.appendChild(div);
-    });
-  }
-
-  // ===== HISTORY PAGE RENDER =====
-  function renderHistoryPage() {
-    const keyword = (searchOrderInput.value || "").toLowerCase();
-
-    function matchOrder(order) {
-      if (!keyword) return true;
-      const code = (order.order_code || "").toLowerCase();
-      const itemsText = (order.items || [])
-        .map(it => `${it.qty}x ${it.name} (${it.size})`)
-        .join(", ")
-        .toLowerCase();
-      return code.includes(keyword) || itemsText.includes(keyword);
-    }
-
-    // Active orders
-    historyActiveList.innerHTML = "";
-    activeOrders.filter(matchOrder).forEach(order => {
-      const div = document.createElement("div");
-      div.className = "history-item";
-
-      const itemsText = (order.items || [])
-        .map(it => `${it.qty}x ${it.name} (${it.size})`)
-        .join(", ");
-
-      div.innerHTML = `
-        <div class="history-main">
-          <div>
-            <span class="history-code">${order.order_code || ""}</span>
-            <span class="history-meta">[${formatDateTime(order.created_at)}]</span>
-          </div>
-          <div>${itemsText}</div>
-          <div><strong>${formatVND(order.total || 0)}</strong></div>
-        </div>
-        <div>
-          <button class="btn-small-blue">In</button>
-          <button class="btn-small-red">Xóa đơn</button>
-        </div>
-      `;
-      const btnPrint = div.querySelector(".btn-small-blue");
-      const btnDelete = div.querySelector(".btn-small-red");
-      btnPrint.addEventListener("click", () => printOrderFromActive(order.id));
-      btnDelete.addEventListener("click", () => onDeleteOrder(order.id));
-      historyActiveList.appendChild(div);
-    });
-
-    // Deleted orders
-    historyDeletedList.innerHTML = "";
-    deletedOrders.filter(matchOrder).forEach(order => {
-      const div = document.createElement("div");
-      div.className = "history-item";
-      const itemsText = (order.items || [])
-        .map(it => `${it.qty}x ${it.name} (${it.size})`)
-        .join(", ");
-
-      div.innerHTML = `
-        <div class="history-main">
-          <div>
-            <span class="history-code">${order.order_code || ""}</span>
-            <span class="history-meta">Đã xoá lúc ${formatDateTime(order.deleted_at)}</span>
-          </div>
-          <div>${itemsText}</div>
-          <div><strong>${formatVND(order.total || 0)}</strong></div>
-        </div>
-        <button class="btn-small-green">Khôi phục</button>
-      `;
-      div.querySelector("button").addEventListener("click", () => onRestoreOrder(order.id));
-      historyDeletedList.appendChild(div);
-    });
-  }
-
-  // ===== STOCK / TỒN KHO =====
-  function renderStock() {
-    stockList.innerHTML = "";
-    if (!inventoryItems.length) {
-      stockList.textContent = "Chưa có nguyên liệu nào. Bấm 'Thêm nguyên liệu' để bắt đầu.";
-      return;
-    }
-
-    inventoryItems.forEach(item => {
-      const div = document.createElement("div");
-      div.className = "stock-item";
-
-      const main = document.createElement("div");
-      main.className = "stock-main";
-      main.innerHTML = `
-        <div class="stock-name">${item.name}</div>
-        <div class="stock-meta">
-          Số lượng: <strong>${item.quantity}</strong> ${item.unit} 
-          • Cập nhật: ${formatDateTime(item.updated_at)}
-        </div>
-      `;
-
-      const actions = document.createElement("div");
-      const editBtn = document.createElement("button");
-      editBtn.className = "btn-small btn-small-gray";
-      editBtn.textContent = "Sửa SL";
-      editBtn.addEventListener("click", () => openEditStock(item));
-
-      actions.appendChild(editBtn);
-
-      div.appendChild(main);
-      div.appendChild(actions);
-      stockList.appendChild(div);
-    });
-  }
-
-  function openEditStock(item) {
-    const newQty = prompt(
-      `Nhập lại số lượng cho "${item.name}" (${item.unit})`,
-      item.quantity
+  function undoLastClick() {
+    if (!clickStack.length) return;
+    const last = clickStack.pop();
+    const line = currentOrder.find(
+      l => l.name === last.name && l.size === last.size
     );
-    if (newQty === null) return;
-    const val = parseFloat(newQty);
-    if (isNaN(val)) {
-      alert("Giá trị không hợp lệ.");
+    if (!line) {
+      renderCurrentOrder();
       return;
     }
-    updateStockQuantity(item.id, val);
+    if (line.qty > 1) {
+      line.qty -= 1;
+      line.lineTotal -= last.unitPrice;
+    } else {
+      const idx = currentOrder.indexOf(line);
+      if (idx >= 0) currentOrder.splice(idx, 1);
+    }
+    renderCurrentOrder();
   }
 
-  async function updateStockQuantity(id, quantity) {
+  // ==========================
+  // HISTORY & DELETED
+  // ==========================
+  async function loadHistory() {
     const { data, error } = await supa
-      .from("inventory")
-      .update({ quantity, updated_at: new Date().toISOString() })
-      .eq("id", id)
-      .select()
-      .single();
-
+      .from("orders")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(200);
     if (error) {
       console.error(error);
-      alert("Cập nhật tồn kho thất bại.");
+      historyList.innerHTML =
+        `<div style="color:#fecaca;">Lỗi tải lịch sử đơn.</div>`;
       return;
     }
-
-    const idx = inventoryItems.findIndex(i => i.id === id);
-    if (idx >= 0) inventoryItems[idx] = data;
-    renderStock();
+    historyOrders = data || [];
+    renderHistory();
+    await loadDeletedOrders();
+    await loadRevenue();
   }
 
-  async function addStockItem() {
-    const name = stockNameInput.value.trim();
-    const quantity = parseFloat(stockQuantityInput.value || "0");
-    const unit = (stockUnitInput.value || "").trim() || "đơn vị";
-
-    if (!name) {
-      alert("Vui lòng nhập tên nguyên liệu.");
-      return;
-    }
-
+  async function loadDeletedOrders() {
     const { data, error } = await supa
-      .from("inventory")
-      .insert([{ name, quantity: isNaN(quantity) ? 0 : quantity, unit }])
-      .select()
-      .single();
-
+      .from("deleted_orders")
+      .select("*")
+      .order("deleted_at", { ascending: false })
+      .limit(200);
     if (error) {
       console.error(error);
-      alert("Thêm nguyên liệu thất bại.");
+      deletedList.innerHTML =
+        `<div style="color:#fecaca;">Lỗi tải lịch sử xoá.</div>`;
       return;
     }
-
-    inventoryItems.unshift(data);
-    stockNameInput.value = "";
-    stockQuantityInput.value = "";
-    stockUnitInput.value = "";
-    stockForm.style.display = "none";
-    renderStock();
+    deletedOrders = data || [];
+    renderDeleted();
   }
 
-  // ===== DELETE / RESTORE =====
-  async function onDeleteOrder(orderId) {
-    const order = activeOrders.find(o => o.id === orderId);
+  function renderHistory() {
+    historyList.innerHTML = "";
+    if (!historyOrders.length) {
+      historyList.innerHTML =
+        `<div style="color:#9ca3af;">Chưa có đơn nào.</div>`;
+      return;
+    }
+    historyOrders.forEach(order => {
+      const div = document.createElement("div");
+      div.className = "history-item";
+
+      const timeStr = order.created_at
+        ? new Date(order.created_at).toLocaleString("vi-VN")
+        : "";
+
+      const itemsText = (order.items || [])
+        .map(it => `${it.qty || 1}x ${it.name}${it.size ? " (Size " + it.size + ")" : ""}`)
+        .join(", ");
+
+      div.innerHTML = `
+        <div class="history-header-line">
+          <span>Mã đơn: ${order.id?.slice(0, 8) || "N/A"}</span>
+          <span>${timeStr}</span>
+        </div>
+        <div class="history-main-line">
+          <span>${itemsText || "(Không có món)"}</span>
+          <span>${formatVND(order.total || 0)}</span>
+        </div>
+        <div class="history-actions">
+          <button class="btn-print" onclick="printBillFromHistory('${order.id}')">
+            🧾 In hoá đơn
+          </button>
+          <button class="btn-delete" onclick="deleteOrder('${order.id}')">
+            ✖ Xoá đơn (Đã xoá)
+          </button>
+        </div>
+      `;
+      historyList.appendChild(div);
+    });
+  }
+
+  function renderDeleted() {
+    deletedList.innerHTML = "";
+    if (!deletedOrders.length) {
+      deletedList.innerHTML =
+        `<div style="color:#9ca3af;">Chưa có đơn nào bị xoá.</div>`;
+      return;
+    }
+    deletedOrders.forEach(rec => {
+      const div = document.createElement("div");
+      div.className = "history-item";
+
+      const timeStr = rec.deleted_at
+        ? new Date(rec.deleted_at).toLocaleString("vi-VN")
+        : "";
+      const itemsText = (rec.items || [])
+        .map(it => `${it.qty || 1}x ${it.name}${it.size ? " (Size " + it.size + ")" : ""}`)
+        .join(", ");
+
+      div.innerHTML = `
+        <div class="history-header-line">
+          <span>Đã xoá: ${rec.order_id?.slice(0, 8) || "N/A"}</span>
+          <span>${timeStr}</span>
+        </div>
+        <div class="history-main-line">
+          <span>${itemsText || "(Không có món)"}</span>
+          <span>${formatVND(rec.total || 0)}</span>
+        </div>
+        <div class="history-actions">
+          <button class="btn-restore" onclick="restoreOrder('${rec.id}')">
+            🔄 Khôi phục đơn
+          </button>
+        </div>
+      `;
+      deletedList.appendChild(div);
+    });
+  }
+
+  async function deleteOrder(orderId) {
+    const order = historyOrders.find(o => o.id === orderId);
     if (!order) return;
+    if (!confirm("Xoá đơn này? Đơn sẽ chuyển sang Lịch sử xoá và trừ doanh thu.")) return;
 
-    if (!confirm("Xoá đơn này? Đơn sẽ được chuyển sang mục 'Đơn đã xoá' và trừ khỏi doanh thu.")) return;
-
+    // Ghi lại vào deleted_orders
     const payload = {
-      original_id: order.id,
-      order_code: order.order_code,
-      device: order.device,
+      order_id: order.id,
       items: order.items,
       total: order.total,
       cash_given: order.cash_given,
       change: order.change
     };
-
-    const { data: inserted, error: err1 } = await supa
-      .from("deleted_orders")
-      .insert([payload])
-      .select()
-      .single();
-
-    if (err1) {
-      console.error(err1);
-      alert("Không thể chép sang bảng deleted_orders.");
+    const { error: e1 } = await supa.from("deleted_orders").insert([payload]);
+    if (e1) {
+      console.error(e1);
+      alert("Không thể ghi vào lịch sử xoá.");
       return;
     }
 
-    const { error: err2 } = await supa
-      .from("orders")
-      .delete()
-      .eq("id", order.id);
-
-    if (err2) {
-      console.error(err2);
-      alert("Xoá khỏi bảng orders thất bại.");
+    // Xoá khỏi orders
+    const { error: e2 } = await supa.from("orders").delete().eq("id", order.id);
+    if (e2) {
+      console.error(e2);
+      alert("Không thể xoá khỏi bảng orders.");
       return;
     }
 
-    activeOrders = activeOrders.filter(o => o.id !== order.id);
-    deletedOrders.unshift(inserted);
-
-    renderPosHistory();
-    recomputeRevenue();
-    renderRevenuePage();
-    renderHistoryPage();
+    await loadHistory();
   }
 
-  async function onRestoreOrder(deletedId) {
-    const deleted = deletedOrders.find(o => o.id === deletedId);
-    if (!deleted) return;
+  async function restoreOrder(deletedId) {
+    const rec = deletedOrders.find(d => d.id === deletedId);
+    if (!rec) return;
+    if (!confirm("Khôi phục đơn này về lại lịch sử đơn?")) return;
 
-    if (!confirm("Khôi phục đơn này trở lại danh sách đơn đang hoạt động?")) return;
-
+    // Khôi phục vào orders
     const payload = {
-      order_code: deleted.order_code,
-      device: deleted.device,
-      items: deleted.items,
-      total: deleted.total,
-      cash_given: deleted.cash_given,
-      change: deleted.change
+      items: rec.items,
+      total: rec.total,
+      cash_given: rec.cash_given,
+      change: rec.change
     };
-
-    const { data: inserted, error: err1 } = await supa
+    const { data, error: e1 } = await supa
       .from("orders")
       .insert([payload])
       .select()
       .single();
-
-    if (err1) {
-      console.error(err1);
-      alert("Không thể khôi phục về bảng orders.");
+    if (e1) {
+      console.error(e1);
+      alert("Không thể khôi phục vào orders.");
       return;
     }
 
-    const { error: err2 } = await supa
-      .from("deleted_orders")
-      .delete()
-      .eq("id", deleted.id);
-
-    if (err2) {
-      console.error(err2);
-      alert("Xoá khỏi bảng deleted_orders thất bại.");
-      return;
-    }
-
-    activeOrders.unshift(inserted);
-    deletedOrders = deletedOrders.filter(o => o.id !== deleted.id);
-
-    renderPosHistory();
-    recomputeRevenue();
-    renderRevenuePage();
-    renderHistoryPage();
+    // Không xoá bản ghi trong deleted_orders để giữ log
+    await loadHistory();
   }
 
-  // ===== SAVE ORDER =====
+  // ==========================
+  // SAVE + PRINT
+  // ==========================
   async function saveOrder(printAfter) {
     if (!currentOrder.length) {
       alert("Đơn hiện tại đang trống.");
       return;
     }
-
     const total = currentOrder.reduce((s, l) => s + l.lineTotal, 0);
     const cashThousand = parseInt(cashInput.value || "0", 10);
     const cash = cashThousand * 1000;
     const change = cash > 0 ? cash - total : null;
 
-    const order_code = await getNextOrderCode();
-
     const payload = {
-      order_code,
-      device: "Không đặt tên",
       items: currentOrder,
       total,
       cash_given: cash || null,
@@ -1203,20 +1140,14 @@
       return;
     }
 
-    activeOrders.unshift(data);
-    renderPosHistory();
-    recomputeRevenue();
-    renderRevenuePage();
-    renderHistoryPage();
-
     if (printAfter) {
       printBill(data);
     }
 
     clearCurrentOrder();
+    await loadHistory();
   }
 
-  // ===== PRINT BILL =====
   function printBill(order) {
     const now = order.created_at ? new Date(order.created_at) : new Date();
     const timeStr = now.toLocaleString("vi-VN");
@@ -1225,15 +1156,17 @@
     (order.items || []).forEach(it => {
       rows += `
         <tr>
-          <td>${it.name}</td>
-          <td style="text-align:center;">${it.size}</td>
-          <td style="text-align:center;">${it.qty}</td>
-          <td style="text-align:right;">${formatVND(it.lineTotal)}</td>
-        </tr>`;
+          <td>${it.name || ""}</td>
+          <td style="text-align:center;">${it.size || ""}</td>
+          <td style="text-align:center;">${it.qty || 1}</td>
+          <td style="text-align:right;">${formatVND(it.lineTotal || 0)}</td>
+        </tr>
+      `;
     });
 
     const cashStr = order.cash_given ? formatVND(order.cash_given) : "0 VND";
-    const changeStr = order.change != null ? formatVND(order.change) : "0 VND";
+    const changeStr =
+      order.change != null ? formatVND(order.change) : "0 VND";
 
     const html = `
 <!DOCTYPE html>
@@ -1260,8 +1193,7 @@
     SĐT: 0123456789
   </div>
   <div style="font-size:11px;margin-bottom:4px;">
-    Mã đơn: ${order.order_code || ""}<br>
-    Thời gian: ${timeStr}
+    Thời gian: ${timeStr}<br>
   </div>
   <table>
     <thead>
@@ -1304,158 +1236,350 @@
     win.print();
   }
 
-  function printOrderFromActive(id) {
-    const order = activeOrders.find(o => o.id === id);
-    if (!order) {
-      alert("Không tìm thấy đơn để in.");
-      return;
-    }
+  async function printBillFromHistory(orderId) {
+    const order = historyOrders.find(o => o.id === orderId);
+    if (!order) return;
     printBill(order);
   }
 
-  // ===== REALTIME =====
-  function initRealtime() {
+  // ==========================
+  // REVENUE
+  // ==========================
+  async function loadRevenue() {
+    // Tính doanh thu = sum(orders) - sum(deleted_orders theo order_id)
+    const orders = historyOrders;
+    const deleted = deletedOrders;
+
+    // map deleted_total theo order_id
+    const deletedMap = {};
+    deleted.forEach(d => {
+      const id = d.order_id;
+      if (!id) return;
+      if (!deletedMap[id]) deletedMap[id] = 0;
+      deletedMap[id] += d.total || 0;
+    });
+
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const startOfWeek = new Date(startOfToday);
+    startOfWeek.setDate(startOfWeek.getDate() - 6); // 7 ngày gần nhất
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    let revToday = 0;
+    let revWeek = 0;
+    let revMonth = 0;
+    let revAll = 0;
+
+    orders.forEach(o => {
+      const id = o.id;
+      const createdAt = o.created_at ? new Date(o.created_at) : null;
+      const total = (o.total || 0) - (deletedMap[id] || 0);
+
+      if (total <= 0) return;
+
+      revAll += total;
+
+      if (createdAt) {
+        if (createdAt >= startOfToday) revToday += total;
+        if (createdAt >= startOfWeek) revWeek += total;
+        if (createdAt >= startOfMonth) revMonth += total;
+      }
+    });
+
+    revTodayEl.textContent = formatVND(revToday);
+    revWeekEl.textContent = formatVND(revWeek);
+    revMonthEl.textContent = formatVND(revMonth);
+    revAllEl.textContent = formatVND(revAll);
+  }
+
+  // ==========================
+  // WEB ORDERS (QR)
+  // ==========================
+  async function loadWebOrders() {
+    webOrdersList.innerHTML =
+      `<div style="color:#9ca3af;">Đang tải đơn từ web...</div>`;
+
+    const { data, error } = await supa
+      .from("web_orders")
+      .select("*")
+      .eq("status", "pending")
+      .order("created_at", { ascending: false })
+      .limit(50);
+
+    if (error) {
+      console.error(error);
+      webOrdersList.innerHTML =
+        `<div style="color:#fecaca;">Lỗi tải đơn QR.</div>`;
+      return;
+    }
+    const list = data || [];
+    if (!list.length) {
+      webOrdersList.innerHTML =
+        `<div style="color:#9ca3af;">Chưa có đơn nào từ QR.</div>`;
+      return;
+    }
+
+    let html = "";
+    list.forEach(order => {
+      const timeStr = order.created_at
+        ? new Date(order.created_at).toLocaleString("vi-VN")
+        : "";
+      const tableNo = order.table_no || "N/A";
+
+      const itemsText = (order.items || [])
+        .map(it => `${it.qty || 1}x ${it.name || ""}`)
+        .join(", ");
+
+      const note = order.note
+        ? `<div style="margin-top:2px; font-size:11px; color:#e5e7eb;">Ghi chú: ${order.note}</div>`
+        : "";
+
+      html += `
+        <div style="
+          border-radius:8px;
+          border:1px solid #374151;
+          padding:6px 8px;
+          margin-bottom:6px;
+          background:#020617;
+          color:#e5e7eb;
+        ">
+          <div style="font-size:11px; color:#facc15; margin-bottom:3px;">
+            [WEB] Bàn ${tableNo} · ${timeStr}
+          </div>
+          <div style="font-size:12px;">
+            ${itemsText || "(Không có món)"}
+          </div>
+          ${note}
+          <div style="display:flex; gap:6px; margin-top:6px;">
+            <button onclick='acceptWebOrder("${order.id}")'
+                    style="flex:1; padding:4px 6px; border:none; border-radius:999px;
+                           background:#22c55e; color:#022c22; font-size:11px; cursor:pointer;">
+              ✅ Nhận vào POS
+            </button>
+            <button onclick='cancelWebOrder("${order.id}")'
+                    style="flex:1; padding:4px 6px; border:none; border-radius:999px;
+                           background:#ef4444; color:#fee2e2; font-size:11px; cursor:pointer;">
+              ✖ Hủy đơn
+            </button>
+          </div>
+        </div>
+      `;
+    });
+
+    webOrdersList.innerHTML = html;
+  }
+
+  async function acceptWebOrder(id) {
+    const { data, error } = await supa
+      .from("web_orders")
+      .select("*")
+      .eq("id", id)
+      .single();
+    if (error || !data) {
+      console.error(error);
+      alert("Không lấy được chi tiết đơn web.");
+      return;
+    }
+    const items = data.items || [];
+    if (!items.length) {
+      alert("Đơn web này không có món.");
+      return;
+    }
+
+    // Đổ vào currentOrder POS
+    currentOrder = items.map(it => {
+      const qty = it.qty || 1;
+      const price = it.price || 0;
+      return {
+        name: it.name || "Món",
+        size: "M",
+        qty,
+        unitPrice: price,
+        lineTotal: price * qty
+      };
+    });
+    clickStack = []; // reset stack
+    renderCurrentOrder();
+
+    // Đánh dấu accepted
+    await supa
+      .from("web_orders")
+      .update({
+        status: "accepted",
+        accepted_at: new Date().toISOString()
+      })
+      .eq("id", id);
+
+    await loadWebOrders();
+
+    // chuyển sang tab POS cho dễ thao tác
+    setTab("page-pos");
+  }
+
+  async function cancelWebOrder(id) {
+    if (!confirm("Hủy đơn này của khách?")) return;
+    const { error } = await supa
+      .from("web_orders")
+      .update({
+        status: "canceled",
+        canceled_at: new Date().toISOString()
+      })
+      .eq("id", id);
+    if (error) {
+      console.error(error);
+      alert("Không thể hủy đơn.");
+      return;
+    }
+    await loadWebOrders();
+  }
+
+  function initWebOrdersRealtime() {
     supa
-      .channel("pos-all")
-      .on("postgres_changes",
-        { event: "INSERT", schema: "public", table: "orders" },
+      .channel("web-orders-realtime")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "web_orders" },
         payload => {
-          const row = payload.new;
-          if (!activeOrders.find(o => o.id === row.id)) {
-            activeOrders.unshift(row);
-            renderPosHistory();
-            recomputeRevenue();
-            renderRevenuePage();
-            renderHistoryPage();
-          }
-        }
-      )
-      .on("postgres_changes",
-        { event: "DELETE", schema: "public", table: "orders" },
-        payload => {
-          const old = payload.old;
-          activeOrders = activeOrders.filter(o => o.id !== old.id);
-          renderPosHistory();
-          recomputeRevenue();
-          renderRevenuePage();
-          renderHistoryPage();
-        }
-      )
-      .on("postgres_changes",
-        { event: "INSERT", schema: "public", table: "deleted_orders" },
-        payload => {
-          const row = payload.new;
-          if (!deletedOrders.find(o => o.id === row.id)) {
-            deletedOrders.unshift(row);
-            renderHistoryPage();
-          }
-        }
-      )
-      .on("postgres_changes",
-        { event: "DELETE", schema: "public", table: "deleted_orders" },
-        payload => {
-          const old = payload.old;
-          deletedOrders = deletedOrders.filter(o => o.id !== old.id);
-          renderHistoryPage();
-        }
-      )
-      .on("postgres_changes",
-        { event: "INSERT", schema: "public", table: "inventory" },
-        payload => {
-          const row = payload.new;
-          if (!inventoryItems.find(i => i.id === row.id)) {
-            inventoryItems.unshift(row);
-            renderStock();
-          }
-        }
-      )
-      .on("postgres_changes",
-        { event: "UPDATE", schema: "public", table: "inventory" },
-        payload => {
-          const row = payload.new;
-          const idx = inventoryItems.findIndex(i => i.id === row.id);
-          if (idx >= 0) {
-            inventoryItems[idx] = row;
-            renderStock();
+          const newOrder = payload.new;
+          if (newOrder.status === "pending") {
+            loadWebOrders();
           }
         }
       )
       .subscribe();
   }
 
-  // ===== TAB HANDLERS =====
-  tabBtns.forEach((btn, index) => {
-    btn.addEventListener("click", () => {
-      tabBtns.forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
+  // ==========================
+  // STOCK (LOCAL)
+  // ==========================
+  const STOCK_KEY = "tea_neko_stock";
 
-      pages.forEach(p => p.classList.remove("active"));
-      const pageId = btn.getAttribute("data-page");
-      document.getElementById(pageId).classList.add("active");
+  function loadStock() {
+    let data;
+    try {
+      data = JSON.parse(localStorage.getItem(STOCK_KEY) || "[]");
+    } catch {
+      data = [];
+    }
+    renderStock(data);
+  }
 
-      tabUnderline.style.transform = `translateX(${index * 100}%)`;
+  function saveStock(data) {
+    localStorage.setItem(STOCK_KEY, JSON.stringify(data));
+    renderStock(data);
+  }
+
+  function renderStock(data) {
+    stockList.innerHTML = "";
+    if (!data.length) {
+      stockList.innerHTML =
+        `<div style="color:#9ca3af;">Chưa có nguyên liệu nào.</div>`;
+      return;
+    }
+    data.forEach((item, idx) => {
+      const div = document.createElement("div");
+      div.className = "stock-item";
+      div.innerHTML = `
+        <div>
+          <div style="font-size:12px;">${item.name}</div>
+          <div style="font-size:11px; color:#9ca3af;">SL: ${item.qty}</div>
+        </div>
+        <button style="font-size:11px; border:none; border-radius:999px;
+                       padding:4px 8px; cursor:pointer;
+                       background:#0ea5e9; color:#e0f2fe;"
+                onclick="editStock(${idx})">
+          Sửa
+        </button>
+      `;
+      stockList.appendChild(div);
     });
-  });
+  }
 
-  // ===== EVENT BINDINGS =====
+  function getStockData() {
+    try {
+      return JSON.parse(localStorage.getItem(STOCK_KEY) || "[]");
+    } catch {
+      return [];
+    }
+  }
+
+  function addStockItem() {
+    const name = stockNameInput.value.trim();
+    const qty = parseInt(stockQtyInput.value || "0", 10);
+    if (!name) {
+      alert("Nhập tên nguyên liệu.");
+      return;
+    }
+    const data = getStockData();
+    data.push({ name, qty: isNaN(qty) ? 0 : qty });
+    stockNameInput.value = "";
+    stockQtyInput.value = "";
+    saveStock(data);
+  }
+
+  function editStock(idx) {
+    const data = getStockData();
+    const item = data[idx];
+    if (!item) return;
+    const newQty = prompt(
+      `Sửa số lượng cho "${item.name}"`,
+      String(item.qty)
+    );
+    if (newQty === null) return;
+    const q = parseInt(newQty, 10);
+    if (isNaN(q)) {
+      alert("Giá trị không hợp lệ.");
+      return;
+    }
+    item.qty = q;
+    saveStock(data);
+  }
+
+  window.editStock = editStock;
+
+  // ==========================
+  // EVENT BINDINGS
+  // ==========================
   sizeMBtn.addEventListener("click", () => {
     currentSize = "M";
     sizeMBtn.classList.add("active");
     sizeLBtn.classList.remove("active");
   });
-
   sizeLBtn.addEventListener("click", () => {
     currentSize = "L";
     sizeLBtn.classList.add("active");
     sizeMBtn.classList.remove("active");
   });
-
   cashInput.addEventListener("input", renderCurrentOrder);
-
-  btnUndo.addEventListener("click", () => {
-    if (!currentOrder.length) return;
-    const last = currentOrder[currentOrder.length - 1];
-    if (last.qty > 1) {
-      last.qty -= 1;
-      last.lineTotal = last.qty * last.unitPrice;
-    } else {
-      currentOrder.pop();
-    }
-    renderCurrentOrder();
-  });
-
+  btnUndo.addEventListener("click", undoLastClick);
   btnClear.addEventListener("click", () => {
     if (!currentOrder.length) return;
     if (!confirm("Xoá toàn bộ món trong đơn hiện tại?")) return;
     clearCurrentOrder();
   });
-
   btnSave.addEventListener("click", () => saveOrder(false));
   btnPrint.addEventListener("click", () => saveOrder(true));
+  btnReloadWebOrders.addEventListener("click", loadWebOrders);
+  btnAddStock.addEventListener("click", addStockItem);
 
-  btnRefreshPosHistory.addEventListener("click", loadAllData);
-  btnRefreshRevenue.addEventListener("click", loadAllData);
-  btnRefreshHistoryPage.addEventListener("click", loadAllData);
+  // expose functions for inline onclick
+  window.printBillFromHistory = printBillFromHistory;
+  window.deleteOrder = deleteOrder;
+  window.restoreOrder = restoreOrder;
+  window.acceptWebOrder = acceptWebOrder;
+  window.cancelWebOrder = cancelWebOrder;
 
-  searchOrderInput.addEventListener("input", renderHistoryPage);
-
-  btnRefreshStock.addEventListener("click", loadAllData);
-
-  btnToggleStockForm.addEventListener("click", () => {
-    stockForm.style.display = stockForm.style.display === "none" ? "block" : "none";
-  });
-
-  btnCancelStockAdd.addEventListener("click", () => {
-    stockForm.style.display = "none";
-  });
-
-  btnSaveStock.addEventListener("click", addStockItem);
-
-  // ===== INIT =====
-  renderMenu();
-  renderCurrentOrder();
-  loadAllData();
-  initRealtime();
+  // ==========================
+  // INIT
+  // ==========================
+  (async function init() {
+    renderMenu();
+    renderCurrentOrder();
+    loadStock();
+    await loadHistory();
+    await loadWebOrders();
+    initWebOrdersRealtime();
+  })();
 </script>
 </body>
 </html>
