@@ -2,336 +2,635 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8" />
-  <title>Tea Neko – Đặt món</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tea Neko – Đặt món</title>
+
   <style>
+    :root {
+      --bg: #020617;
+      --card: #05091a;
+      --card-soft: #0b1220;
+      --accent: #22c55e;
+      --accent-soft: rgba(34, 197, 94, 0.18);
+      --danger: #ef4444;
+      --text: #f9fafb;
+      --muted: #9ca3af;
+      --border: #1f2937;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
-      background: #0b1220;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-      color: #fff;
-    }
-    h1 {
-      margin: 16px 16px 8px;
-      font-size: 22px;
-    }
-    .sub {
-      margin: 0 16px 10px;
-      font-size: 14px;
-      color: #a3a3c0;
-    }
-    .menu-list {
-      padding: 0 12px 80px;
-    }
-    .item-card {
-      background: #111a30;
-      border-radius: 14px;
-      padding: 10px;
-      margin-bottom: 10px;
-      box-shadow: 0 2px 6px #0008;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+        "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #0f172a 0, #020617 55%);
+      color: var(--text);
+      min-height: 100vh;
       display: flex;
+      flex-direction: column;
+    }
+
+    .page {
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 16px 14px 24px;
+    }
+
+    header {
+      text-align: center;
+      padding-bottom: 10px;
+    }
+
+    header h1 {
+      font-size: 22px;
+      margin: 4px 0 2px;
+      font-weight: 700;
+    }
+
+    header .subtitle {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .table-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 8px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.96);
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      font-size: 13px;
+    }
+
+    .table-pill span.badge {
+      padding: 3px 9px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+      color: #022c22;
+      font-weight: 700;
+      font-size: 12px;
+    }
+
+    .menu-section-title {
+      margin: 14px 4px 8px;
+      font-size: 14px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--muted);
+    }
+
+    .menu-grid {
+      display: flex;
+      flex-direction: column;
       gap: 10px;
     }
-    .item-img {
-      width: 70px;
-      height: 70px;
-      border-radius: 10px;
-      object-fit: cover;
-      background: #222b4a;
+
+    .item-card {
+      background: linear-gradient(135deg, #020617, #020617);
+      border-radius: 14px;
+      padding: 10px 12px 12px;
+      border: 1px solid rgba(31, 41, 55, 0.9);
+      box-shadow: 0 14px 30px rgba(15, 23, 42, 0.75);
     }
-    .item-main {
-      flex: 1;
+
+    .item-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 6px;
     }
+
     .item-name {
       font-size: 15px;
       font-weight: 600;
     }
-    .item-cat {
+
+    .item-category {
       font-size: 11px;
-      color: #9ca3af;
-      margin-top: 2px;
-    }
-    .item-price {
-      font-size: 13px;
-      margin-top: 4px;
-      color: #fbbf24;
-    }
-    .qty-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-top: 6px;
-    }
-    .qty-btn {
-      width: 28px;
-      height: 28px;
+      padding: 3px 8px;
       border-radius: 999px;
-      background: #1f2937;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 18px;
-      cursor: pointer;
-      user-select: none;
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      color: var(--muted);
+      align-self: flex-start;
     }
-    .qty-val {
-      min-width: 24px;
-      text-align: center;
+
+    .item-prices {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px 10px;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .size-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 5px 7px;
+      border-radius: 10px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(30, 64, 175, 0.5);
+      margin-top: 3px;
+    }
+
+    .size-label {
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .size-price {
+      font-size: 12px;
+      color: #e5e7eb;
+      margin-left: 4px;
+    }
+
+    .qty-controls {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
       font-size: 14px;
     }
 
-    .cart-box {
-      position: fixed;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: #020617ee;
-      backdrop-filter: blur(10px);
-      padding: 10px 12px 12px;
-      border-top: 1px solid #1f2937;
+    .qty-btn {
+      width: 26px;
+      height: 26px;
+      border-radius: 999px;
+      border: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(15, 23, 42, 0.9);
+      color: var(--text);
+      cursor: pointer;
+      font-size: 18px;
+      line-height: 0;
+      box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.4);
     }
-    .cart-summary {
+
+    .qty-btn:active {
+      transform: scale(0.96);
+      background: rgba(30, 64, 175, 0.9);
+    }
+
+    .qty-value {
+      min-width: 20px;
+      text-align: center;
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    /* Cart summary */
+
+    .cart-card {
+      margin-top: 16px;
+      padding: 12px 12px 14px;
+      background: rgba(15, 23, 42, 0.96);
+      border-radius: 16px;
+      border: 1px solid rgba(55, 65, 81, 0.9);
+      box-shadow: 0 18px 32px rgba(15, 23, 42, 0.85);
+    }
+
+    .cart-title {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .cart-sub {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+
+    .cart-items {
       font-size: 14px;
       margin-bottom: 6px;
     }
-    #cart-list {
-      max-height: 90px;
-      overflow-y: auto;
+
+    .cart-items p {
+      margin: 2px 0;
+    }
+
+    .cart-empty {
       font-size: 13px;
-      margin-bottom: 6px;
+      color: var(--muted);
+      font-style: italic;
     }
-    #total {
-      font-size: 16px;
-      font-weight: 700;
-      margin-bottom: 4px;
+
+    .cart-total-row {
+      display: flex;
+      justify-content: space-between;
+      margin: 8px 0 2px;
+      font-size: 14px;
+      font-weight: 600;
     }
-    #note {
+
+    .cart-total-row span:last-child {
+      font-size: 15px;
+    }
+
+    .note-input {
       width: 100%;
-      box-sizing: border-box;
-      border-radius: 8px;
-      border: none;
-      padding: 8px;
-      font-size: 13px;
-      margin-bottom: 6px;
-      background: #111827;
-      color: #e5e7eb;
-    }
-    #send-btn {
-      margin-top: 4px;
-      background: #22c55e;
-      color: #022c22;
-      text-align: center;
-      padding: 12px;
+      margin-top: 8px;
       border-radius: 10px;
-      font-size: 16px;
-      font-weight: 700;
-      cursor: pointer;
-      user-select: none;
-    }
-    #send-btn:active {
-      transform: translateY(1px);
-      box-shadow: 0 1px 3px #000 inset;
-    }
-    #error {
-      margin-top: 4px;
+      border: 1px solid rgba(75, 85, 99, 0.9);
+      background: #020617;
+      color: var(--text);
       font-size: 13px;
-      color: #fca5a5;
+      padding: 8px 10px;
+      resize: vertical;
+      min-height: 48px;
+    }
+
+    .note-input::placeholder {
+      color: #6b7280;
+    }
+
+    .btn-submit {
+      margin-top: 10px;
+      width: 100%;
+      border: none;
+      border-radius: 999px;
+      padding: 11px 14px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      color: #022c22;
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+      box-shadow: 0 10px 30px rgba(34, 197, 94, 0.4);
+    }
+
+    .btn-submit:active {
+      transform: translateY(1px);
+      box-shadow: 0 4px 18px rgba(34, 197, 94, 0.4);
+    }
+
+    .status-msg {
+      margin-top: 8px;
+      font-size: 13px;
+    }
+
+    .status-ok {
+      color: #a7f3d0;
+    }
+
+    .status-error {
+      color: #fecaca;
+    }
+
+    footer {
       text-align: center;
-      min-height: 18px;
+      font-size: 11px;
+      color: var(--muted);
+      padding-top: 6px;
+      padding-bottom: 4px;
+    }
+
+    @media (min-width: 700px) {
+      .page {
+        padding-top: 20px;
+      }
     }
   </style>
 </head>
 <body>
+  <div class="page">
+    <header>
+      <div style="font-size:13px;color:var(--muted);">Tea Neko • QR Order</div>
+      <h1>Menu gọi món</h1>
+      <div class="subtitle">Chọn món, kiểm tra lại rồi bấm gửi cho quán.</div>
+      <div class="table-pill" id="tableInfo">
+        <span>Bàn</span>
+        <span class="badge" id="tableBadge">?</span>
+      </div>
+    </header>
 
-<h1 id="title">Tea Neko – Gọi món</h1>
-<p class="sub" id="subtitle"></p>
+    <div id="menuRoot">
+      <div class="menu-section-title">Đang tải menu…</div>
+    </div>
 
-<div class="menu-list" id="menu"></div>
+    <div class="cart-card">
+      <div class="cart-title">Đơn của bạn</div>
+      <div class="cart-sub">Kiểm tra lại trước khi gửi đến Tea Neko.</div>
+      <div id="cartItems" class="cart-items cart-empty">
+        Chưa có món nào.
+      </div>
+      <div class="cart-total-row">
+        <span>Tổng:</span>
+        <span id="cartTotal">0đ</span>
+      </div>
+      <textarea
+        id="noteInput"
+        class="note-input"
+        placeholder="Ghi chú cho quán (ít đá, ít ngọt, không trân châu…)"
+      ></textarea>
+      <button id="btnSubmit" class="btn-submit">
+        Gửi order đến Tea Neko
+      </button>
+      <div id="statusMsg" class="status-msg"></div>
+    </div>
 
-<div class="cart-box">
-  <div class="cart-summary">
-    <span id="cart-count">0 món</span>
+    <footer>
+      Nếu cần sửa order sau khi gửi, hãy báo lại nhân viên Tea Neko nhé 💜
+    </footer>
   </div>
-  <div id="cart-list"></div>
-  <div id="total">Tổng: 0đ</div>
-  <textarea id="note" placeholder="Ghi chú cho quán (ít ngọt, ít đá, mang về, ... )"></textarea>
-  <div id="send-btn">Gửi order đến quầy</div>
-  <div id="error"></div>
-</div>
 
-<script type="module">
-  import { supabase } from "./js/supabase.js";
+  <script type="module">
+    import { supabase } from "./js/supabase.js";
 
-  // ===== LẤY SỐ BÀN TỪ URL =====
-  const params = new URLSearchParams(location.search);
-  const tableId = params.get("table") || "N/A";
-  document.getElementById("subtitle").textContent =
-    "Bạn đang gọi món cho bàn: " + tableId;
+    const menuRoot = document.getElementById("menuRoot");
+    const cartItemsEl = document.getElementById("cartItems");
+    const cartTotalEl = document.getElementById("cartTotal");
+    const noteInput = document.getElementById("noteInput");
+    const btnSubmit = document.getElementById("btnSubmit");
+    const statusMsg = document.getElementById("statusMsg");
+    const tableBadge = document.getElementById("tableBadge");
+    const tableInfo = document.getElementById("tableInfo");
 
-  // ===== CART =====
-  let cart = {}; // key = menu_id, value = item {id,name,price,qty}
+    // ===== LẤY SỐ BÀN TỪ URL =====
+    const params = new URLSearchParams(window.location.search);
+    const tableNo = Number(params.get("table")) || 0;
 
-  function renderCart() {
-    const listEl = document.getElementById("cart-list");
-    const totalEl = document.getElementById("total");
-    const countEl = document.getElementById("cart-count");
-
-    const items = Object.values(cart);
-    if (!items.length) {
-      listEl.textContent = "Chưa có món nào trong giỏ.";
-      totalEl.textContent = "Tổng: 0đ";
-      countEl.textContent = "0 món";
-      return;
+    if (tableNo > 0) {
+      tableBadge.textContent = tableNo.toString();
+    } else {
+      tableBadge.textContent = "Mang đi";
+      tableInfo.firstElementChild.textContent = "Hình thức";
     }
 
-    let html = "";
-    let total = 0;
-    let count = 0;
-    items.forEach((it) => {
-      const line = it.qty * it.price;
-      total += line;
-      count += it.qty;
-      html += `<div>${it.qty}x ${it.name} – ${line.toLocaleString("vi-VN")}đ</div>`;
-    });
+    // ===== CART TRONG RAM =====
+    // key = `${id}_M` hoặc `${id}_L`
+    const cart = new Map();
+    let menuCache = [];
 
-    listEl.innerHTML = html;
-    totalEl.textContent = "Tổng: " + total.toLocaleString("vi-VN") + "đ";
-    countEl.textContent = `${count} món`;
-  }
-
-  function updateQty(menuItem, delta) {
-    const id = menuItem.id;
-    if (!cart[id]) {
-      cart[id] = {
-        id: id,
-        name: menuItem.name,
-        price: menuItem.price,
-        qty: 0,
-      };
-    }
-    cart[id].qty += delta;
-    if (cart[id].qty <= 0) {
-      delete cart[id];
-    }
-    renderMenuQuantities();
-    renderCart();
-  }
-
-  // ===== RENDER MENU =====
-  let menuData = [];
-
-  function renderMenu() {
-    const container = document.getElementById("menu");
-    if (!menuData.length) {
-      container.textContent = "Chưa có menu. Vui lòng báo nhân viên.";
-      return;
+    function formatPrice(vnd) {
+      if (!vnd || vnd <= 0) return "0đ";
+      return vnd.toLocaleString("vi-VN") + "đ";
     }
 
-    let html = "";
-    menuData.forEach((item) => {
-      const qty = cart[item.id]?.qty || 0;
-      html += `
-        <div class="item-card">
-          <img src="${item.img || ""}" class="item-img" alt="">
-          <div class="item-main">
-            <div class="item-name">${item.name}</div>
-            <div class="item-cat">${item.category || ""}</div>
-            <div class="item-price">${item.price.toLocaleString("vi-VN")}đ</div>
-            <div class="qty-row">
-              <div class="qty-btn" data-id="${item.id}" data-delta="-1">−</div>
-              <div class="qty-val" id="qty-${item.id}">${qty}</div>
-              <div class="qty-btn" data-id="${item.id}" data-delta="1">+</div>
-            </div>
-          </div>
-        </div>
-      `;
-    });
-
-    container.innerHTML = html;
-
-    // Gắn sự kiện + / −
-    container.querySelectorAll(".qty-btn").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const id = Number(btn.dataset.id);
-        const delta = Number(btn.dataset.delta);
-        const item = menuData.find((m) => m.id === id);
-        if (!item) return;
-        updateQty(item, delta);
-      });
-    });
-  }
-
-  function renderMenuQuantities() {
-    menuData.forEach((item) => {
-      const valEl = document.getElementById("qty-" + item.id);
-      if (valEl) {
-        valEl.textContent = cart[item.id]?.qty || 0;
-      }
-    });
-  }
-
-  async function loadMenuFromSupabase() {
-    const { data, error } = await supabase
-      .from("menu_items")
-      .select("*")
-      .order("category", { ascending: true })
-      .order("name", { ascending: true });
-
-    if (error) {
-      console.error(error);
-      document.getElementById("menu").textContent =
-        "Không tải được menu. Vui lòng báo nhân viên.";
-      return;
-    }
-
-    menuData = data || [];
-    renderMenu();
-  }
-
-  // ===== GỬI ORDER LÊN SUPABASE =====
-  document.getElementById("send-btn").addEventListener("click", async () => {
-    const errEl = document.getElementById("error");
-    errEl.textContent = "";
-
-    const items = Object.values(cart);
-    if (!items.length) {
-      errEl.textContent = "Bạn chưa chọn món nào.";
-      return;
-    }
-
-    const note = document.getElementById("note").value || "";
-
-    try {
-      const { error } = await supabase.from("web_orders").insert([
-        {
-          table_id: tableId,
-          items: items,
-          note: note,
-          status: "pending",
-        },
-      ]);
-
-      if (error) {
-        console.error(error);
-        errEl.textContent = "Gửi order thất bại. Vui lòng báo nhân viên.";
+    function renderCart() {
+      if (cart.size === 0) {
+        cartItemsEl.classList.add("cart-empty");
+        cartItemsEl.innerHTML = "Chưa có món nào.";
+        cartTotalEl.textContent = "0đ";
         return;
       }
 
-      alert("Đã gửi order thành công! Nhân viên sẽ chuẩn bị món cho bạn.");
-      cart = {};
-      renderMenuQuantities();
-      renderCart();
-      document.getElementById("note").value = "";
-    } catch (e) {
-      console.error(e);
-      errEl.textContent = "Có lỗi mạng. Vui lòng thử lại.";
+      cartItemsEl.classList.remove("cart-empty");
+      let html = "";
+      let total = 0;
+
+      for (const [, item] of cart) {
+        const lineTotal = item.qty * item.price;
+        total += lineTotal;
+        html += `<p>${item.qty}x ${item.name} <span style="color:#9ca3af;">(Size ${item.size})</span> — ${formatPrice(lineTotal)}</p>`;
+      }
+
+      cartItemsEl.innerHTML = html;
+      cartTotalEl.textContent = formatPrice(total);
     }
-  });
 
-  // ===== INIT =====
-  loadMenuFromSupabase();
-  renderCart();
-</script>
+    function changeQty(key, delta) {
+      const existing = cart.get(key);
+      if (!existing) return;
 
+      const newQty = existing.qty + delta;
+      if (newQty <= 0) {
+        cart.delete(key);
+      } else {
+        existing.qty = newQty;
+        cart.set(key, existing);
+      }
+      renderCart();
+    }
+
+    function addLine(item, size) {
+      const price =
+        size === "L" && item.price_l ? item.price_l : item.price_m || 0;
+      if (!price) return;
+
+      const key = `${item.id}_${size}`;
+      const existing = cart.get(key);
+      if (existing) {
+        existing.qty += 1;
+        cart.set(key, existing);
+      } else {
+        cart.set(key, {
+          key,
+          id: item.id,
+          name: item.name,
+          size,
+          qty: 1,
+          price,
+        });
+      }
+      renderCart();
+    }
+
+    function buildMenuUI(items) {
+      if (!items || !items.length) {
+        menuRoot.innerHTML =
+          '<div class="menu-section-title">Menu tạm thời chưa có món 🥲</div>';
+        return;
+      }
+
+      // Nhóm theo category
+      const grouped = {};
+      for (const it of items) {
+        const cat = it.category || "Khác";
+        if (!grouped[cat]) grouped[cat] = [];
+        grouped[cat].push(it);
+      }
+
+      let html = "";
+      for (const [cat, list] of Object.entries(grouped)) {
+        html += `<div class="menu-section-title">${cat}</div>
+                 <div class="menu-grid">`;
+
+        list.forEach((item) => {
+          html += `
+            <div class="item-card" data-id="${item.id}">
+              <div class="item-header">
+                <div class="item-name">${item.name}</div>
+                <div class="item-category">${cat}</div>
+              </div>
+              <div class="item-prices">
+                ${
+                  item.price_m
+                    ? `<span>Size M: <strong>${formatPrice(
+                        item.price_m
+                      )}</strong></span>`
+                    : ""
+                }
+                ${
+                  item.price_l
+                    ? `<span>Size L: <strong>${formatPrice(
+                        item.price_l
+                      )}</strong></span>`
+                    : ""
+                }
+              </div>
+
+              ${
+                item.price_m
+                  ? `
+              <div class="size-row" data-size="M">
+                <div>
+                  <span class="size-label">Size M</span>
+                  <span class="size-price">${formatPrice(item.price_m)}</span>
+                </div>
+                <div class="qty-controls">
+                  <button class="qty-btn" data-action="dec">−</button>
+                  <span class="qty-value" data-qty="M">0</span>
+                  <button class="qty-btn" data-action="inc">+</button>
+                </div>
+              </div>`
+                  : ""
+              }
+
+              ${
+                item.price_l
+                  ? `
+              <div class="size-row" data-size="L" style="margin-top:6px;">
+                <div>
+                  <span class="size-label">Size L</span>
+                  <span class="size-price">${formatPrice(item.price_l)}</span>
+                </div>
+                <div class="qty-controls">
+                  <button class="qty-btn" data-action="dec">−</button>
+                  <span class="qty-value" data-qty="L">0</span>
+                  <button class="qty-btn" data-action="inc">+</button>
+                </div>
+              </div>`
+                  : ""
+              }
+            </div>
+          `;
+        });
+
+        html += `</div>`;
+      }
+
+      menuRoot.innerHTML = html;
+
+      // Gắn event
+      document.querySelectorAll(".item-card").forEach((card) => {
+        const id = card.getAttribute("data-id");
+        const item = items.find((x) => x.id === id);
+        if (!item) return;
+
+        card.querySelectorAll(".size-row").forEach((row) => {
+          const size = row.getAttribute("data-size");
+          const qtySpan = row.querySelector("[data-qty]");
+          row.querySelectorAll(".qty-btn").forEach((btn) => {
+            const action = btn.getAttribute("data-action");
+            btn.addEventListener("click", () => {
+              const key = `${item.id}_${size}`;
+              if (action === "inc") {
+                addLine(item, size);
+              } else {
+                // dec
+                if (!cart.has(key)) return;
+                changeQty(key, -1);
+              }
+              const inCart = cart.get(key);
+              qtySpan.textContent = inCart ? inCart.qty : "0";
+            });
+          });
+        });
+      });
+    }
+
+    async function loadMenu() {
+      try {
+        const { data, error } = await supabase
+          .from("menu_items")
+          .select("*")
+          .order("category", { ascending: true })
+          .order("name", { ascending: true });
+
+        if (error) throw error;
+        menuCache = data || [];
+        buildMenuUI(menuCache);
+      } catch (err) {
+        console.error(err);
+        menuRoot.innerHTML =
+          '<div class="menu-section-title">Không tải được menu. Vui lòng thử lại sau.</div>';
+      }
+    }
+
+    async function sendOrder() {
+      statusMsg.textContent = "";
+      statusMsg.className = "status-msg";
+
+      if (cart.size === 0) {
+        statusMsg.textContent = "Bạn chưa chọn món nào.";
+        statusMsg.classList.add("status-error");
+        return;
+      }
+
+      btnSubmit.disabled = true;
+      btnSubmit.textContent = "Đang gửi order…";
+
+      const itemsPayload = [];
+      let total = 0;
+      for (const [, line] of cart) {
+        const lineTotal = line.qty * line.price;
+        total += lineTotal;
+        itemsPayload.push({
+          name: line.name,
+          size: line.size,
+          qty: line.qty,
+          price: line.price,
+          line_total: lineTotal,
+        });
+      }
+
+      const payload = {
+        table_no: tableNo || null,
+        items: itemsPayload,
+        total,
+        note: noteInput.value.trim() || null,
+        status: "pending",
+      };
+
+      try {
+        const { error } = await supabase.from("web_orders").insert(payload);
+        if (error) throw error;
+
+        statusMsg.textContent =
+          "Gửi order thành công. Tea Neko đang chuẩn bị món cho bạn 💜";
+        statusMsg.classList.add("status-ok");
+
+        cart.clear();
+        renderCart();
+        noteInput.value = "";
+
+        // Reset số lượng hiển thị trên từng món
+        document
+          .querySelectorAll(".qty-value")
+          .forEach((el) => (el.textContent = "0"));
+      } catch (err) {
+        console.error(err);
+        statusMsg.textContent = "Gửi order thất bại. Vui lòng thử lại.";
+        statusMsg.classList.add("status-error");
+      } finally {
+        btnSubmit.disabled = false;
+        btnSubmit.textContent = "Gửi order đến Tea Neko";
+      }
+    }
+
+    btnSubmit.addEventListener("click", sendOrder);
+
+    // INIT
+    loadMenu();
+  </script>
 </body>
 </html>
