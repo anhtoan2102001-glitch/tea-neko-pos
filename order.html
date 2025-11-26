@@ -1,257 +1,256 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Order Online – Tea Neko</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QR Order – Tea Neko</title>
 
-<!-- FONT + STYLE -->
 <style>
 body {
-    margin: 0;
-    background: #0d1224;
-    font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif;
-    color: white;
+  margin: 0;
+  background: #0b1122;
+  color: white;
+  font-family: Arial, sans-serif;
 }
-.box {
-    max-width: 480px;
-    margin: auto;
-    padding: 14px;
+.container {
+  max-width: 600px;
+  margin: auto;
+  padding: 20px;
 }
-.item {
-    background: #111a33;
-    border-radius: 14px;
-    margin-bottom: 18px;
-    overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+.itemBox {
+  background: #111a33;
+  border-radius: 14px;
+  border: 1px solid #334155;
+  margin-bottom: 18px;
+  overflow: hidden;
 }
-.item img {
-    width: 100%;
-    height: 220px;
-    object-fit: cover;
+.itemBox img {
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
 }
-.item-name {
-    font-size: 20px;
-    font-weight: 600;
-    padding: 10px 14px 0 14px;
+.name {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 10px;
 }
-.item-price {
-    opacity: .8;
-    padding: 0 14px 8px 14px;
+.price {
+  margin: 0 10px 10px 10px;
+  opacity: 0.8;
 }
-.qty-row {
-    padding: 10px 14px 14px 14px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+.qtyBox {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 10px;
 }
-.qty button {
-    width: 34px;
-    height: 34px;
-    border-radius: 34px;
-    border: none;
-    font-size: 20px;
+.qtyBox button {
+  width: 34px;
+  height: 34px;
+  background: #334155;
+  border: none;
+  border-radius: 10px;
+  color: white;
+  font-size: 20px;
 }
-.order-box {
-    background: #111a33;
-    border-radius: 16px;
-    padding: 16px;
-    margin-top: 20px;
+.qty {
+  font-size: 22px;
+  margin: 0 15px;
 }
-.btn-send {
-    margin-top: 10px;
-    width: 100%;
-    padding: 16px;
-    font-size: 18px;
-    background: #00ff88;
-    border: none;
-    border-radius: 14px;
-    font-weight: 600;
+.orderBox {
+  background: #111a33;
+  border-radius: 14px;
+  border: 1px solid #334155;
+  padding: 16px;
+  margin-top: 30px;
+}
+.greenBtn {
+  margin-top: 14px;
+  width: 100%;
+  padding: 16px;
+  border-radius: 12px;
+  background: #22c55e;
+  color: #052e16;
+  border: none;
+  font-size: 20px;
+  font-weight: 600;
 }
 </style>
 </head>
+
 <body>
+<div class="container">
 
-<div class="box">
-    <h2>Menu gọi món</h2>
-    <div id="menuList"></div>
+<h2>Đặt món – Bàn <span id="tableNo"></span></h2>
 
-    <div id="orderBox" class="order-box" style="display:none;">
-        <h3>Đơn của bạn</h3>
-        <div id="orderItems"></div>
-        <h3 id="orderTotal"></h3>
+<div id="menuArea"></div>
 
-        <textarea id="note" placeholder="Ghi chú..." 
-        style="width:100%; padding:12px; border-radius:10px; margin-top:10px;"></textarea>
+<div class="orderBox">
+  <h3>Đơn của bạn</h3>
+  <div id="cartList">Chưa chọn món.</div>
+  <div><b>Tổng:</b> <span id="total">0</span>đ</div>
 
-        <button class="btn-send" onclick="sendOrder()">Gửi order đến Tea Neko</button>
+  <textarea id="note" placeholder="Ghi chú..." 
+  style="width:100%;margin-top:10px;border-radius:10px;padding:10px;"></textarea>
 
-        <p id="statusText" style="color:#ff8080; margin-top:10px;"></p>
-    </div>
+  <button id="sendOrderBtn" class="greenBtn">Gửi order đến Tea Neko</button>
+
+  <p id="status" style="margin-top:10px;color:#fb7185;"></p>
 </div>
 
-<!-- ================= SCRIPT ================= -->
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 
-// ============================
+// ===========================
 // 1. SUPABASE CONFIG
-// ============================
-const supabaseUrl = "https://kcrchwdelrettpkucoct.supabase.co";
-const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtjcmNod2VkbHJldHRwa3Vjb2N0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM4ODQ0MjgsImV4cCI6MjA3OTQ2MDQyOH0.g4WA9tci2zm4MIa6EvOe6tH_EhaoicdrdiP6swgjRgw";
+// ===========================
+const SUPABASE_URL = "https://kcrchwedlrettpkucoct.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtjcmNod2VkbHJldHRwa3Vjb2N0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM4ODQ0MjgsImV4cCI6MjA3OTQ2MDQyOH0.g4WA9tci2zm4MIa6EvOe6tH_EhaoicdrdiP6swgjRgw";
 
-const db = supabase.createClient(supabaseUrl, supabaseKey);
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// Lấy số bàn từ URL
-const urlParams = new URLSearchParams(window.location.search);
-const tableNumber = urlParams.get("table") || "0";
+// ===========================
+// 2. Lấy số bàn từ URL
+// ===========================
+const url = new URLSearchParams(window.location.search);
+const tableNo = url.get("table") || "N/A";
+document.getElementById("tableNo").innerText = tableNo;
 
-
-// ============================
-// 2. MENU – bạn có thể đổi ảnh & giá tùy ý
-// ============================
+// ===========================
+// 3. MENU (ảnh bạn có thể đổi link bất kỳ)
+// ===========================
 const MENU = [
-    {
-        id: 1,
-        name: "Matcha Latte",
-        priceM: 25000,
-        priceL: 30000,
-        img: "https://i.imgur.com/4ZQZ4aB.jpeg"
-    },
-    {
-        id: 2,
-        name: "Trà sữa trân châu",
-        priceM: 30000,
-        priceL: 35000,
-        img: "https://i.imgur.com/qsjQX0m.jpeg"
-    },
-    {
-        id: 3,
-        name: "Hồng trà sữa",
-        priceM: 28000,
-        priceL: 33000,
-        img: "https://i.imgur.com/lq1mE0n.jpeg"
-    },
-    {
-        id: 4,
-        name: "Bạc xỉu",
-        priceM: 20000,
-        priceL: 25000,
-        img: "https://i.imgur.com/LZttrCS.jpeg"
-    }
+  {
+    id: 1,
+    name: "Matcha Latte",
+    price: 25000,
+    img: "https://i.imgur.com/4ZQZ4aB.jpeg"
+  },
+  {
+    id: 2,
+    name: "Trà sữa trân châu",
+    price: 30000,
+    img: "https://i.imgur.com/qsjQX0m.jpeg"
+  },
+  {
+    id: 3,
+    name: "Hồng trà sữa",
+    price: 28000,
+    img: "https://i.imgur.com/lq1mE0n.jpeg"
+  },
+  {
+    id: 4,
+    name: "Bạc xỉu",
+    price: 20000,
+    img: "https://i.imgur.com/LZttrCS.jpeg"
+  }
 ];
 
-// Giỏ hàng khách
-let cart = [];
+// giỏ hàng
+let cart = {};
 
-
-// ============================
-// 3. RENDER MENU
-// ============================
+// render menu
 function renderMenu() {
-    let html = "";
+  let html = "";
 
-    MENU.forEach(item => {
-        html += `
-        <div class="item">
-            <img src="${item.img}">
-            <div class="item-name">${item.name}</div>
-            <div class="item-price">${item.priceM.toLocaleString()}đ (Size M)</div>
+  MENU.forEach(m => {
+    cart[m.id] = 0;
 
-            <div class="qty-row">
-                <span onclick="changeQty(${item.id}, -1)" style="font-size:22px;">➖</span>
-                <span id="qty_${item.id}">0</span>
-                <span onclick="changeQty(${item.id}, 1)" style="font-size:22px;">➕</span>
-            </div>
+    html += `
+      <div class="itemBox">
+        <img src="${m.img}">
+        <div class="name">${m.name}</div>
+        <div class="price">${m.price.toLocaleString()}đ</div>
+
+        <div class="qtyBox">
+          <button onclick="changeQty(${m.id}, -1)">-</button>
+          <div class="qty" id="qty_${m.id}">0</div>
+          <button onclick="changeQty(${m.id}, +1)">+</button>
         </div>
-        `;
-    });
+      </div>
+    `;
+  });
 
-    document.getElementById("menuList").innerHTML = html;
+  document.getElementById("menuArea").innerHTML = html;
 }
+
 renderMenu();
 
-
-// ============================
-// 4. THÊM / GIẢM SỐ LƯỢNG
-// ============================
+// ===========================
+// 4. Thay đổi số lượng món
+// ===========================
 function changeQty(id, delta) {
-    let item = cart.find(x => x.id === id);
+  cart[id] += delta;
+  if (cart[id] < 0) cart[id] = 0;
 
-    if (!item) {
-        if (delta > 0) {
-            const product = MENU.find(x => x.id === id);
-            cart.push({
-                id: id,
-                name: product.name,
-                qty: 1,
-                size: "M",
-                price: product.priceM
-            });
-        }
-    } else {
-        item.qty += delta;
-        if (item.qty <= 0) {
-            cart = cart.filter(x => x.id !== id);
-        }
-    }
-
-    updateUI();
+  document.getElementById("qty_" + id).innerText = cart[id];
+  updateCart();
 }
 
+// ===========================
+// 5. Render đơn khách
+// ===========================
+function updateCart() {
+  let html = "";
+  let sum = 0;
 
-// ============================
-// 5. UPDATE UI
-// ============================
-function updateUI() {
-    cart.forEach(c => {
-        const q = document.getElementById("qty_" + c.id);
-        if (q) q.innerText = c.qty;
-    });
-
-    if (cart.length === 0) {
-        document.getElementById("orderBox").style.display = "none";
-        return;
+  MENU.forEach(m => {
+    if (cart[m.id] > 0) {
+      html += `${cart[m.id]}x ${m.name} — ${(m.price * cart[m.id]).toLocaleString()}đ<br>`;
+      sum += m.price * cart[m.id];
     }
+  });
 
-    document.getElementById("orderBox").style.display = "block";
-
-    let html = "";
-    let total = 0;
-
-    cart.forEach(c => {
-        html += `<div>${c.qty}x ${c.name} (Size ${c.size}) — ${(c.price * c.qty).toLocaleString()}đ</div>`;
-        total += c.price * c.qty;
-    });
-
-    document.getElementById("orderItems").innerHTML = html;
-    document.getElementById("orderTotal").innerHTML = `Tổng: ${total.toLocaleString()}đ`;
+  document.getElementById("cartList").innerHTML = html || "Chưa chọn món.";
+  document.getElementById("total").innerText = sum.toLocaleString();
 }
 
+// ===========================
+// 6. Gửi order
+// ===========================
+document.getElementById("sendOrderBtn").onclick = async () => {
 
-// ============================
-// 6. GỬI ORDER
-// ============================
-async function sendOrder() {
-
-    if (cart.length === 0) return;
-
-    const { error } = await db.from("web_orders").insert({
-        table: tableNumber,
-        items: cart,
-        note: document.getElementById("note").value,
-        status: "pending"
-    });
-
-    if (error) {
-        document.getElementById("statusText").innerText = "Gửi order thất bại. Vui lòng thử lại.";
-    } else {
-        document.getElementById("statusText").innerText = "Đã gửi order thành công!";
-        cart = [];
-        updateUI();
+  let items = [];
+  MENU.forEach(m => {
+    if (cart[m.id] > 0) {
+      items.push({
+        name: m.name,
+        qty: cart[m.id],
+        price: m.price
+      });
     }
-}
+  });
+
+  if (items.length === 0) {
+    document.getElementById("status").innerText = "Bạn chưa chọn món.";
+    return;
+  }
+
+  let total = Number(document.getElementById("total").innerText.replace(/\./g, ""));
+  let note  = document.getElementById("note").value || null;
+
+  const { error } = await db.from("web_orders").insert({
+    table_no: tableNo,
+    items: items,
+    total: total,
+    note: note,
+    status: "pending"
+  });
+
+  if (error) {
+    document.getElementById("status").innerText = "Gửi thất bại: " + error.message;
+  } else {
+    document.getElementById("status").style.color = "#4ade80";
+    document.getElementById("status").innerText = "Order đã gửi thành công!";
+    cart = {};
+    renderMenu();
+    updateCart();
+  }
+};
 
 </script>
+
 </body>
 </html>
