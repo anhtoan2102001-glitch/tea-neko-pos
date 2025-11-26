@@ -2,1655 +2,936 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8" />
-  <title>Mini POS – Tea Neko (Realtime + QR)</title>
+  <title>Mini POS – Tea Neko v2</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <!-- Supabase JS -->
-  <script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    :root {
-      --bg: #05060a;
-      --card: #111827;
-      --accent: #22c55e;
-      --accent-soft: rgba(34,197,94,0.12);
-      --accent-weak: #4ade80;
-      --danger: #ef4444;
-      --danger-soft: rgba(239,68,68,0.15);
-      --text: #e5e7eb;
-      --text-sub: #9ca3af;
-      --border: #1f2937;
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
+    * { box-sizing:border-box; }
     body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", Arial, sans-serif;
-      background: radial-gradient(circle at top, #0f172a 0, #020617 45%, #000 100%);
-      color: var(--text);
-      padding: 12px;
+      margin:0;
+      font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+      background:#050817;
+      color:#fff;
     }
-
-    .app {
-      max-width: 960px;
-      margin: 0 auto;
+    .app-shell {
+      max-width:480px;
+      margin:0 auto;
+      padding:12px;
     }
-
-    header {
-      text-align: center;
-      margin-bottom: 10px;
-    }
-
-    header h1 {
-      font-size: 20px;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      color: #f9fafb;
-    }
-
-    header .subtitle {
-      font-size: 12px;
-      color: var(--text-sub);
-      margin-top: 3px;
-    }
-
-    .tab-bar {
-      display: flex;
-      gap: 8px;
-      margin: 10px 0 12px;
-    }
-
-    .tab-btn {
-      flex: 1;
-      border-radius: 999px;
-      border: 1px solid var(--border);
-      padding: 6px 0;
-      font-size: 13px;
-      cursor: pointer;
-      background: rgba(15,23,42,0.9);
-      color: var(--text-sub);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      transition: background 0.12s, color 0.12s, box-shadow 0.12s, transform 0.05s;
-    }
-
-    .tab-btn span.icon {
-      font-size: 15px;
-    }
-
-    .tab-btn.active {
-      background: linear-gradient(135deg, #16a34a, #22c55e);
-      color: #020617;
-      border-color: #22c55e;
-      box-shadow: 0 0 0 1px rgba(34,197,94,0.55), 0 12px 30px rgba(34,197,94,0.25);
-      transform: translateY(-1px);
-    }
-
-    .tab-btn:active {
-      transform: translateY(1px);
-      box-shadow: inset 0 1px 3px rgba(0,0,0,0.6);
-    }
-
-    .page {
-      display: none;
-    }
-
-    .page.active {
-      display: block;
-    }
-
-    .grid-pos {
-      display: grid;
-      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.1fr);
-      gap: 10px;
-    }
-
-    @media (max-width: 750px) {
-      .grid-pos {
-        grid-template-columns: minmax(0, 1fr);
-      }
-    }
-
     .card {
-      background: radial-gradient(circle at top left, rgba(34,197,94,0.12), #020617 60%);
-      border-radius: 16px;
-      padding: 10px;
-      border: 1px solid var(--border);
-      box-shadow: 0 10px 30px rgba(0,0,0,0.45);
+      background:#0b1020;
+      border-radius:16px;
+      padding:14px;
+      box-shadow:0 2px 10px rgba(0,0,0,.35);
+      border:1px solid rgba(255,255,255,.08);
+      margin-bottom:12px;
+    }
+    h1,h2,h3 { margin:0 0 8px; }
+
+    /* Tabs */
+    .tab-bar {
+      display:flex;
+      gap:4px;
+      margin-bottom:12px;
+      background:#050817;
+      position:sticky;
+      top:0;
+      z-index:20;
+      padding-bottom:6px;
+    }
+    .tab-btn {
+      flex:1;
+      padding:8px 6px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.08);
+      background:#050817;
+      text-align:center;
+      font-size:13px;
+      cursor:pointer;
+      user-select:none;
+      transition:.15s;
+    }
+    .tab-btn.active {
+      background:#0af;
+      color:#001;
+      font-weight:600;
+      box-shadow:0 0 16px rgba(0,170,255,.6);
+      transform:translateY(1px);
     }
 
-    .card-plain {
-      background: rgba(15,23,42,0.95);
-      border-radius: 16px;
-      padding: 10px;
-      border: 1px solid var(--border);
-      box-shadow: 0 8px 24px rgba(0,0,0,0.45);
-    }
-
-    .card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      margin-bottom: 6px;
-    }
-
-    .card-title {
-      font-size: 14px;
-      font-weight: 600;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-      color: #e5e7eb;
-    }
-
-    .card-sub {
-      font-size: 11px;
-      color: var(--text-sub);
-    }
-
+    /* POS menu */
     .menu-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 8px;
-      margin-top: 4px;
+      display:grid;
+      grid-template-columns:repeat(2, 1fr);
+      gap:8px;
     }
-
     .menu-item {
-      border-radius: 12px;
-      padding: 8px;
-      border: 1px solid rgba(148,163,184,0.2);
-      background: linear-gradient(145deg, rgba(15,23,42,0.95), rgba(15,23,42,0.9));
-      cursor: pointer;
-      font-size: 13px;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      box-shadow: 0 6px 16px rgba(0,0,0,0.65);
-      transition: transform 0.07s ease, box-shadow 0.08s ease, border-color 0.08s, background 0.15s;
+      padding:10px;
+      border-radius:12px;
+      background:#131933;
+      border:1px solid rgba(255,255,255,.06);
+      cursor:pointer;
+      transition:.15s;
+    }
+    .menu-item:hover { box-shadow:0 0 10px rgba(0,0,0,.5); }
+    .menu-name { font-size:13px; font-weight:600; }
+    .menu-price { font-size:12px; opacity:.8; }
+
+    .chip-size {
+      display:inline-flex;
+      border-radius:999px;
+      padding:2px;
+      background:#050817;
+      margin-top:4px;
+      gap:2px;
+    }
+    .chip-size span {
+      padding:2px 8px;
+      border-radius:999px;
+      font-size:11px;
+      cursor:pointer;
+    }
+    .chip-size span.active {
+      background:#0af;
+      color:#001;
+      font-weight:600;
     }
 
-    .menu-item:hover {
-      border-color: rgba(34,197,94,0.6);
-      box-shadow: 0 10px 25px rgba(34,197,94,0.35);
-    }
-
-    .menu-item:active {
-      transform: translateY(1px) scale(0.98);
-      box-shadow: inset 0 1px 3px rgba(0,0,0,0.7);
-      background: linear-gradient(145deg, rgba(22,163,74,0.18), rgba(15,23,42,0.95));
-    }
-
-    .menu-name {
-      font-weight: 600;
-      font-size: 13px;
-    }
-
-    .menu-price {
-      font-size: 11px;
-      color: var(--text-sub);
-    }
-
-    .size-row {
-      display: flex;
-      gap: 8px;
-      margin-top: 8px;
-    }
-
-    .size-btn {
-      flex: 1;
-      border-radius: 999px;
-      border: 1px solid var(--border);
-      padding: 6px 0;
-      font-size: 12px;
-      cursor: pointer;
-      background: #020617;
-      color: var(--text-sub);
-      box-shadow: 0 4px 10px rgba(0,0,0,0.6);
-      transition: background 0.12s, color 0.12s, box-shadow 0.12s, border-color 0.12s;
-    }
-
-    .size-btn.active {
-      background: linear-gradient(135deg, #22c55e, #4ade80);
-      color: #020617;
-      border-color: #4ade80;
-      box-shadow: 0 0 0 1px rgba(74,222,128,0.75), 0 10px 26px rgba(34,197,94,0.5);
-    }
-
-    .cash-row {
-      margin-top: 8px;
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      font-size: 13px;
-    }
-
-    .cash-row label {
-      font-size: 12px;
-      color: var(--text-sub);
-    }
-
-    .cash-row input {
-      flex: 1;
-      padding: 6px 8px;
-      border-radius: 999px;
-      border: 1px solid var(--border);
-      background: #020617;
-      color: var(--text);
-      font-size: 13px;
-      outline: none;
-      box-shadow: 0 3px 10px rgba(0,0,0,0.6) inset;
+    .pill-input {
+      width:100%;
+      padding:8px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);
+      background:#050817;
+      color:#fff;
+      font-size:13px;
+      outline:none;
     }
 
     .btn-row {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 8px;
-      margin-top: 8px;
+      display:flex;
+      gap:8px;
+      margin-top:10px;
     }
-
     .btn {
-      border-radius: 999px;
-      border: none;
-      padding: 8px 0;
-      cursor: pointer;
-      font-size: 13px;
-      font-weight: 600;
-      color: #f9fafb;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.7);
-      transition: transform 0.07s, box-shadow 0.08s, filter 0.06s;
+      flex:1;
+      padding:10px;
+      border-radius:999px;
+      border:none;
+      font-size:13px;
+      cursor:pointer;
+      font-weight:600;
+    }
+    .btn-grey { background:#4b5563; color:#fff; }
+    .btn-red { background:#ef4444; color:#fff; }
+    .btn-blue { background:#3b82f6; color:#fff; }
+    .btn-green { background:#22c55e; color:#001; }
+    .btn-outline {
+      background:transparent;
+      border:1px solid rgba(255,255,255,.2);
+      color:#fff;
     }
 
-    .btn:active {
-      transform: translateY(1px);
-      box-shadow: inset 0 2px 4px rgba(0,0,0,0.7);
-      filter: brightness(0.9);
+    .order-list { font-size:13px; line-height:1.4; }
+    .order-line { margin-left:8px; }
+
+    .tag {
+      display:inline-block;
+      padding:2px 8px;
+      border-radius:999px;
+      font-size:11px;
+      background:#111827;
+      border:1px solid rgba(255,255,255,.12);
+      margin-left:4px;
     }
 
-    .btn-primary {
-      background: linear-gradient(135deg, #22c55e, #4ade80);
-      color: #020617;
+    /* QR tables */
+    .table-grid {
+      display:grid;
+      grid-template-columns:repeat(5, 1fr);
+      gap:6px;
+      margin-top:8px;
+    }
+    .table-btn {
+      padding:6px 4px;
+      border-radius:999px;
+      font-size:11px;
+      text-align:center;
+      cursor:pointer;
+      border:1px solid rgba(255,255,255,.18);
+      background:#050817;
+      user-select:none;
+      position:relative;
+    }
+    .table-btn.pending { 
+      background:#16a34a;
+      color:#001;
+      font-weight:600;
+    }
+    .table-btn.pulse::after {
+      content:'';
+      position:absolute;
+      inset:-3px;
+      border-radius:999px;
+      border:2px solid rgba(74,222,128,.8);
+      animation:pulse 1s infinite;
+    }
+    @keyframes pulse {
+      0% { opacity:1; transform:scale(1); }
+      100% { opacity:0; transform:scale(1.25);}
     }
 
-    .btn-secondary {
-      background: linear-gradient(135deg, #0ea5e9, #38bdf8);
+    .qr-orders-list {
+      margin-top:8px;
+      font-size:13px;
+      max-height:220px;
+      overflow:auto;
+    }
+    .qr-order-card {
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.08);
+      padding:8px;
+      margin-bottom:6px;
+      background:#020617;
     }
 
-    .btn-ghost {
-      background: rgba(15,23,42,0.8);
-      border: 1px solid var(--border);
-      color: var(--text-sub);
-    }
-
-    .btn-danger {
-      background: linear-gradient(135deg, #ef4444, #f97373);
-    }
-
-    .order-list {
-      margin-top: 6px;
-      padding: 8px;
-      border-radius: 12px;
-      background: rgba(15,23,42,0.9);
-      max-height: 220px;
-      overflow-y: auto;
-      font-size: 13px;
-    }
-
-    .order-line {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      margin-bottom: 4px;
-    }
-
-    .order-line-name {
-      font-size: 12px;
-    }
-
-    .order-line-qty {
-      color: var(--accent-weak);
-      font-size: 11px;
-      margin-left: 4px;
-    }
-
-    .order-line-price {
-      font-size: 12px;
-      color: #e5e7eb;
-    }
-
-    .summary-block {
-      margin-top: 6px;
-      font-size: 13px;
-    }
-
-    .summary-block strong {
-      font-size: 14px;
-      color: #f9fafb;
-    }
-
-    .summary-sub {
-      font-size: 12px;
-      color: var(--text-sub);
-      margin-top: 2px;
-    }
-
-    .list-history {
-      max-height: 260px;
-      overflow-y: auto;
-      font-size: 12px;
-      margin-top: 4px;
-    }
-
-    .history-item {
-      border-radius: 10px;
-      padding: 6px 8px;
-      background: rgba(15,23,42,0.95);
-      border: 1px solid rgba(31,41,55,0.9);
-      margin-bottom: 6px;
-    }
-
-    .history-header-line {
-      display: flex;
-      justify-content: space-between;
-      font-size: 11px;
-      margin-bottom: 3px;
-      color: var(--text-sub);
-    }
-
-    .history-main-line {
-      display: flex;
-      justify-content: space-between;
-      font-size: 12px;
-      margin-bottom: 4px;
-      color: #e5e7eb;
-    }
+    .page { display:none; }
+    .page.active { display:block; }
 
     .history-actions {
-      display: flex;
-      gap: 6px;
-      margin-top: 4px;
+      display:flex;
+      gap:6px;
+      margin-top:6px;
     }
 
-    .history-actions button {
-      flex: 1;
-      border-radius: 999px;
-      padding: 3px 0;
-      font-size: 11px;
-      border: none;
-      cursor: pointer;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.7);
+    table.simple {
+      width:100%;
+      border-collapse:collapse;
+      font-size:13px;
     }
-
-    .history-actions button:active {
-      transform: translateY(1px);
-      box-shadow: inset 0 2px 4px rgba(0,0,0,0.7);
+    table.simple th, table.simple td {
+      padding:6px;
+      border-bottom:1px solid rgba(255,255,255,.08);
+      text-align:left;
     }
+    table.simple th { font-weight:600; }
 
-    .history-actions .btn-delete {
-      background: linear-gradient(135deg, #ef4444, #f97373);
-      color: #fee2e2;
-    }
-
-    .history-actions .btn-print {
-      background: linear-gradient(135deg, #22c55e, #4ade80);
-      color: #022c22;
-    }
-
-    .history-actions .btn-restore {
-      background: linear-gradient(135deg, #0ea5e9, #38bdf8);
-      color: #e0f2fe;
-    }
-
-    .kpi-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 8px;
-      margin-top: 6px;
-    }
-
-    .kpi-card {
-      border-radius: 12px;
-      padding: 8px;
-      background: radial-gradient(circle at top left, rgba(56,189,248,0.25), #020617 55%);
-      border: 1px solid rgba(30,64,175,0.8);
-      box-shadow: 0 10px 28px rgba(30,64,175,0.75);
-    }
-
-    .kpi-label {
-      font-size: 11px;
-      color: var(--text-sub);
-    }
-
-    .kpi-value {
-      font-size: 16px;
-      font-weight: 600;
-      margin-top: 4px;
-    }
-
-    .kpi-note {
-      font-size: 11px;
-      color: rgba(191,219,254,0.9);
-      margin-top: 2px;
-    }
-
-    .stock-list {
-      margin-top: 6px;
-      max-height: 230px;
-      overflow-y: auto;
-      font-size: 12px;
-    }
-
-    .stock-item {
-      border-radius: 10px;
-      padding: 6px 8px;
-      background: rgba(15,23,42,0.95);
-      border: 1px solid rgba(31,41,55,0.9);
-      margin-bottom: 6px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .stock-input-row {
-      display: flex;
-      gap: 6px;
-      margin-top: 8px;
-    }
-
-    .stock-input-row input {
-      flex: 1;
-      border-radius: 999px;
-      border: 1px solid var(--border);
-      padding: 6px 8px;
-      font-size: 12px;
-      background: #020617;
-      color: var(--text);
-      outline: none;
-    }
-
-    .stock-input-row button {
-      padding: 6px 10px;
-      border-radius: 999px;
-      border: none;
-      font-size: 12px;
-      cursor: pointer;
-      background: linear-gradient(135deg, #22c55e, #4ade80);
-      color: #020617;
-      box-shadow: 0 6px 16px rgba(16,185,129,0.65);
-    }
-
-    /* QR BOX */
-    .qr-box {
-      margin-top: 10px;
-      font-size: 12px;
-      color: var(--text-sub);
-      background: rgba(15,23,42,0.9);
-      border-radius: 14px;
-      border: 1px dashed rgba(148,163,184,0.5);
-      padding: 8px;
-    }
-
-    .qr-table-grid {
-      display: grid;
-      grid-template-columns: repeat(5, minmax(0, 1fr));
-      gap: 4px;
-      margin-top: 6px;
-    }
-
-    .qr-table-btn {
-      border-radius: 999px;
-      border: 1px solid #334155;
-      background: #020617;
-      color: #e5e7eb;
-      font-size: 11px;
-      padding: 4px 0;
-      cursor: pointer;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.7);
-      transition: background 0.12s, box-shadow 0.12s, transform 0.06s, border-color 0.12s;
-    }
-
-    .qr-table-btn:hover {
-      border-color: #22c55e;
-    }
-
-    .qr-table-btn.active {
-      background: linear-gradient(135deg, #22c55e, #4ade80);
-      color: #022c22;
-      border-color: #22c55e;
-      box-shadow: 0 8px 20px rgba(34,197,94,0.65);
-      transform: translateY(-1px);
-    }
-
-    .qr-table-detail {
-      margin-top: 8px;
-      font-size: 12px;
-      color: #e5e7eb;
-      background: #020617;
-      border-radius: 10px;
-      padding: 6px 8px;
-      border: 1px solid #111827;
-    }
-
-    .qr-header-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 4px;
-    }
-
-    .qr-header-row button {
-      font-size: 11px;
-      padding: 3px 10px;
-      border-radius: 999px;
-      border: none;
-      cursor: pointer;
-      background: #1f2937;
-      color: #e5e7eb;
-    }
-
-    @media (max-width: 750px) {
-      .qr-table-grid {
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-      }
+    .small-input {
+      width:80px;
+      padding:4px 6px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);
+      background:#020617;
+      color:#fff;
+      font-size:12px;
+      outline:none;
     }
   </style>
 </head>
 <body>
-<div class="app">
-  <header>
-    <h1>Tea Neko – Mini POS</h1>
-    <div class="subtitle">Realtime Supabase · QR Order 20 bàn · UI B</div>
-  </header>
+<div class="app-shell">
 
-  <!-- TAB BAR -->
   <div class="tab-bar">
-    <button class="tab-btn active" data-page="page-pos">
-      <span class="icon">🧾</span> POS
-    </button>
-    <button class="tab-btn" data-page="page-revenue">
-      <span class="icon">💰</span> Doanh thu
-    </button>
-    <button class="tab-btn" data-page="page-history">
-      <span class="icon">📚</span> Lịch sử
-    </button>
-    <button class="tab-btn" data-page="page-stock">
-      <span class="icon">📦</span> Tồn kho
-    </button>
+    <div class="tab-btn active" data-tab="pos">POS</div>
+    <div class="tab-btn" data-tab="qr">QR Order</div>
+    <div class="tab-btn" data-tab="revenue">Doanh thu</div>
+    <div class="tab-btn" data-tab="history">Lịch sử</div>
+    <div class="tab-btn" data-tab="inventory">Tồn kho</div>
+    <div class="tab-btn" data-tab="menu">Menu</div>
   </div>
 
-  <!-- =========================
-       PAGE POS
-  ========================== -->
-  <div id="page-pos" class="page active">
-    <div class="grid-pos">
-      <!-- Cột trái: menu + QR -->
-      <div class="card">
-        <div class="card-header">
-          <div class="card-title">Menu đồ uống</div>
-          <div class="card-sub">Chạm để thêm món · SL tăng theo số lần bấm</div>
-        </div>
+  <!-- POS PAGE -->
+  <section id="page-pos" class="page active">
+    <div class="card">
+      <h2>Mini POS – Tea Neko</h2>
+      <div style="font-size:12px; opacity:.8;">Phiên bản v2 (demo, có QR & tồn kho)</div>
+    </div>
 
-        <div class="size-row">
-          <button id="sizeM" class="size-btn active">Size M</button>
-          <button id="sizeL" class="size-btn">Size L (+5.000)</button>
-        </div>
-
-        <div class="menu-grid" id="menuMain"></div>
-
-        <!-- QR ĐẶT MÓN -->
-        <div class="qr-box">
-          <div class="qr-header-row">
-            <div>
-              <div class="card-title" style="font-size:12px; text-transform:none; letter-spacing:0;">
-                QR đặt món cho khách
-              </div>
-              <div class="card-sub">
-                Chọn bàn để xem đơn khách order từ <code>order.html?table=n</code>.
-              </div>
-            </div>
-            <button id="btnReloadWebOrders">↻ Tải đơn mới</button>
-          </div>
-
-          <div class="qr-table-grid" id="qrTableGrid"></div>
-
-          <div id="qrTableDetail" class="qr-table-detail">
-            Chọn một bàn để xem / xử lý đơn QR.
-          </div>
-        </div>
+    <div class="card" id="pos-menu-card">
+      <h3>LATTE / COFFEE / TRÀ SỮA</h3>
+      <div id="pos-size-chip" class="chip-size">
+        <span data-size="M" class="active">Size M</span>
+        <span data-size="L">Size L (+5.000)</span>
       </div>
-
-      <!-- Cột phải: đơn hiện tại -->
-      <div class="card-plain">
-        <div class="card-header">
-          <div class="card-title">Đơn hiện tại</div>
-          <div class="card-sub" id="orderInfoSub">Chưa có món</div>
-        </div>
-
-        <div class="order-list" id="currentList"></div>
-
-        <div class="cash-row">
-          <label for="cashInput">Khách đưa (nghìn):</label>
-          <input id="cashInput" type="number" min="0" placeholder="VD: 50 (tức 50.000)" />
-        </div>
-
-        <div class="summary-block">
-          <div id="currentSummary"><strong>Tổng:</strong> 0 VND</div>
-          <div id="cashSummary" class="summary-sub"></div>
-        </div>
-
-        <div class="btn-row">
-          <button class="btn btn-ghost" id="btnUndo">↩ Hoàn tác 1 lần bấm</button>
-          <button class="btn btn-danger" id="btnClear">🧹 Xóa hết món</button>
-        </div>
-        <div class="btn-row" style="margin-top:6px;">
-          <button class="btn btn-secondary" id="btnSave">💾 Lưu đơn</button>
-          <button class="btn btn-primary" id="btnPrint">🧾 Lưu + In bill</button>
+      <div style="margin-top:10px;" id="pos-menu">
+        <div style="font-size:12px; opacity:.7; margin-bottom:4px;">
+          Đang tải menu...
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- =========================
-       PAGE REVENUE
-  ========================== -->
-  <div id="page-revenue" class="page">
-    <div class="card-plain">
-      <div class="card-header">
-        <div class="card-title">Tổng doanh thu</div>
-        <div class="card-sub">Đã trừ các đơn bị xoá</div>
+    <div class="card">
+      <h3>Đơn hiện tại</h3>
+      <div id="currentOrderLines" class="order-list">
+        Chưa có món nào.
+      </div>
+      <div style="margin-top:6px; font-weight:600;">
+        Tổng: <span id="currentTotal">0</span> VND
       </div>
 
-      <div class="kpi-grid">
-        <div class="kpi-card">
-          <div class="kpi-label">Hôm nay</div>
-          <div class="kpi-value" id="revToday">0 VND</div>
-          <div class="kpi-note">Từ 00:00 đến hiện tại</div>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-label">7 ngày gần nhất</div>
-          <div class="kpi-value" id="revWeek">0 VND</div>
-          <div class="kpi-note">Bao gồm hôm nay</div>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-label">Tháng này</div>
-          <div class="kpi-value" id="revMonth">0 VND</div>
-          <div class="kpi-note">Theo lịch hiện tại</div>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-label">Tổng tất cả</div>
-          <div class="kpi-value" id="revAll">0 VND</div>
-          <div class="kpi-note">Từ trước tới nay</div>
+      <div style="margin-top:8px;">
+        <input id="cashGiven" class="pill-input" type="number" placeholder="Khách đưa (VND)" />
+        <div style="margin-top:4px; font-size:13px;">
+          Tiền trả lại khách: <span id="changeAmount">0</span> VND
         </div>
       </div>
 
-      <div style="margin-top:10px; font-size:11px; color:var(--text-sub);">
-        Doanh thu = tổng đơn trong <code>orders</code> (chưa bị trừ) − đơn đã nằm trong <code>deleted_orders</code>.
+      <div style="margin-top:8px;">
+        <input id="orderNote" class="pill-input" placeholder="Ghi chú đơn (tuỳ chọn)" />
+      </div>
+
+      <div class="btn-row">
+        <button id="btnClear" class="btn btn-red">Xoá tất cả</button>
+        <button id="btnSave" class="btn btn-blue">Lưu đơn</button>
+        <button id="btnSavePrint" class="btn btn-green">Lưu + In bill</button>
       </div>
     </div>
-  </div>
 
-  <!-- =========================
-       PAGE HISTORY
-  ========================== -->
-  <div id="page-history" class="page">
-    <div class="card-plain">
-      <div class="card-header">
-        <div class="card-title">Lịch sử đơn</div>
-        <div class="card-sub">Xem, in, xoá đơn · Lịch sử xoá có thể khôi phục</div>
+    <div class="card">
+      <h3>QR đặt món cho khách</h3>
+      <div style="font-size:12px; opacity:.8;">
+        Chọn bàn để xem đơn khách gửi từ <code>order.html?table=n</code>.
       </div>
+      <div class="table-grid" id="qrTableGrid"></div>
+      <div style="margin-top:6px; display:flex; justify-content:space-between; align-items:center;">
+        <span style="font-size:12px; opacity:.8;">Đơn QR của bàn đang chọn:</span>
+        <button id="btnReloadQR" class="btn btn-outline" style="flex:none; padding:6px 12px; font-size:12px;">Tải đơn mới</button>
+      </div>
+      <div id="qrOrdersContainer" class="qr-orders-list">
+        Chưa chọn bàn.
+      </div>
+      <audio id="newOrderSound">
+        <source src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg" type="audio/ogg" />
+      </audio>
+    </div>
+  </section>
 
-      <div style="display:grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap:10px;">
-        <!-- Lịch sử đơn -->
-        <div>
-          <div class="card-title" style="font-size:12px; margin-bottom:2px;">Đơn đã lưu</div>
-          <div class="card-sub" style="font-size:11px;">Nguồn: bảng <code>orders</code></div>
-          <div class="list-history" id="historyList"></div>
-        </div>
-
-        <!-- Lịch sử xoá -->
-        <div>
-          <div class="card-title" style="font-size:12px; margin-bottom:2px;">Lịch sử xoá</div>
-          <div class="card-sub" style="font-size:11px;">
-            Không xoá được – chỉ có thể khôi phục.
-          </div>
-          <div class="list-history" id="deletedList"></div>
-        </div>
+  <!-- QR PAGE -->
+  <section id="page-qr" class="page">
+    <div class="card">
+      <h2>QR Order – Bàn khách</h2>
+      <div style="font-size:12px; opacity:.8;">Theo dõi nhanh tất cả đơn từ QR.</div>
+    </div>
+    <div class="card">
+      <div class="table-grid" id="qrTableGrid2"></div>
+      <div id="qrOrdersContainer2" class="qr-orders-list" style="margin-top:10px;">
+        Chọn bàn để xem chi tiết.
       </div>
     </div>
-  </div>
+  </section>
 
-  <!-- =========================
-       PAGE STOCK
-  ========================== -->
-  <div id="page-stock" class="page">
-    <div class="card-plain">
-      <div class="card-header">
-        <div class="card-title">Tồn kho nguyên liệu</div>
-        <div class="card-sub">Lưu cục bộ trên thiết bị · Không đồng bộ Supabase</div>
+  <!-- REVENUE PAGE -->
+  <section id="page-revenue" class="page">
+    <div class="card">
+      <h2>Doanh thu</h2>
+      <div style="display:flex; gap:6px; margin-top:8px;">
+        <button class="btn btn-outline" data-range="today">Hôm nay</button>
+        <button class="btn btn-outline" data-range="week">7 ngày</button>
+        <button class="btn btn-outline" data-range="month">30 ngày</button>
       </div>
-
-      <div class="stock-input-row">
-        <input id="stockName" placeholder="Tên nguyên liệu (VD: Bột matcha)"/>
-        <input id="stockQty" type="number" placeholder="SL hiện tại"/>
-        <button id="btnAddStock">Thêm</button>
-      </div>
-
-      <div class="stock-list" id="stockList"></div>
-
-      <div style="font-size:11px; color:var(--text-sub); margin-top:6px;">
-        Dữ liệu tồn kho được lưu trong trình duyệt (localStorage). Cuối buổi bạn có thể sửa số lượng thực tế.
+      <div id="revenueSummary" style="margin-top:10px; font-size:13px;">
+        Chọn khoảng thời gian để xem.
       </div>
     </div>
-  </div>
+  </section>
+
+  <!-- HISTORY PAGE -->
+  <section id="page-history" class="page">
+    <div class="card">
+      <h2>Lịch sử đơn</h2>
+      <div style="font-size:12px; opacity:.8;">Bấm “Xoá đơn” để chuyển sang bảng <code>deleted_orders</code>.</div>
+    </div>
+    <div class="card" id="historyList">
+      Đang tải...
+    </div>
+  </section>
+
+  <!-- INVENTORY PAGE -->
+  <section id="page-inventory" class="page">
+    <div class="card">
+      <h2>Tồn kho nguyên liệu</h2>
+      <div style="font-size:12px; opacity:.8;">
+        Ô “SL hiện tại” làm nhỏ lại; có thêm cột “Đơn vị”.
+      </div>
+    </div>
+    <div class="card">
+      <table class="simple" id="invTable">
+        <thead>
+        <tr>
+          <th>Nguyên liệu</th>
+          <th>SL hiện tại</th>
+          <th>Đơn vị</th>
+          <th>Ghi chú</th>
+        </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <div class="btn-row" style="margin-top:10px;">
+        <button id="btnAddRaw" class="btn btn-blue">Thêm nguyên liệu</button>
+        <button id="btnSaveRaw" class="btn btn-green">Lưu thay đổi</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- MENU PAGE -->
+  <section id="page-menu" class="page">
+    <div class="card">
+      <h2>Quản lý menu</h2>
+      <div style="font-size:12px; opacity:.8;">
+        Có thể đổi tên món, giá, URL ảnh. Menu này sẽ dùng cho POS và QR.
+      </div>
+    </div>
+    <div class="card">
+      <table class="simple" id="menuTable">
+        <thead>
+        <tr>
+          <th>Tên món</th>
+          <th>Giá M</th>
+          <th>Giá L</th>
+          <th>Ảnh (URL)</th>
+        </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <div class="btn-row" style="margin-top:10px;">
+        <button id="btnAddMenu" class="btn btn-blue">Thêm món</button>
+        <button id="btnSaveMenu" class="btn btn-green">Lưu menu</button>
+      </div>
+    </div>
+  </section>
+
 </div>
 
 <script>
-  // ==========================
-  // SUPABASE CONFIG
-  // ==========================
-  const SUPABASE_URL = "https://kcrchwedlrettpkucoct.supabase.co";
-  const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtjcmNod2VkbHJldHRwa3Vjb2N0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM4ODQ0MjgsImV4cCI6MjA3OTQ2MDQyOH0.g4WA9tci2zm4MIa6EvOe6tH_EhaoicdrdiP6swgjRgw";
-  const supa = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  // ================== INIT SUPABASE ==================
+  const SUPABASE_URL = 'https://kcrchwedlrettpkucoct.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtjcmNod2VkbHJldHRwa3Vjb2N0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM4ODQ0MjgsImV4cCI6MjA3OTQ2MDQyOH0.g4WA9tci2zm4MIa6EvOe6tH_EhaoicdrdiP6swgjRgw';
+  const { createClient } = supabase;
+  const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  // ==========================
-  // STATE & MENU
-  // ==========================
-  const MENU = [
-    { name: "Matcha Latte", price: 25000 },
-    { name: "Trà sữa trân châu", price: 30000 },
-    { name: "Cacao đá", price: 22000 },
-    { name: "Coffee", price: 25000 },
-    { name: "Hồng trà sữa", price: 28000 },
-    { name: "Bạc xỉu", price: 20000 }
-  ];
-
-  let currentSize = "M";
-  let currentOrder = [];     // [{name,size,qty,unitPrice,lineTotal}]
-  let clickStack = [];       // mỗi lần bấm: {name,size,unitPrice}
-  let historyOrders = [];
-  let deletedOrders = [];
-
-  // QR web orders
-  let webOrdersPending = [];
-  let selectedTable = null;
-
-  // ==========================
-  // DOM
-  // ==========================
-  const tabBtns = document.querySelectorAll(".tab-btn");
-  const pages = document.querySelectorAll(".page");
-
-  const menuMain = document.getElementById("menuMain");
-  const sizeMBtn = document.getElementById("sizeM");
-  const sizeLBtn = document.getElementById("sizeL");
-  const currentList = document.getElementById("currentList");
-  const currentSummary = document.getElementById("currentSummary");
-  const cashSummary = document.getElementById("cashSummary");
-  const cashInput = document.getElementById("cashInput");
-  const orderInfoSub = document.getElementById("orderInfoSub");
-  const btnUndo = document.getElementById("btnUndo");
-  const btnClear = document.getElementById("btnClear");
-  const btnSave = document.getElementById("btnSave");
-  const btnPrint = document.getElementById("btnPrint");
-
-  const qrTableGrid = document.getElementById("qrTableGrid");
-  const qrTableDetail = document.getElementById("qrTableDetail");
-  const btnReloadWebOrders = document.getElementById("btnReloadWebOrders");
-
-  const historyList = document.getElementById("historyList");
-  const deletedList = document.getElementById("deletedList");
-
-  const revTodayEl = document.getElementById("revToday");
-  const revWeekEl = document.getElementById("revWeek");
-  const revMonthEl = document.getElementById("revMonth");
-  const revAllEl = document.getElementById("revAll");
-
-  const stockNameInput = document.getElementById("stockName");
-  const stockQtyInput = document.getElementById("stockQty");
-  const btnAddStock = document.getElementById("btnAddStock");
-  const stockList = document.getElementById("stockList");
-
-  // ==========================
-  // UTILS
-  // ==========================
-  function formatVND(x) {
-    return (x || 0).toLocaleString("vi-VN") + " VND";
-  }
-
-  function setTab(pageId) {
-    tabBtns.forEach(btn => {
-      btn.classList.toggle("active", btn.dataset.page === pageId);
-    });
-    pages.forEach(p => {
-      p.classList.toggle("active", p.id === pageId);
-    });
-  }
-
+  // ================== TAB UI ==================
+  const tabBtns = document.querySelectorAll('.tab-btn');
+  const pages = {
+    pos: document.getElementById('page-pos'),
+    qr: document.getElementById('page-qr'),
+    revenue: document.getElementById('page-revenue'),
+    history: document.getElementById('page-history'),
+    inventory: document.getElementById('page-inventory'),
+    menu: document.getElementById('page-menu'),
+  };
   tabBtns.forEach(btn => {
-    btn.addEventListener("click", () => setTab(btn.dataset.page));
+    btn.onclick = () => {
+      tabBtns.forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      const key = btn.dataset.tab;
+      Object.values(pages).forEach(p=>p.classList.remove('active'));
+      pages[key].classList.add('active');
+    };
   });
 
-  // ==========================
-  // MENU & ORDER
-  // ==========================
-  function renderMenu() {
-    MENU.forEach((item) => {
-      const div = document.createElement("div");
-      div.className = "menu-item";
-      div.innerHTML = `
-        <div class="menu-name">${item.name}</div>
-        <div class="menu-price">${item.price.toLocaleString("vi-VN")} VND (Size M)</div>
-      `;
-      div.addEventListener("click", () => addItemFromMenu(item));
-      menuMain.appendChild(div);
-    });
+  // ================== POS LOGIC ==================
+  let menuItems = [];         // từ bảng menu_items
+  let currentSize = 'M';
+  let currentOrder = [];      // {id,name,size,price,qty}
+  let latestOrderCode = 0;
+
+  const posMenuContainer = document.getElementById('pos-menu');
+  const sizeChip = document.getElementById('pos-size-chip');
+
+  sizeChip.querySelectorAll('span').forEach(span=>{
+    span.onclick = () => {
+      sizeChip.querySelectorAll('span').forEach(s=>s.classList.remove('active'));
+      span.classList.add('active');
+      currentSize = span.dataset.size;
+      renderMenu();
+    };
+  });
+
+  function addToOrder(item) {
+    const key = item.id + '_' + currentSize;
+    let line = currentOrder.find(l=>l.key===key);
+    const price = currentSize === 'M' ? item.price_m : (item.price_l || item.price_m + 5000);
+    if(!line){
+      line = { key, id:item.id, name:item.name, size:currentSize, price, qty:0 };
+      currentOrder.push(line);
+    }
+    line.qty += 1;
+    renderCurrentOrder();
   }
 
-  function addItemFromMenu(item) {
-    const basePrice = item.price;
-    const unitPrice = basePrice + (currentSize === "L" ? 5000 : 0);
-
-    // Ghi lại mỗi lần bấm
-    clickStack.push({
-      name: item.name,
-      size: currentSize,
-      unitPrice
-    });
-
-    // Tìm trong currentOrder xem đã có hay chưa
-    const line = currentOrder.find(
-      l => l.name === item.name && l.size === currentSize
-    );
-    if (line) {
-      line.qty += 1;
-      line.lineTotal += unitPrice;
-    } else {
-      currentOrder.push({
-        name: item.name,
-        size: currentSize,
-        qty: 1,
-        unitPrice,
-        lineTotal: unitPrice
-      });
+  function renderMenu() {
+    if(!menuItems.length){
+      posMenuContainer.innerHTML = '<div style="font-size:12px;opacity:.7;">Chưa có menu. Vào tab “Menu” để thêm món.</div>';
+      return;
     }
-    renderCurrentOrder();
+    const grid = document.createElement('div');
+    grid.className = 'menu-grid';
+    menuItems.forEach(item=>{
+      const div = document.createElement('div');
+      div.className = 'menu-item';
+      div.onclick = () => addToOrder(item);
+      div.innerHTML = `
+        <div class="menu-name">${item.name}</div>
+        <div class="menu-price">${(currentSize==='M'?item.price_m:item.price_l||item.price_m+5000).toLocaleString()} VND (Size ${currentSize})</div>
+      `;
+      grid.appendChild(div);
+    });
+    posMenuContainer.innerHTML = '';
+    posMenuContainer.appendChild(grid);
   }
 
   function renderCurrentOrder() {
-    currentList.innerHTML = "";
-    if (!currentOrder.length) {
-      currentList.innerHTML =
-        `<div style="font-size:12px; color:#6b7280;">Chưa có món nào trong đơn hiện tại.</div>`;
-      currentSummary.innerHTML = `<strong>Tổng:</strong> 0 VND`;
-      orderInfoSub.textContent = "Chưa có món";
-    } else {
-      let total = 0;
-      currentOrder.forEach(line => {
-        total += line.lineTotal;
-        const row = document.createElement("div");
-        row.className = "order-line";
-        row.innerHTML = `
-          <div>
-            <span class="order-line-name">${line.name}</span>
-            <span class="order-line-qty">${line.qty}x · Size ${line.size}</span>
-          </div>
-          <div class="order-line-price">${formatVND(line.lineTotal)}</div>
-        `;
-        currentList.appendChild(row);
-      });
-      currentSummary.innerHTML = `<strong>Tổng:</strong> ${formatVND(total)}`;
-      orderInfoSub.textContent = `${currentOrder.length} dòng món · ${clickStack.length} lần bấm`;
+    const list = document.getElementById('currentOrderLines');
+    if(!currentOrder.length){
+      list.textContent = 'Chưa có món nào.';
+      document.getElementById('currentTotal').textContent = '0';
+      document.getElementById('changeAmount').textContent = '0';
+      return;
     }
-
-    // Tính tiền khách đưa
-    const cashThousand = parseInt(cashInput.value || "0", 10);
-    const cash = cashThousand * 1000;
-    const total = currentOrder.reduce((s, l) => s + l.lineTotal, 0);
-
-    if (cash > 0) {
-      const diff = cash - total;
-      cashSummary.textContent =
-        `Khách đưa: ${formatVND(cash)} · Tiền trả lại khách: ${formatVND(Math.max(diff, 0))}`;
-    } else {
-      cashSummary.textContent = "";
-    }
+    let total = 0;
+    list.innerHTML = '';
+    currentOrder.forEach(l=>{
+      const line = document.createElement('div');
+      line.className = 'order-line';
+      const sub = l.price * l.qty;
+      total += sub;
+      line.textContent = `${l.qty}x ${l.name} (Size ${l.size}) – ${sub.toLocaleString()} VND`;
+      list.appendChild(line);
+    });
+    document.getElementById('currentTotal').textContent = total.toLocaleString();
+    const cash = Number(document.getElementById('cashGiven').value || 0);
+    document.getElementById('changeAmount').textContent = (cash-total).toLocaleString();
   }
 
-  function clearCurrentOrder() {
-    currentOrder = [];
-    clickStack = [];
-    cashInput.value = "";
-    renderCurrentOrder();
-  }
+  document.getElementById('cashGiven').addEventListener('input', renderCurrentOrder);
 
-  function undoLastClick() {
-    if (!clickStack.length) return;
-    const last = clickStack.pop();
-    const line = currentOrder.find(
-      l => l.name === last.name && l.size === last.size
-    );
-    if (!line) {
+  document.getElementById('btnClear').onclick = ()=>{
+    if(!currentOrder.length) return;
+    if(confirm('Xoá tất cả món trong đơn hiện tại?')){
+      currentOrder = [];
       renderCurrentOrder();
-      return;
     }
-    if (line.qty > 1) {
-      line.qty -= 1;
-      line.lineTotal -= last.unitPrice;
-    } else {
-      const idx = currentOrder.indexOf(line);
-      if (idx >= 0) currentOrder.splice(idx, 1);
-    }
-    renderCurrentOrder();
+  };
+
+  async function getNextOrderCode() {
+    const { data, error } = await db
+      .from('orders')
+      .select('order_code')
+      .order('created_at', { ascending:false })
+      .limit(1);
+    if(error){ console.error(error); return '#0001'; }
+    if(!data || !data.length) return '#0001';
+    const last = data[0].order_code || '#0000';
+    const num = parseInt(String(last).replace('#','')) || 0;
+    const next = num + 1;
+    return '#'+String(next).padStart(4,'0');
   }
 
-  // ==========================
-  // HISTORY & DELETED
-  // ==========================
-  async function loadHistory() {
-    const { data, error } = await supa
-      .from("orders")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(200);
-    if (error) {
-      console.error(error);
-      historyList.innerHTML =
-        `<div style="color:#fecaca;">Lỗi tải lịch sử đơn.</div>`;
+  async function saveOrder(printAfter=false){
+    if(!currentOrder.length){
+      alert('Chưa có món nào trong đơn.');
       return;
     }
-    historyOrders = data || [];
-    renderHistory();
-    await loadDeletedOrders();
-    await loadRevenue();
-  }
+    const total = currentOrder.reduce((s,l)=>s+l.price*l.qty,0);
+    const cash = Number(document.getElementById('cashGiven').value || 0);
+    const note = document.getElementById('orderNote').value || null;
 
-  async function loadDeletedOrders() {
-    const { data, error } = await supa
-      .from("deleted_orders")
-      .select("*")
-      .order("deleted_at", { ascending: false })
-      .limit(200);
-    if (error) {
-      console.error(error);
-      deletedList.innerHTML =
-        `<div style="color:#fecaca;">Lỗi tải lịch sử xoá.</div>`;
-      return;
-    }
-    deletedOrders = data || [];
-    renderDeleted();
-  }
-
-  function renderHistory() {
-    historyList.innerHTML = "";
-    if (!historyOrders.length) {
-      historyList.innerHTML =
-        `<div style="color:#9ca3af;">Chưa có đơn nào.</div>`;
-      return;
-    }
-    historyOrders.forEach(order => {
-      const div = document.createElement("div");
-      div.className = "history-item";
-
-      const timeStr = order.created_at
-        ? new Date(order.created_at).toLocaleString("vi-VN")
-        : "";
-
-      const itemsText = (order.items || [])
-        .map(it => `${it.qty || 1}x ${it.name}${it.size ? " (Size " + it.size + ")" : ""}`)
-        .join(", ");
-
-      div.innerHTML = `
-        <div class="history-header-line">
-          <span>Mã đơn: ${order.id?.slice(0, 8) || "N/A"}</span>
-          <span>${timeStr}</span>
-        </div>
-        <div class="history-main-line">
-          <span>${itemsText || "(Không có món)"}</span>
-          <span>${formatVND(order.total || 0)}</span>
-        </div>
-        <div class="history-actions">
-          <button class="btn-print" onclick="printBillFromHistory('${order.id}')">
-            🧾 In hoá đơn
-          </button>
-          <button class="btn-delete" onclick="deleteOrder('${order.id}')">
-            ✖ Xoá đơn (Đã xoá)
-          </button>
-        </div>
-      `;
-      historyList.appendChild(div);
-    });
-  }
-
-  function renderDeleted() {
-    deletedList.innerHTML = "";
-    if (!deletedOrders.length) {
-      deletedList.innerHTML =
-        `<div style="color:#9ca3af;">Chưa có đơn nào bị xoá.</div>`;
-      return;
-    }
-    deletedOrders.forEach(rec => {
-      const div = document.createElement("div");
-      div.className = "history-item";
-
-      const timeStr = rec.deleted_at
-        ? new Date(rec.deleted_at).toLocaleString("vi-VN")
-        : "";
-      const itemsText = (rec.items || [])
-        .map(it => `${it.qty || 1}x ${it.name}${it.size ? " (Size " + it.size + ")" : ""}`)
-        .join(", ");
-
-      div.innerHTML = `
-        <div class="history-header-line">
-          <span>Đã xoá: ${rec.order_id?.slice(0, 8) || "N/A"}</span>
-          <span>${timeStr}</span>
-        </div>
-        <div class="history-main-line">
-          <span>${itemsText || "(Không có món)"}</span>
-          <span>${formatVND(rec.total || 0)}</span>
-        </div>
-        <div class="history-actions">
-          <button class="btn-restore" onclick="restoreOrder('${rec.id}')">
-            🔄 Khôi phục đơn
-          </button>
-        </div>
-      `;
-      deletedList.appendChild(div);
-    });
-  }
-
-  async function deleteOrder(orderId) {
-    const order = historyOrders.find(o => o.id === orderId);
-    if (!order) return;
-    if (!confirm("Xoá đơn này? Đơn sẽ chuyển sang Lịch sử xoá và trừ doanh thu.")) return;
+    const order_code = await getNextOrderCode();
 
     const payload = {
-      order_id: order.id,
-      items: order.items,
-      total: order.total,
-      cash_given: order.cash_given,
-      change: order.change
-    };
-    const { error: e1 } = await supa.from("deleted_orders").insert([payload]);
-    if (e1) {
-      console.error(e1);
-      alert("Không thể ghi vào lịch sử xoá.");
-      return;
-    }
-
-    const { error: e2 } = await supa.from("orders").delete().eq("id", order.id);
-    if (e2) {
-      console.error(e2);
-      alert("Không thể xoá khỏi bảng orders.");
-      return;
-    }
-
-    await loadHistory();
-  }
-
-  async function restoreOrder(deletedId) {
-    const rec = deletedOrders.find(d => d.id === deletedId);
-    if (!rec) return;
-    if (!confirm("Khôi phục đơn này về lại lịch sử đơn?")) return;
-
-    const payload = {
-      items: rec.items,
-      total: rec.total,
-      cash_given: rec.cash_given,
-      change: rec.change
-    };
-    const { error: e1 } = await supa
-      .from("orders")
-      .insert([payload]);
-    if (e1) {
-      console.error(e1);
-      alert("Không thể khôi phục vào orders.");
-      return;
-    }
-
-    await loadHistory();
-  }
-
-  // ==========================
-  // SAVE + PRINT
-  // ==========================
-  async function saveOrder(printAfter) {
-    if (!currentOrder.length) {
-      alert("Đơn hiện tại đang trống.");
-      return;
-    }
-    const total = currentOrder.reduce((s, l) => s + l.lineTotal, 0);
-    const cashThousand = parseInt(cashInput.value || "0", 10);
-    const cash = cashThousand * 1000;
-    const change = cash > 0 ? cash - total : null;
-
-    const payload = {
-      items: currentOrder,
+      order_code,
+      device: 'POS v2',
+      items: currentOrder.map(l=>({
+        menu_item_id:l.id,
+        name:l.name,
+        size:l.size,
+        price:l.price,
+        qty:l.qty
+      })),
       total,
       cash_given: cash || null,
-      change
+      change: (cash || 0) - total,
+      note
     };
 
-    const { data, error } = await supa
-      .from("orders")
-      .insert([payload])
-      .select()
-      .single();
-
-    if (error) {
-      console.error(error);
-      alert("Lưu đơn lên Supabase thất bại.");
-      return;
-    }
-
-    if (printAfter) {
-      printBill(data);
-    }
-
-    clearCurrentOrder();
-    await loadHistory();
+    const { error } = await db.from('orders').insert(payload);
+    if(error){ console.error(error); alert('Lưu đơn thất bại.'); return; }
+    alert('Lưu đơn thành công! Mã: '+order_code);
+    currentOrder = [];
+    document.getElementById('cashGiven').value = '';
+    document.getElementById('orderNote').value = '';
+    renderCurrentOrder();
+    loadHistory();
+    if(printAfter) window.print();
   }
 
-  function printBill(order) {
-    const now = order.created_at ? new Date(order.created_at) : new Date();
-    const timeStr = now.toLocaleString("vi-VN");
+  document.getElementById('btnSave').onclick = ()=>saveOrder(false);
+  document.getElementById('btnSavePrint').onclick = ()=>saveOrder(true);
 
-    let rows = "";
-    (order.items || []).forEach(it => {
-      rows += `
-        <tr>
-          <td>${it.name || ""}</td>
-          <td style="text-align:center;">${it.size || ""}</td>
-          <td style="text-align:center;">${it.qty || 1}</td>
-          <td style="text-align:right;">${formatVND(it.lineTotal || 0)}</td>
-        </tr>
-      `;
+  // ================== QR ORDER MANAGEMENT ==================
+  const qrTableGrid = document.getElementById('qrTableGrid');
+  const qrTableGrid2 = document.getElementById('qrTableGrid2');
+  const qrOrdersContainer = document.getElementById('qrOrdersContainer');
+  const qrOrdersContainer2 = document.getElementById('qrOrdersContainer2');
+  const newOrderSound = document.getElementById('newOrderSound');
+
+  const MAX_TABLE = 20;
+  let selectedQRTable = null;
+  let lastPendingCounts = {};   // {table:count}
+
+  function buildTableButtons(grid, clickHandler){
+    grid.innerHTML = '';
+    for(let i=1;i<=MAX_TABLE;i++){
+      const btn = document.createElement('div');
+      btn.className = 'table-btn';
+      btn.textContent = 'Bàn '+i;
+      btn.dataset.table = i;
+      btn.onclick = ()=>clickHandler(i, btn);
+      grid.appendChild(btn);
+    }
+  }
+
+  buildTableButtons(qrTableGrid, handleSelectTableMain);
+  buildTableButtons(qrTableGrid2, handleSelectTableQRPage);
+
+  async function refreshTableStatuses() {
+    const { data, error } = await db
+      .from('web_orders')
+      .select('table_number,status')
+      .eq('status','pending');
+    if(error){ console.error(error); return; }
+
+    const counts = {};
+    data.forEach(o=>{
+      counts[o.table_number] = (counts[o.table_number]||0)+1;
     });
 
-    const cashStr = order.cash_given ? formatVND(order.cash_given) : "0 VND";
-    const changeStr =
-      order.change != null ? formatVND(order.change) : "0 VND";
-
-    const html = `
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-<meta charset="UTF-8">
-<title>Hoá đơn Tea Neko</title>
-<style>
-  body { font-family:-apple-system,BlinkMacSystemFont,Arial,sans-serif; margin:0; padding:8px; }
-  .bill { width:320px; font-size:12px; }
-  h2 { text-align:center; margin:4px 0 2px; font-size:16px; }
-  .shop-info { text-align:right; font-size:10px; margin-bottom:6px; }
-  table { width:100%; border-collapse:collapse; font-size:11px; }
-  th,td { padding:2px 0; }
-  th { border-bottom:1px solid #000; }
-  .total-row td { border-top:1px dashed #000; padding-top:4px; }
-</style>
-</head>
-<body>
-<div class="bill">
-  <h2>Tea Neko</h2>
-  <div class="shop-info">
-    Đ/c: Hai Bà Trưng, Chư Sê, Gia Lai<br>
-    SĐT: 0123456789
-  </div>
-  <div style="font-size:11px;margin-bottom:4px;">
-    Thời gian: ${timeStr}<br>
-  </div>
-  <table>
-    <thead>
-      <tr>
-        <th>Món</th>
-        <th style="text-align:center;">Size</th>
-        <th style="text-align:center;">SL</th>
-        <th style="text-align:right;">Thành tiền</th>
-      </tr>
-    </thead>
-    <tbody>
-      ${rows}
-    </tbody>
-    <tfoot>
-      <tr class="total-row">
-        <td colspan="3"><strong>Tổng:</strong></td>
-        <td style="text-align:right;"><strong>${formatVND(order.total || 0)}</strong></td>
-      </tr>
-      <tr>
-        <td colspan="3">Khách đưa:</td>
-        <td style="text-align:right;">${cashStr}</td>
-      </tr>
-      <tr>
-        <td colspan="3">Tiền trả lại khách:</td>
-        <td style="text-align:right;">${changeStr}</td>
-      </tr>
-    </tfoot>
-  </table>
-  <div style="text-align:center;margin-top:6px;font-size:11px;">
-    Cảm ơn quý khách đã ghé Tea Neko 💜
-  </div>
-</div>
-</body>
-</html>`;
-
-    const win = window.open("", "_blank", "width=400,height=600");
-    win.document.write(html);
-    win.document.close();
-    win.focus();
-    win.print();
-  }
-
-  async function printBillFromHistory(orderId) {
-    const order = historyOrders.find(o => o.id === orderId);
-    if (!order) return;
-    printBill(order);
-  }
-
-  // ==========================
-  // REVENUE
-  // ==========================
-  async function loadRevenue() {
-    const orders = historyOrders;
-    const deleted = deletedOrders;
-
-    const deletedMap = {};
-    deleted.forEach(d => {
-      const id = d.order_id;
-      if (!id) return;
-      if (!deletedMap[id]) deletedMap[id] = 0;
-      deletedMap[id] += d.total || 0;
-    });
-
-    const now = new Date();
-    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const startOfWeek = new Date(startOfToday);
-    startOfWeek.setDate(startOfWeek.getDate() - 6);
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-
-    let revToday = 0;
-    let revWeek = 0;
-    let revMonth = 0;
-    let revAll = 0;
-
-    orders.forEach(o => {
-      const id = o.id;
-      const createdAt = o.created_at ? new Date(o.created_at) : null;
-      const total = (o.total || 0) - (deletedMap[id] || 0);
-      if (total <= 0) return;
-      revAll += total;
-      if (createdAt) {
-        if (createdAt >= startOfToday) revToday += total;
-        if (createdAt >= startOfWeek) revWeek += total;
-        if (createdAt >= startOfMonth) revMonth += total;
+    // check new pending to play sound & pulse
+    for(let i=1;i<=MAX_TABLE;i++){
+      const prev = lastPendingCounts[i] || 0;
+      const now = counts[i] || 0;
+      if(now>prev){
+        newOrderSound.currentTime = 0;
+        newOrderSound.play().catch(()=>{});
       }
+    }
+    lastPendingCounts = counts;
+
+    // update button UI
+    [qrTableGrid, qrTableGrid2].forEach(grid=>{
+      grid.querySelectorAll('.table-btn').forEach(btn=>{
+        const t = Number(btn.dataset.table);
+        btn.classList.remove('pending','pulse');
+        if(counts[t]){
+          btn.classList.add('pending','pulse');
+          btn.textContent = `Bàn ${t} (${counts[t]})`;
+        } else {
+          btn.textContent = 'Bàn '+t;
+        }
+      });
     });
-
-    revTodayEl.textContent = formatVND(revToday);
-    revWeekEl.textContent = formatVND(revWeek);
-    revMonthEl.textContent = formatVND(revMonth);
-    revAllEl.textContent = formatVND(revAll);
   }
 
-  // ==========================
-  // WEB ORDERS (QR)
-  // ==========================
-  async function loadWebOrders() {
-    const { data, error } = await supa
-      .from("web_orders")
-      .select("*")
-      .eq("status", "pending")
-      .order("created_at", { ascending: false })
-      .limit(100);
+  async function handleSelectTableMain(tableNumber, btn){
+    selectedQRTable = tableNumber;
+    qrTableGrid.querySelectorAll('.table-btn').forEach(b=>b.style.outline='none');
+    btn.style.outline='2px solid #0af';
+    await loadQROrdersForTable(tableNumber, qrOrdersContainer, true);
+  }
 
-    if (error) {
-      console.error(error);
-      qrTableDetail.innerHTML =
-        `<div style="color:#fecaca;">Lỗi tải đơn QR.</div>`;
+  async function handleSelectTableQRPage(tableNumber, btn){
+    qrTableGrid2.querySelectorAll('.table-btn').forEach(b=>b.style.outline='none');
+    btn.style.outline='2px solid #0af';
+    await loadQROrdersForTable(tableNumber, qrOrdersContainer2, false);
+  }
+
+  async function loadQROrdersForTable(tableNumber, container, allowAttach){
+    const { data, error } = await db
+      .from('web_orders')
+      .select('*')
+      .eq('table_number', tableNumber)
+      .order('created_at', { ascending:false });
+    if(error){ console.error(error); container.textContent='Lỗi tải đơn QR.'; return; }
+    if(!data.length){
+      container.textContent = 'Chưa có QR nào cho bàn '+tableNumber+'.';
       return;
     }
-    webOrdersPending = data || [];
-    renderSelectedTable(); // cập nhật detail bàn đang chọn
-  }
+    container.innerHTML = '';
+    data.forEach(order=>{
+      const card = document.createElement('div');
+      card.className = 'qr-order-card';
+      const itemsHtml = order.items.map(it=>(
+        `${it.qty}x ${it.name} (Size ${it.size}) – ${(it.price*it.qty).toLocaleString()} VND`
+      )).join('<br>');
+      card.innerHTML = `
+        <div style="font-size:12px;opacity:.7;">#${order.id.slice(0,6)} • Bàn ${order.table_number} • ${new Date(order.created_at).toLocaleTimeString()}</div>
+        <div style="margin-top:4px;">${itemsHtml}</div>
+        <div style="margin-top:4px;font-size:13px;font-weight:600;">Tổng: ${(order.total||0).toLocaleString()} VND</div>
+        ${order.note ? `<div style="margin-top:4px;font-size:12px;opacity:.8;">Ghi chú: ${order.note}</div>`:''}
+        <div style="margin-top:4px;font-size:12px;">Trạng thái: <span class="tag">${order.status}</span></div>
+      `;
+      if(allowAttach && order.status==='pending'){
+        const row = document.createElement('div');
+        row.className = 'history-actions';
+        const btnAttach = document.createElement('button');
+        btnAttach.className = 'btn btn-blue';
+        btnAttach.style.flex='1';
+        btnAttach.textContent = 'Đưa vào đơn hiện tại';
+        btnAttach.onclick = () => attachQRToCurrentOrder(order);
 
-  function initTableButtons() {
-    qrTableGrid.innerHTML = "";
-    for (let i = 1; i <= 20; i++) {
-      const btn = document.createElement("button");
-      btn.className = "qr-table-btn";
-      btn.textContent = "Bàn " + i;
-      btn.dataset.table = String(i);
-      btn.addEventListener("click", () => selectTable(i));
-      qrTableGrid.appendChild(btn);
-    }
-  }
+        const btnCancel = document.createElement('button');
+        btnCancel.className = 'btn btn-red';
+        btnCancel.style.flex='1';
+        btnCancel.textContent = 'Huỷ order';
+        btnCancel.onclick = () => updateQRStatus(order.id,'canceled');
 
-  function selectTable(tableNo) {
-    selectedTable = tableNo;
-    document.querySelectorAll(".qr-table-btn").forEach(b => {
-      b.classList.toggle("active", Number(b.dataset.table) === tableNo);
+        row.appendChild(btnAttach);
+        row.appendChild(btnCancel);
+        card.appendChild(row);
+      }
+      container.appendChild(card);
     });
-    renderSelectedTable();
   }
 
-  function renderSelectedTable() {
-    if (!selectedTable) {
-      qrTableDetail.innerHTML =
-        `Chọn một bàn để xem / xử lý đơn QR.`;
-      return;
+  async function attachQRToCurrentOrder(order){
+    order.items.forEach(it=>{
+      const key = it.menu_item_id + '_' + it.size;
+      let line = currentOrder.find(l=>l.key===key);
+      if(!line){
+        line = {
+          key,
+          id:it.menu_item_id,
+          name:it.name,
+          size:it.size,
+          price:it.price,
+          qty:0
+        };
+        currentOrder.push(line);
+      }
+      line.qty += it.qty;
+    });
+    renderCurrentOrder();
+    await updateQRStatus(order.id,'accepted');
+  }
+
+  async function updateQRStatus(id,status){
+    const { error } = await db
+      .from('web_orders')
+      .update({ status })
+      .eq('id', id);
+    if(error){ console.error(error); alert('Cập nhật trạng thái thất bại.'); return; }
+    if(selectedQRTable){
+      await loadQROrdersForTable(selectedQRTable, qrOrdersContainer, true);
     }
+    await refreshTableStatuses();
+  }
 
-    const ordersForTable = webOrdersPending
-      .filter(o => o.table_no === selectedTable)
-      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-
-    if (!ordersForTable.length) {
-      qrTableDetail.innerHTML =
-        `<div style="color:#9ca3af;font-size:12px;">Chưa có đơn QR nào cho bàn ${selectedTable}.</div>`;
-      return;
+  document.getElementById('btnReloadQR').onclick = ()=>{
+    if(selectedQRTable){
+      loadQROrdersForTable(selectedQRTable, qrOrdersContainer, true);
     }
+    refreshTableStatuses();
+  };
 
-    const order = ordersForTable[0];
-    const timeStr = order.created_at
-      ? new Date(order.created_at).toLocaleString("vi-VN")
-      : "";
-    const itemsText = (order.items || [])
-      .map(it => `${it.qty || 1}x ${it.name}${it.size ? " (Size " + it.size + ")" : ""}`)
-      .join(", ");
+  // poll new QR orders mỗi 10s
+  setInterval(refreshTableStatuses, 10000);
 
-    qrTableDetail.innerHTML = `
-      <div style="font-size:11px;color:#facc15;margin-bottom:3px;">
-        Đơn mới nhất bàn ${selectedTable} – ${timeStr}
-      </div>
-      <div style="font-size:12px;margin-bottom:4px;">
-        ${itemsText || "(Không có món)"}
-      </div>
-      <div style="font-size:11px;margin-bottom:4px;color:#9ca3af;">
-        Tổng khách đặt: ${formatVND(order.total || 0)}
-      </div>
-      <div style="display:flex; gap:6px; margin-top:4px;">
-        <button onclick="loadTableToPOS('${order.id}')"
-                style="flex:1; padding:4px 6px; border:none; border-radius:999px;
-                       background:#22c55e; color:#022c22; font-size:11px; cursor:pointer;">
-          ➕ Nạp vào POS
-        </button>
-        <button onclick="payWebOrder('${order.id}')"
-                style="flex:1; padding:4px 6px; border:none; border-radius:999px;
-                       background:#0ea5e9; color:#e0f2fe; font-size:11px; cursor:pointer;">
-          💳 Thanh toán
-        </button>
-        <button onclick="cancelWebOrder('${order.id}', true)"
-                style="flex:1; padding:4px 6px; border:none; border-radius:999px;
-                       background:#ef4444; color:#fee2e2; font-size:11px; cursor:pointer;">
-          ✖ Huỷ đơn
-        </button>
+  // ================== REVENUE ==================
+  const revenueSummary = document.getElementById('revenueSummary');
+  document.querySelectorAll('#page-revenue .btn-outline').forEach(btn=>{
+    btn.onclick = ()=>loadRevenue(btn.dataset.range);
+  });
+
+  async function loadRevenue(range) {
+    const now = new Date();
+    let from = new Date();
+    if(range==='today'){
+      from.setHours(0,0,0,0);
+    } else if(range==='week'){
+      from.setDate(now.getDate()-6);
+      from.setHours(0,0,0,0);
+    } else if(range==='month'){
+      from.setDate(now.getDate()-29);
+      from.setHours(0,0,0,0);
+    }
+    const { data, error } = await db
+      .from('orders')
+      .select('total, created_at')
+      .gte('created_at', from.toISOString())
+      .lte('created_at', now.toISOString());
+    if(error){ console.error(error); revenueSummary.textContent='Lỗi tải doanh thu.'; return; }
+    const total = data.reduce((s,o)=>s+o.total,0);
+    revenueSummary.innerHTML = `
+      <div>Tổng doanh thu: <b>${total.toLocaleString()} VND</b></div>
+      <div style="font-size:12px;opacity:.7;margin-top:4px;">
+        Số đơn: ${data.length}
       </div>
     `;
   }
 
-  async function loadTableToPOS(id) {
-    const { data, error } = await supa
-      .from("web_orders")
-      .select("*")
-      .eq("id", id)
-      .single();
-    if (error || !data) {
-      console.error(error);
-      alert("Không lấy được chi tiết đơn QR.");
-      return;
-    }
-    const items = data.items || [];
-    if (!items.length) {
-      alert("Đơn QR này không có món.");
-      return;
-    }
-
-    currentOrder = items.map(it => {
-      const qty = it.qty || 1;
-      const price = it.price || 0;
-      return {
-        name: it.name || "Món",
-        size: it.size || "M",
-        qty,
-        unitPrice: price,
-        lineTotal: price * qty
-      };
-    });
-    clickStack = [];
-    renderCurrentOrder();
-
-    await supa
-      .from("web_orders")
-      .update({
-        status: "accepted",
-        accepted_at: new Date().toISOString()
-      })
-      .eq("id", id);
-
-    setTab("page-pos");
-  }
-
-  async function payWebOrder(id) {
-    const { data, error } = await supa
-      .from("web_orders")
-      .select("*")
-      .eq("id", id)
-      .single();
-    if (error || !data) {
-      console.error(error);
-      alert("Không lấy được chi tiết đơn QR.");
-      return;
-    }
-    const items = data.items || [];
-    if (!items.length) {
-      alert("Đơn QR này không có món.");
-      return;
-    }
-
-    // Đổ vào POS
-    currentOrder = items.map(it => {
-      const qty = it.qty || 1;
-      const price = it.price || 0;
-      return {
-        name: it.name || "Món",
-        size: it.size || "M",
-        qty,
-        unitPrice: price,
-        lineTotal: price * qty
-      };
-    });
-    clickStack = [];
-    renderCurrentOrder();
-    setTab("page-pos");
-
-    const ok = confirm("Xác nhận thanh toán và in hoá đơn cho bàn " + (data.table_no || "") + " ?");
-    if (!ok) return;
-
-    await saveOrder(true);
-
-    await supa
-      .from("web_orders")
-      .update({
-        status: "paid",
-        paid_at: new Date().toISOString()
-      })
-      .eq("id", id);
-
-    await loadWebOrders();
-  }
-
-  async function cancelWebOrder(id, keepSelected) {
-    if (!confirm("Hủy đơn này của khách?")) return;
-    const { error } = await supa
-      .from("web_orders")
-      .update({
-        status: "canceled",
-        canceled_at: new Date().toISOString()
-      })
-      .eq("id", id);
-    if (error) {
-      console.error(error);
-      alert("Không thể hủy đơn.");
-      return;
-    }
-    await loadWebOrders();
-    if (!keepSelected) {
-      selectedTable = null;
-    }
-  }
-
-  function initWebOrdersRealtime() {
-    supa
-      .channel("web-orders-realtime")
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "web_orders" },
-        payload => {
-          const newOrder = payload.new;
-          if (newOrder.status === "pending") {
-            loadWebOrders();
-          }
-        }
-      )
-      .subscribe();
-  }
-
-  // ==========================
-  // STOCK (LOCAL)
-  // ==========================
-  const STOCK_KEY = "tea_neko_stock";
-
-  function loadStock() {
-    let data;
-    try {
-      data = JSON.parse(localStorage.getItem(STOCK_KEY) || "[]");
-    } catch {
-      data = [];
-    }
-    renderStock(data);
-  }
-
-  function saveStock(data) {
-    localStorage.setItem(STOCK_KEY, JSON.stringify(data));
-    renderStock(data);
-  }
-
-  function renderStock(data) {
-    stockList.innerHTML = "";
-    if (!data.length) {
-      stockList.innerHTML =
-        `<div style="color:#9ca3af;">Chưa có nguyên liệu nào.</div>`;
-      return;
-    }
-    data.forEach((item, idx) => {
-      const div = document.createElement("div");
-      div.className = "stock-item";
+  // ================== HISTORY ==================
+  async function loadHistory() {
+    const wrap = document.getElementById('historyList');
+    const { data, error } = await db
+      .from('orders')
+      .select('*')
+      .order('created_at', { ascending:false })
+      .limit(50);
+    if(error){ console.error(error); wrap.textContent='Lỗi tải lịch sử.'; return; }
+    if(!data.length){ wrap.textContent='Chưa có đơn nào.'; return; }
+    wrap.innerHTML = '';
+    data.forEach(o=>{
+      const div = document.createElement('div');
+      div.className = 'qr-order-card';
+      const itemsHtml = o.items.map(it=>(
+        `${it.qty}x ${it.name} (Size ${it.size}) – ${(it.price*it.qty).toLocaleString()} VND`
+      )).join('<br>');
       div.innerHTML = `
-        <div>
-          <div style="font-size:12px;">${item.name}</div>
-          <div style="font-size:11px; color:#9ca3af;">SL: ${item.qty}</div>
-        </div>
-        <button style="font-size:11px; border:none; border-radius:999px;
-                       padding:4px 8px; cursor:pointer;
-                       background:#0ea5e9; color:#e0f2fe;"
-                onclick="editStock(${idx})">
-          Sửa
-        </button>
+        <div style="font-size:12px;opacity:.7;">${o.order_code || ''} • ${new Date(o.created_at).toLocaleString()}</div>
+        <div style="margin-top:4px;">${itemsHtml}</div>
+        <div style="margin-top:4px;font-size:13px;font-weight:600;">Tổng: ${o.total.toLocaleString()} VND</div>
+        ${o.note?`<div style="margin-top:4px;font-size:12px;opacity:.8;">Ghi chú: ${o.note}</div>`:''}
       `;
-      stockList.appendChild(div);
+      const row = document.createElement('div');
+      row.className = 'history-actions';
+      const btnDel = document.createElement('button');
+      btnDel.className = 'btn btn-red';
+      btnDel.textContent = 'Xoá đơn (lưu vào thùng rác)';
+      btnDel.onclick = ()=>deleteOrder(o);
+      row.appendChild(btnDel);
+      div.appendChild(row);
+      wrap.appendChild(div);
     });
   }
 
-  function getStockData() {
-    try {
-      return JSON.parse(localStorage.getItem(STOCK_KEY) || "[]");
-    } catch {
-      return [];
-    }
-  }
-
-  function addStockItem() {
-    const name = stockNameInput.value.trim();
-    const qty = parseInt(stockQtyInput.value || "0", 10);
-    if (!name) {
-      alert("Nhập tên nguyên liệu.");
-      return;
-    }
-    const data = getStockData();
-    data.push({ name, qty: isNaN(qty) ? 0 : qty });
-    stockNameInput.value = "";
-    stockQtyInput.value = "";
-    saveStock(data);
-  }
-
-  function editStock(idx) {
-    const data = getStockData();
-    const item = data[idx];
-    if (!item) return;
-    const newQty = prompt(
-      `Sửa số lượng cho "${item.name}"`,
-      String(item.qty)
-    );
-    if (newQty === null) return;
-    const q = parseInt(newQty, 10);
-    if (isNaN(q)) {
-      alert("Giá trị không hợp lệ.");
-      return;
-    }
-    item.qty = q;
-    saveStock(data);
-  }
-
-  window.editStock = editStock;
-
-  // ==========================
-  // EVENT BINDINGS
-  // ==========================
-  sizeMBtn.addEventListener("click", () => {
-    currentSize = "M";
-    sizeMBtn.classList.add("active");
-    sizeLBtn.classList.remove("active");
-  });
-  sizeLBtn.addEventListener("click", () => {
-    currentSize = "L";
-    sizeLBtn.classList.add("active");
-    sizeMBtn.classList.remove("active");
-  });
-  cashInput.addEventListener("input", renderCurrentOrder);
-  btnUndo.addEventListener("click", undoLastClick);
-  btnClear.addEventListener("click", () => {
-    if (!currentOrder.length) return;
-    if (!confirm("Xoá toàn bộ món trong đơn hiện tại?")) return;
-    clearCurrentOrder();
-  });
-  btnSave.addEventListener("click", () => saveOrder(false));
-  btnPrint.addEventListener("click", () => saveOrder(true));
-  btnReloadWebOrders.addEventListener("click", loadWebOrders);
-  btnAddStock.addEventListener("click", addStockItem);
-
-  window.printBillFromHistory = printBillFromHistory;
-  window.deleteOrder = deleteOrder;
-  window.restoreOrder = restoreOrder;
-  window.loadTableToPOS = loadTableToPOS;
-  window.payWebOrder = payWebOrder;
-  window.cancelWebOrder = cancelWebOrder;
-
-  // ==========================
-  // INIT
-  // ==========================
-  (async function init() {
-    renderMenu();
-    renderCurrentOrder();
-    loadStock();
-    initTableButtons();
+  async function deleteOrder(order){
+    if(!confirm('Chắc chắn xoá đơn này? Đơn sẽ chuyển sang deleted_orders.')) return;
+    const payload = { original_order: order };
+    const { error: e1 } = await db.from('deleted_orders').insert(payload);
+    if(e1){ console.error(e1); alert('Lưu lịch sử xoá thất bại.'); return; }
+    const { error: e2 } = await db.from('orders').delete().eq('id', order.id);
+    if(e2){ console.error(e2); alert('Xoá đơn thất bại.'); return; }
     await loadHistory();
-    await loadWebOrders();
-    initWebOrdersRealtime();
+    await loadRevenue('today');
+  }
+
+  // ================== INVENTORY ==================
+  async function loadRawMaterials(){
+    const { data, error } = await db
+      .from('raw_materials')
+      .select('*')
+      .order('created_at', { ascending:true });
+    if(error){ console.error(error); return; }
+    const tbody = document.querySelector('#invTable tbody');
+    tbody.innerHTML = '';
+    data.forEach(row=>{
+      appendRawRow(row, tbody);
+    });
+  }
+
+  function appendRawRow(row, tbody){
+    const tr = document.createElement('tr');
+    tr.dataset.id = row.id || '';
+    tr.innerHTML = `
+      <td><input value="${row.name||''}" style="width:120px;" class="pill-input" /></td>
+      <td><input value="${row.current_qty||0}" class="small-input" /></td>
+      <td><input value="${row.unit||''}" class="small-input" /></td>
+      <td><input value="${row.note||''}" style="width:120px;" class="pill-input" /></td>
+    `;
+    tbody.appendChild(tr);
+  }
+
+  document.getElementById('btnAddRaw').onclick = ()=>{
+    const tbody = document.querySelector('#invTable tbody');
+    appendRawRow({id:'',name:'',current_qty:0,unit:'',note:''}, tbody);
+  };
+
+  document.getElementById('btnSaveRaw').onclick = async ()=>{
+    const rows = Array.from(document.querySelectorAll('#invTable tbody tr'));
+    for(const tr of rows){
+      const id = tr.dataset.id || null;
+      const [nameEl, qtyEl, unitEl, noteEl] = tr.querySelectorAll('input');
+      const payload = {
+        name: nameEl.value.trim(),
+        current_qty: Number(qtyEl.value || 0),
+        unit: unitEl.value.trim() || null,
+        note: noteEl.value.trim() || null
+      };
+      if(!payload.name) continue;
+      if(id){
+        await db.from('raw_materials').update(payload).eq('id', id);
+      }else{
+        const { data } = await db.from('raw_materials').insert(payload).select('id').single();
+        tr.dataset.id = data.id;
+      }
+    }
+    alert('Đã lưu tồn kho.');
+    loadRawMaterials();
+  };
+
+  // ================== MENU MANAGEMENT ==================
+  async function loadMenu(){
+    const { data, error } = await db
+      .from('menu_items')
+      .select('*')
+      .order('created_at', { ascending:true });
+    if(error){ console.error(error); return; }
+    menuItems = data || [];
+    renderMenu();
+    const tbody = document.querySelector('#menuTable tbody');
+    tbody.innerHTML = '';
+    (menuItems || []).forEach(row=>{
+      appendMenuRow(row, tbody);
+    });
+  }
+
+  function appendMenuRow(row, tbody){
+    const tr = document.createElement('tr');
+    tr.dataset.id = row.id || '';
+    tr.innerHTML = `
+      <td><input value="${row.name||''}" style="width:120px;" class="pill-input" /></td>
+      <td><input value="${row.price_m||0}" class="small-input" /></td>
+      <td><input value="${row.price_l||''}" class="small-input" /></td>
+      <td><input value="${row.image_url||''}" style="width:150px;" class="pill-input" /></td>
+    `;
+    tbody.appendChild(tr);
+  }
+
+  document.getElementById('btnAddMenu').onclick = ()=>{
+    const tbody = document.querySelector('#menuTable tbody');
+    appendMenuRow({id:'',name:'',price_m:0,price_l:'',image_url:''}, tbody);
+  };
+
+  document.getElementById('btnSaveMenu').onclick = async ()=>{
+    const rows = Array.from(document.querySelectorAll('#menuTable tbody tr'));
+    for(const tr of rows){
+      const id = tr.dataset.id || null;
+      const [nameEl, mEl, lEl, imgEl] = tr.querySelectorAll('input');
+      const payload = {
+        name: nameEl.value.trim(),
+        price_m: Number(mEl.value || 0),
+        price_l: lEl.value ? Number(lEl.value) : null,
+        image_url: imgEl.value.trim() || null
+      };
+      if(!payload.name || !payload.price_m) continue;
+      if(id){
+        await db.from('menu_items').update(payload).eq('id', id);
+      }else{
+        const { data } = await db.from('menu_items').insert(payload).select('id').single();
+        tr.dataset.id = data.id;
+      }
+    }
+    alert('Đã lưu menu.');
+    loadMenu();
+  };
+
+  // ================== INIT LOAD ==================
+  (async function init(){
+    await loadMenu();
+    await loadRawMaterials();
+    await loadHistory();
+    await refreshTableStatuses();
   })();
 </script>
 </body>
