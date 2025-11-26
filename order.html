@@ -1,430 +1,214 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8" />
-  <title>QR Order – Tea Neko</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Tea Neko – Đặt món</title>
+
+<style>
     body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, Arial, sans-serif;
-      background: radial-gradient(circle at top, #111827, #020617);
-      color: #e5e7eb;
-      padding: 16px;
+        margin: 0;
+        background: #0b1220;
+        font-family: system-ui, sans-serif;
+        color: #fff;
     }
-    .page {
-      max-width: 480px;
-      margin: 0 auto 40px auto;
+
+    h2 {
+        padding: 16px;
+        text-align: center;
+        font-size: 26px;
+        font-weight: 700;
     }
-    .title {
-      text-align: center;
-      margin-bottom: 8px;
-      font-weight: 600;
-      font-size: 20px;
-    }
-    .subtitle {
-      text-align: center;
-      font-size: 13px;
-      color: #9ca3af;
-      margin-bottom: 12px;
-    }
-    .table-pill {
-      display: inline-block;
-      padding: 4px 10px;
-      border-radius: 999px;
-      border: 1px solid #22c55e;
-      color: #22c55e;
-      font-size: 12px;
-      margin-bottom: 12px;
-    }
-    .menu-list {
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-      margin-bottom: 20px;
-    }
+
     .item-box {
-      background: #020617;
-      border-radius: 16px;
-      overflow: hidden;
-      border: 1px solid #111827;
-      box-shadow: 0 10px 30px rgba(0,0,0,.5);
+        background: #111a30;
+        margin: 14px;
+        padding: 14px;
+        border-radius: 14px;
+        box-shadow: 0 0 6px #0006;
     }
-    .item-img {
-      width: 100%;
-      height: 180px;
-      object-fit: cover;
-      display: block;
-    }
-    .item-body {
-      padding: 10px 14px 12px 14px;
-    }
-    .item-name {
-      font-weight: 600;
-      margin-bottom: 2px;
-    }
-    .item-price {
-      font-size: 13px;
-      color: #9ca3af;
-      margin-bottom: 8px;
-    }
-    .size-note {
-      font-size: 12px;
-      color: #6b7280;
-      margin-bottom: 8px;
-    }
-    .qty-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding-top: 4px;
-    }
-    .qty-controls {
-      display: inline-flex;
-      align-items: center;
-      border-radius: 999px;
-      border: 1px solid #1f2937;
-      overflow: hidden;
-    }
-    .qty-controls button {
-      width: 36px;
-      height: 32px;
-      border: none;
-      background: transparent;
-      color: #e5e7eb;
-      font-size: 18px;
-      cursor: pointer;
-    }
-    .qty-controls span {
-      width: 40px;
-      text-align: center;
-      font-size: 15px;
-    }
-    .size-row {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 12px;
-    }
-    .size-btn {
-      flex: 1;
-      border-radius: 999px;
-      padding: 6px 0;
-      border: 1px solid #1f2937;
-      font-size: 13px;
-      text-align: center;
-      cursor: pointer;
-      background: #020617;
-      color: #e5e7eb;
-      transition: 0.15s;
-    }
-    .size-btn.active {
-      background: #2563eb;
-      border-color: #2563eb;
+    .item-box img {
+        width: 100%;
+        border-radius: 10px;
     }
 
-    .card {
-      background: #020617;
-      border-radius: 18px;
-      padding: 14px;
-      border: 1px solid #111827;
-      box-shadow: 0 10px 30px rgba(0,0,0,.4);
-      margin-bottom: 16px;
-    }
-    .card-title {
-      font-weight: 600;
-      margin-bottom: 6px;
-      font-size: 16px;
-    }
-    .card-sub {
-      font-size: 12px;
-      color: #9ca3af;
-      margin-bottom: 8px;
+    .title {
+        font-size: 20px;
+        margin-top: 10px;
+        font-weight: 600;
     }
 
-    #order-summary div {
-      font-size: 14px;
-      margin-bottom: 4px;
-    }
-    .total-row {
-      margin-top: 8px;
-      font-weight: 600;
+    .price {
+        opacity: 0.8;
+        margin-bottom: 8px;
     }
 
-    textarea {
-      width: 100%;
-      border-radius: 12px;
-      border: 1px solid #1f2937;
-      background: #020617;
-      color: #e5e7eb;
-      padding: 10px;
-      font-size: 14px;
-      resize: vertical;
-      min-height: 60px;
+    .qty-box {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 6px 0;
+    }
+    .qty-btn {
+        background: #222;
+        padding: 6px 14px;
+        border-radius: 8px;
+        user-select: none;
+        cursor: pointer;
+        font-size: 20px;
     }
 
-    .btn-main {
-      width: 100%;
-      border: none;
-      border-radius: 999px;
-      padding: 12px;
-      font-size: 16px;
-      font-weight: 600;
-      margin-top: 10px;
-      cursor: pointer;
-      background: linear-gradient(90deg, #22c55e, #4ade80);
-      color: #022c22;
-      box-shadow: 0 15px 40px rgba(22,163,74,.4);
+    #cart-box {
+        background: #111a30;
+        margin: 14px;
+        padding: 14px;
+        border-radius: 14px;
+        box-shadow: 0 0 6px #0006;
     }
 
-    #status {
-      margin-top: 10px;
-      font-size: 13px;
-      text-align: center;
-      color: #f97373;
+    #send-btn {
+        margin-top: 14px;
+        background: #00ff90;
+        width: 100%;
+        padding: 16px;
+        text-align: center;
+        border-radius: 12px;
+        color: #003300;
+        font-size: 20px;
+        font-weight: bold;
+        cursor: pointer;
     }
-  </style>
+
+    #error {
+        margin-top: 14px;
+        color: #ff8080;
+        text-align: center;
+        font-weight: 500;
+    }
+</style>
 </head>
+
 <body>
-  <div class="page">
-    <div class="title">Tea Neko – Đặt món</div>
-    <div class="subtitle">Chọn món rồi bấm gửi order, nhân viên sẽ xác nhận tại quầy.</div>
-    <div id="tableInfo" class="table-pill"></div>
+<h2>Menu gọi món</h2>
 
-    <!-- Chọn size chung cho đơn -->
-    <div class="card" style="margin-bottom: 14px;">
-      <div class="card-title">Chọn size mặc định</div>
-      <div class="card-sub">Có thể mix size: chọn size rồi bấm + ở từng món.</div>
-      <div class="size-row">
-        <button id="btn-size-m" class="size-btn active">Size M</button>
-        <button id="btn-size-l" class="size-btn">Size L (+5.000đ)</button>
-      </div>
-    </div>
+<div id="menu"></div>
 
-    <!-- Danh sách món -->
-    <div class="menu-list" id="menu-list"></div>
+<div id="cart-box">
+    <div style="font-size:20px; font-weight:700;">Đơn của bạn</div>
+    <div id="cart-list" style="margin-top:10px;"></div>
+    <div id="total" style="margin-top:10px; font-size:20px; font-weight:700;"></div>
 
-    <!-- Đơn của bạn -->
-    <div id="cart-box" class="card" style="display:none;">
-      <div class="card-title">Đơn của bạn</div>
-      <div class="card-sub">Kiểm tra lại trước khi gửi đến quầy.</div>
-      <div id="order-summary"></div>
-      <div class="total-row">Tổng: <span id="order-total">0đ</span></div>
-    </div>
+    <textarea id="note" placeholder="Ghi chú..." style="width:100%; margin-top:10px; padding:10px; border-radius:8px; border:none;"></textarea>
 
-    <!-- Ghi chú + gửi -->
-    <div class="card">
-      <div class="card-title">Ghi chú</div>
-      <div class="card-sub">Ví dụ: ít đá, ít ngọt, không trân châu...</div>
-      <textarea id="note" placeholder="Ghi chú cho quán..."></textarea>
-      <button class="btn-main" onclick="sendOrder()">Gửi order đến Tea Neko</button>
-      <div id="status"></div>
-    </div>
-  </div>
+    <div id="send-btn">Gửi order đến Tea Neko</div>
+    <div id="error"></div>
+</div>
 
-  <!-- SCRIPT -->
-  <script type="module">
-    import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+<script type="module">
 
-    const supabase = createClient(
-      "https://kcrchwedlrettpkucoct.supabase.co",
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZi6ImtjcmNod2VkbHJldHRwa3Vjb2N0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM4ODQ0MjgsImV4cCI6MjA3OTQ2MDQyOH0.g4WA9tci2zm4MIa6EvOe6tH_EhaoicdrdiP6swgjRgw"
-    );
+// =============== SUPABASE ===============
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-    // ===== MENU =====
-    const MENU = [
-      {
-        id: 1,
+const supabase = createClient(
+    "https://kcrchwedlrettpkucoct.supabase.co",
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtjcmNod2VkbHJldHRwa3Vjb2N0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM4ODQ0MjgsImV4cCI6MjA3OTQ2MDQyOH0.g4WA9tci2zm4MIa6EvOe6tH_EhaoicdrdiP6swgjRgw"
+);
+
+// =============== MENU ===============
+const menuData = [
+    {
         name: "Matcha Latte",
-        priceM: 25000,
-        priceL: 30000,
-        img: "https://i.imgur.com/rkzQyDi.jpeg"
-      },
-      {
-        id: 2,
+        price: 25000,
+        img: "https://i.imgur.com/yLaQf2x.jpeg"
+    },
+    {
         name: "Hồng trà sữa",
-        priceM: 28000,
-        priceL: 33000,
-        img: "https://i.imgur.com/yFDRqVJ.jpeg"
-      },
-      {
-        id: 3,
+        price: 28000,
+        img: "https://i.imgur.com/8pSx3o7.jpeg"
+    },
+    {
         name: "Bạc xỉu",
-        priceM: 20000,
-        priceL: 25000,
-        img: "https://i.imgur.com/KdX1Q4W.jpeg"
-      }
-    ];
+        price: 20000,
+        img: "https://i.imgur.com/Y8fU6pF.jpeg"
+    }
+];
 
-    // ===== STATE =====
-    let orderItems = {};      // key: `${id}_${size}`
-    let currentSize = "M";
+let cart = {};
 
-    const menuListEl   = document.getElementById("menu-list");
-    const cartBoxEl    = document.getElementById("cart-box");
-    const orderSummary = document.getElementById("order-summary");
-    const orderTotalEl = document.getElementById("order-total");
-    const noteEl       = document.getElementById("note");
-    const statusEl     = document.getElementById("status");
-    const btnSizeM     = document.getElementById("btn-size-m");
-    const btnSizeL     = document.getElementById("btn-size-l");
-    const tableInfoEl  = document.getElementById("tableInfo");
-
-    // Hiển thị số bàn từ URL
-    const params = new URLSearchParams(window.location.search);
-    const tableId = params.get("table") || "N/A";
-    tableInfoEl.textContent = "Bàn " + tableId;
-
-    // ===== RENDER MENU =====
-    function loadMenuUI() {
-      let html = "";
-      MENU.forEach(item => {
+function renderMenu() {
+    let html = "";
+    menuData.forEach((item, index) => {
         html += `
-          <div class="item-box">
-            <img src="${item.img}" class="item-img">
-            <div class="item-body">
-              <div class="item-name">${item.name}</div>
-              <div class="item-price">${item.priceM.toLocaleString()}đ (Size M)</div>
-              <div class="size-note">Theo size đang chọn</div>
-              <div class="qty-row">
-                <span style="font-size:13px;color:#9ca3af;">Số lượng</span>
-                <div class="qty-controls">
-                  <button onclick="changeQty(${item.id}, -1)">−</button>
-                  <span id="qty-${item.id}">0</span>
-                  <button onclick="changeQty(${item.id}, 1)">+</button>
-                </div>
-              </div>
+        <div class="item-box">
+            <img src="${item.img}" />
+            <div class="title">${item.name}</div>
+            <div class="price">${item.price.toLocaleString()}đ</div>
+            <div class="qty-box">
+                <div class="qty-btn" onclick="updateQty(${index}, -1)">−</div>
+                <div>${cart[index]?.qty ?? 0}</div>
+                <div class="qty-btn" onclick="updateQty(${index}, 1)">+</div>
             </div>
-          </div>
+        </div>
         `;
-      });
-      menuListEl.innerHTML = html;
-    }
-    loadMenuUI();
+    });
+    document.getElementById("menu").innerHTML = html;
+}
 
-    // ===== CHỌN SIZE =====
-    btnSizeM.addEventListener("click", () => {
-      currentSize = "M";
-      btnSizeM.classList.add("active");
-      btnSizeL.classList.remove("active");
-      renderOrder();
+window.updateQty = (index, delta) => {
+    if (!cart[index]) cart[index] = { ...menuData[index], qty: 0 };
+    cart[index].qty += delta;
+    if (cart[index].qty <= 0) delete cart[index];
+    renderMenu();
+    renderCart();
+};
+
+function renderCart() {
+    let html = "";
+    let total = 0;
+    Object.values(cart).forEach(item => {
+        html += `
+            <div>${item.qty}x ${item.name} — ${(item.qty * item.price).toLocaleString()}đ</div>
+        `;
+        total += item.qty * item.price;
     });
 
-    btnSizeL.addEventListener("click", () => {
-      currentSize = "L";
-      btnSizeL.classList.add("active");
-      btnSizeM.classList.remove("active");
-      renderOrder();
-    });
+    document.getElementById("cart-list").innerHTML = html || "Chưa có món nào.";
+    document.getElementById("total").innerHTML = "Tổng: " + total.toLocaleString() + "đ";
+}
 
-    // ===== THAY ĐỔI SỐ LƯỢNG =====
-    function changeQty(id, delta) {
-      const item = MENU.find(m => m.id === id);
-      if (!item) return;
+renderMenu();
+renderCart();
 
-      const key = \`\${id}_\${currentSize}\`;
-
-      if (!orderItems[key]) {
-        orderItems[key] = { ...item, qty: 0, size: currentSize };
-      }
-
-      orderItems[key].qty += delta;
-      if (orderItems[key].qty <= 0) {
-        delete orderItems[key];
-      }
-
-      // Tổng qty của món này (cả M+L)
-      const totalQtyForThisId = Object.values(orderItems)
-        .filter(i => i.id === id)
-        .reduce((s, i) => s + i.qty, 0);
-
-      const span = document.getElementById("qty-" + id);
-      if (span) span.textContent = totalQtyForThisId;
-
-      renderOrder();
+// =============== GỬI ORDER ===============
+document.getElementById("send-btn").addEventListener("click", async () => {
+    if (Object.keys(cart).length === 0) {
+        document.getElementById("error").innerText = "Bạn chưa chọn món!";
+        return;
     }
 
-    // ===== RENDER ĐƠN =====
-    function renderOrder() {
-      const items = Object.values(orderItems);
-      if (items.length === 0) {
-        cartBoxEl.style.display = "none";
-        orderSummary.innerHTML = "";
-        orderTotalEl.textContent = "0đ";
-        return;
-      }
-      cartBoxEl.style.display = "block";
+    const table = new URLSearchParams(location.search).get("table") || "N/A";
 
-      let html = "";
-      let total = 0;
+    const { error } = await supabase.from("web_orders").insert([
+        {
+            table_id: table,
+            items: Object.values(cart),
+            note: document.getElementById("note").value,
+            status: "pending"
+        }
+    ]);
 
-      items.forEach(i => {
-        const price = i.size === "M" ? i.priceM : i.priceL;
-        const line  = price * i.qty;
-        total += line;
-        html += \`<div>\${i.qty}x \${i.name} (Size \${i.size}) — \${line.toLocaleString()}đ</div>\`;
-      });
-
-      orderSummary.innerHTML = html;
-      orderTotalEl.textContent = total.toLocaleString() + "đ";
+    if (error) {
+        document.getElementById("error").innerText = "Gửi order thất bại!";
+    } else {
+        document.getElementById("error").innerText = "";
+        alert("Đã gửi order thành công!");
+        cart = {};
+        renderMenu();
+        renderCart();
     }
+});
 
-    // ===== GỬI ORDER LÊN SUPABASE =====
-    async function sendOrder() {
-      const items = Object.values(orderItems).filter(i => i.qty > 0);
-      if (items.length === 0) {
-        alert("Bạn chưa chọn món nào.");
-        return;
-      }
+</script>
 
-      statusEl.style.color = "#f97373";
-      statusEl.textContent = "Đang gửi order...";
-
-      const total = items.reduce((s, i) => {
-        const price = i.size === "M" ? i.priceM : i.priceL;
-        return s + price * i.qty;
-      }, 0);
-
-      const note = noteEl.value.trim() || null;
-
-      const payload = {
-        table_id: tableId,
-        items: items.map(i => ({
-          id: i.id,
-          name: i.name,
-          size: i.size,
-          qty: i.qty,
-          priceM: i.priceM,
-          priceL: i.priceL
-        })),
-        note,
-        total,
-        status: "pending"
-      };
-
-      const { error } = await supabase.from("web_orders").insert([payload]);
-
-      if (error) {
-        console.error(error);
-        statusEl.style.color = "#f97373";
-        statusEl.textContent = "Gửi order thất bại. Vui lòng thử lại.";
-        return;
-      }
-
-      statusEl.style.color = "#4ade80";
-      statusEl.textContent = "Đã gửi order thành công!";
-
-      orderItems = {};
-      MENU.forEach(i => {
-        const span = document.getElementById("qty-" + i.id);
-        if (span) span.textContent = "0";
-      });
-      noteEl.value = "";
-      renderOrder();
-    }
-
-    // Gán cho window để dùng onclick trong HTML
-    window.changeQty = changeQty;
-    window.sendOrder = sendOrder;
-  </script>
 </body>
 </html>
