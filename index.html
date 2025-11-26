@@ -2,6 +2,31 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8" />
+  /* =============================
+   FIX NAVBAR KHÔNG BẤM ĐƯỢC
+   ============================= */
+
+/* Đảm bảo thanh navbar luôn nổi trên cùng */
+nav, .top-nav, #nav {
+  position: relative;
+  z-index: 99999 !important;
+}
+
+/* Ép tất cả page-content xuống dưới navbar */
+.page {
+  position: relative;
+  z-index: 1 !important;
+}
+
+/* Nếu có vùng che (do animation, card, layout) → tắt khả năng chặn click */
+.blocker,
+.overlay,
+.fullscreen,
+.backdrop,
+.page-cover {
+  pointer-events: none !important;
+  z-index: 0 !important;
+}
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Mini POS – Tea Neko</title>
   <style>
