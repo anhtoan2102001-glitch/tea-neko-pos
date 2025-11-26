@@ -60,7 +60,7 @@
     .tab-underline {
       height: 3px;
       background: #0a84ff;
-      width: 33.33%;
+      width: 25%; /* 4 tab = 25% */
       transform: translateX(0%);
       transition: transform .18s ease;
     }
@@ -291,6 +291,7 @@
       color: #fff;
       font-size: 11px;
       cursor: pointer;
+      margin-left: 4px;
     }
 
     .btn-small-green {
@@ -301,6 +302,18 @@
       color: #fff;
       font-size: 11px;
       cursor: pointer;
+      margin-left: 4px;
+    }
+
+    .btn-small-blue {
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: none;
+      background: #1c60ff;
+      color: #fff;
+      font-size: 11px;
+      cursor: pointer;
+      margin-left: 4px;
     }
 
     .footer {
@@ -370,6 +383,86 @@
       margin-top: 4px;
     }
 
+    /* ===== STOCK PAGE ===== */
+    .stock-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 6px 0 8px;
+      font-size: 13px;
+    }
+
+    .stock-list {
+      margin-top: 4px;
+      max-height: 260px;
+      overflow-y: auto;
+      font-size: 12px;
+    }
+
+    .stock-item {
+      border-bottom: 1px dashed #3a3a4a;
+      padding: 5px 0;
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: flex-start;
+    }
+
+    .stock-main {
+      flex: 1;
+    }
+
+    .stock-name {
+      font-weight: 600;
+    }
+
+    .stock-meta {
+      color: #c0c0d0;
+    }
+
+    .stock-form {
+      margin-top: 8px;
+      padding: 8px;
+      border-radius: 10px;
+      background: #141420;
+      border: 1px dashed #3a3a4a;
+      font-size: 12px;
+    }
+
+    .stock-form-row {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 6px;
+    }
+
+    .stock-form-row input {
+      flex: 1;
+      padding: 6px 8px;
+      border-radius: 8px;
+      border: 1px solid #3a3a4a;
+      background: #101018;
+      color: #f5f5f5;
+      font-size: 12px;
+    }
+
+    .btn-small {
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: none;
+      font-size: 11px;
+      cursor: pointer;
+    }
+
+    .btn-small-gray {
+      background: #7a7a85;
+      color: #fff;
+    }
+
+    .btn-small-save {
+      background: #30c759;
+      color: #fff;
+    }
+
     @media (max-width: 480px) {
       .app { padding-bottom: 24px; }
       .box { border-radius: 12px; }
@@ -386,6 +479,7 @@
     <div class="tab-btn active" data-page="page-pos">POS</div>
     <div class="tab-btn" data-page="page-revenue">Doanh thu</div>
     <div class="tab-btn" data-page="page-history">Lịch sử</div>
+    <div class="tab-btn" data-page="page-stock">Tồn kho</div>
   </div>
   <div class="tab-underline" id="tabUnderline"></div>
 
@@ -473,7 +567,7 @@
       <h2>Lịch sử đơn</h2>
 
       <div class="history-header">
-        <span style="font-size:13px;">Xem / xoá / khôi phục đơn</span>
+        <span style="font-size:13px;">Xem / xoá / khôi phục / in hoá đơn</span>
         <button class="chip-btn" id="btnRefreshHistoryPage">↻ Tải lại</button>
       </div>
 
@@ -489,6 +583,38 @@
       <div class="history-list" id="historyDeletedList"></div>
     </div>
   </div>
+
+  <!-- ===== PAGE 4 – STOCK / TỒN KHO ===== -->
+  <div id="page-stock" class="page">
+    <div class="box">
+      <h2>Tồn kho nguyên liệu</h2>
+
+      <div class="stock-actions">
+        <span>Cuối buổi kiểm hàng rồi cập nhật số lượng.</span>
+        <button class="chip-btn" id="btnRefreshStock">↻ Tải lại</button>
+      </div>
+
+      <button class="btn-small btn-small-gray" id="btnToggleStockForm">➕ Thêm nguyên liệu</button>
+
+      <div class="stock-form" id="stockForm" style="display:none;">
+        <div class="stock-form-row">
+          <input id="stockName" placeholder="Tên nguyên liệu (VD: Bột matcha)">
+        </div>
+        <div class="stock-form-row">
+          <input id="stockQuantity" type="number" step="0.01" placeholder="Số lượng hiện có">
+          <input id="stockUnit" placeholder="Đơn vị (VD: kg, g, ml)">
+        </div>
+        <div style="text-align:right;">
+          <button class="btn-small btn-small-gray" id="btnCancelStockAdd">Hủy</button>
+          <button class="btn-small btn-small-save" id="btnSaveStock">Lưu</button>
+        </div>
+      </div>
+
+      <div class="section-title" style="margin-top:10px;">Danh sách hiện tại</div>
+      <div class="stock-list" id="stockList"></div>
+    </div>
+  </div>
+
 </div>
 
 <!-- ===== JS ===== -->
@@ -513,6 +639,7 @@
   let currentOrder = [];              // {name,size,qty,unitPrice,lineTotal}
   let activeOrders = [];              // from public.orders
   let deletedOrders = [];             // from public.deleted_orders
+  let inventoryItems = [];            // from public.inventory
   let revenueStats = { today:0, week:0, month:0, byDay:[] };
 
   // ===== DOM SHORTCUTS =====
@@ -546,6 +673,16 @@
   const historyDeletedList = document.getElementById("historyDeletedList");
   const btnRefreshHistoryPage = document.getElementById("btnRefreshHistoryPage");
   const searchOrderInput = document.getElementById("searchOrder");
+
+  const btnRefreshStock = document.getElementById("btnRefreshStock");
+  const btnToggleStockForm = document.getElementById("btnToggleStockForm");
+  const stockForm = document.getElementById("stockForm");
+  const stockNameInput = document.getElementById("stockName");
+  const stockQuantityInput = document.getElementById("stockQuantity");
+  const stockUnitInput = document.getElementById("stockUnit");
+  const btnCancelStockAdd = document.getElementById("btnCancelStockAdd");
+  const btnSaveStock = document.getElementById("btnSaveStock");
+  const stockList = document.getElementById("stockList");
 
   // ===== UTILS =====
   function formatVND(x) {
@@ -601,7 +738,6 @@
     const isL = currentSize === "L";
     const unitPrice = item.price + (isL ? 5000 : 0);
 
-    // Tìm dòng giống món + size để cộng dồn
     const existing = currentOrder.find(
       line => line.name === item.name && line.size === currentSize
     );
@@ -655,29 +791,28 @@
 
   // ===== LOAD DATA FROM SERVER =====
   async function loadAllData() {
-    const { data: active, error: e1 } = await supa
-      .from("orders")
-      .select("*")
-      .order("created_at", { ascending: false });
+    const [{ data: active, error: e1 }, { data: deleted, error: e2 }, { data: inv, error: e3 }] =
+      await Promise.all([
+        supa.from("orders").select("*").order("created_at", { ascending: false }),
+        supa.from("deleted_orders").select("*").order("deleted_at", { ascending: false }),
+        supa.from("inventory").select("*").order("updated_at", { ascending: false })
+      ]);
 
-    const { data: deleted, error: e2 } = await supa
-      .from("deleted_orders")
-      .select("*")
-      .order("deleted_at", { ascending: false });
-
-    if (e1 || e2) {
-      console.error(e1 || e2);
+    if (e1 || e2 || e3) {
+      console.error(e1 || e2 || e3);
       alert("Không tải được dữ liệu từ Supabase.");
       return;
     }
 
     activeOrders = active || [];
     deletedOrders = deleted || [];
+    inventoryItems = inv || [];
 
     renderPosHistory();
     recomputeRevenue();
     renderRevenuePage();
     renderHistoryPage();
+    renderStock();
   }
 
   function renderPosHistory() {
@@ -701,10 +836,15 @@
           <div>${itemsText}</div>
           <div><strong>${formatVND(order.total || 0)}</strong></div>
         </div>
-        <button class="btn-small-red" data-id="${order.id}">Xóa</button>
+        <div>
+          <button class="btn-small-blue">In</button>
+          <button class="btn-small-red">Xóa</button>
+        </div>
       `;
-      const btn = div.querySelector("button");
-      btn.addEventListener("click", () => onDeleteOrder(order.id));
+      const btnPrintMini = div.querySelector(".btn-small-blue");
+      const btnDeleteMini = div.querySelector(".btn-small-red");
+      btnPrintMini.addEventListener("click", () => printOrderFromActive(order.id));
+      btnDeleteMini.addEventListener("click", () => onDeleteOrder(order.id));
       posHistoryList.appendChild(div);
     });
 
@@ -738,7 +878,7 @@
     });
 
     const byDay = Array.from(byDayMap.entries())
-      .sort((a,b) => a[0] < b[0] ? 1 : -1)   // mới nhất trước
+      .sort((a,b) => a[0] < b[0] ? 1 : -1)
       .map(([date,total]) => ({date,total}));
 
     revenueStats = { today, week, month, byDay };
@@ -777,6 +917,7 @@
       return code.includes(keyword) || itemsText.includes(keyword);
     }
 
+    // Active orders
     historyActiveList.innerHTML = "";
     activeOrders.filter(matchOrder).forEach(order => {
       const div = document.createElement("div");
@@ -795,12 +936,19 @@
           <div>${itemsText}</div>
           <div><strong>${formatVND(order.total || 0)}</strong></div>
         </div>
-        <button class="btn-small-red">Xóa đơn</button>
+        <div>
+          <button class="btn-small-blue">In</button>
+          <button class="btn-small-red">Xóa đơn</button>
+        </div>
       `;
-      div.querySelector("button").addEventListener("click", () => onDeleteOrder(order.id));
+      const btnPrint = div.querySelector(".btn-small-blue");
+      const btnDelete = div.querySelector(".btn-small-red");
+      btnPrint.addEventListener("click", () => printOrderFromActive(order.id));
+      btnDelete.addEventListener("click", () => onDeleteOrder(order.id));
       historyActiveList.appendChild(div);
     });
 
+    // Deleted orders
     historyDeletedList.innerHTML = "";
     deletedOrders.filter(matchOrder).forEach(order => {
       const div = document.createElement("div");
@@ -825,14 +973,112 @@
     });
   }
 
+  // ===== STOCK / TỒN KHO =====
+  function renderStock() {
+    stockList.innerHTML = "";
+    if (!inventoryItems.length) {
+      stockList.textContent = "Chưa có nguyên liệu nào. Bấm 'Thêm nguyên liệu' để bắt đầu.";
+      return;
+    }
+
+    inventoryItems.forEach(item => {
+      const div = document.createElement("div");
+      div.className = "stock-item";
+
+      const main = document.createElement("div");
+      main.className = "stock-main";
+      main.innerHTML = `
+        <div class="stock-name">${item.name}</div>
+        <div class="stock-meta">
+          Số lượng: <strong>${item.quantity}</strong> ${item.unit} 
+          • Cập nhật: ${formatDateTime(item.updated_at)}
+        </div>
+      `;
+
+      const actions = document.createElement("div");
+      const editBtn = document.createElement("button");
+      editBtn.className = "btn-small btn-small-gray";
+      editBtn.textContent = "Sửa SL";
+      editBtn.addEventListener("click", () => openEditStock(item));
+
+      actions.appendChild(editBtn);
+
+      div.appendChild(main);
+      div.appendChild(actions);
+      stockList.appendChild(div);
+    });
+  }
+
+  function openEditStock(item) {
+    const newQty = prompt(
+      `Nhập lại số lượng cho "${item.name}" (${item.unit})`,
+      item.quantity
+    );
+    if (newQty === null) return;
+    const val = parseFloat(newQty);
+    if (isNaN(val)) {
+      alert("Giá trị không hợp lệ.");
+      return;
+    }
+    updateStockQuantity(item.id, val);
+  }
+
+  async function updateStockQuantity(id, quantity) {
+    const { data, error } = await supa
+      .from("inventory")
+      .update({ quantity, updated_at: new Date().toISOString() })
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error(error);
+      alert("Cập nhật tồn kho thất bại.");
+      return;
+    }
+
+    const idx = inventoryItems.findIndex(i => i.id === id);
+    if (idx >= 0) inventoryItems[idx] = data;
+    renderStock();
+  }
+
+  async function addStockItem() {
+    const name = stockNameInput.value.trim();
+    const quantity = parseFloat(stockQuantityInput.value || "0");
+    const unit = (stockUnitInput.value || "").trim() || "đơn vị";
+
+    if (!name) {
+      alert("Vui lòng nhập tên nguyên liệu.");
+      return;
+    }
+
+    const { data, error } = await supa
+      .from("inventory")
+      .insert([{ name, quantity: isNaN(quantity) ? 0 : quantity, unit }])
+      .select()
+      .single();
+
+    if (error) {
+      console.error(error);
+      alert("Thêm nguyên liệu thất bại.");
+      return;
+    }
+
+    inventoryItems.unshift(data);
+    stockNameInput.value = "";
+    stockQuantityInput.value = "";
+    stockUnitInput.value = "";
+    stockForm.style.display = "none";
+    renderStock();
+  }
+
   // ===== DELETE / RESTORE =====
   async function onDeleteOrder(orderId) {
     const order = activeOrders.find(o => o.id === orderId);
     if (!order) return;
 
-    if (!confirm("Xoá đơn này? Đơn sẽ được chuyển sang mục 'Đơn đã xoá'.")) return;
+    if (!confirm("Xoá đơn này? Đơn sẽ được chuyển sang mục 'Đơn đã xoá' và trừ khỏi doanh thu.")) return;
 
-    // 1) chép sang deleted_orders
     const payload = {
       original_id: order.id,
       order_code: order.order_code,
@@ -855,7 +1101,6 @@
       return;
     }
 
-    // 2) xoá khỏi orders
     const { error: err2 } = await supa
       .from("orders")
       .delete()
@@ -867,7 +1112,6 @@
       return;
     }
 
-    // 3) cập nhật local state
     activeOrders = activeOrders.filter(o => o.id !== order.id);
     deletedOrders.unshift(inserted);
 
@@ -1060,6 +1304,15 @@
     win.print();
   }
 
+  function printOrderFromActive(id) {
+    const order = activeOrders.find(o => o.id === id);
+    if (!order) {
+      alert("Không tìm thấy đơn để in.");
+      return;
+    }
+    printBill(order);
+  }
+
   // ===== REALTIME =====
   function initRealtime() {
     supa
@@ -1104,6 +1357,27 @@
           const old = payload.old;
           deletedOrders = deletedOrders.filter(o => o.id !== old.id);
           renderHistoryPage();
+        }
+      )
+      .on("postgres_changes",
+        { event: "INSERT", schema: "public", table: "inventory" },
+        payload => {
+          const row = payload.new;
+          if (!inventoryItems.find(i => i.id === row.id)) {
+            inventoryItems.unshift(row);
+            renderStock();
+          }
+        }
+      )
+      .on("postgres_changes",
+        { event: "UPDATE", schema: "public", table: "inventory" },
+        payload => {
+          const row = payload.new;
+          const idx = inventoryItems.findIndex(i => i.id === row.id);
+          if (idx >= 0) {
+            inventoryItems[idx] = row;
+            renderStock();
+          }
         }
       )
       .subscribe();
@@ -1162,7 +1436,20 @@
   btnRefreshPosHistory.addEventListener("click", loadAllData);
   btnRefreshRevenue.addEventListener("click", loadAllData);
   btnRefreshHistoryPage.addEventListener("click", loadAllData);
+
   searchOrderInput.addEventListener("input", renderHistoryPage);
+
+  btnRefreshStock.addEventListener("click", loadAllData);
+
+  btnToggleStockForm.addEventListener("click", () => {
+    stockForm.style.display = stockForm.style.display === "none" ? "block" : "none";
+  });
+
+  btnCancelStockAdd.addEventListener("click", () => {
+    stockForm.style.display = "none";
+  });
+
+  btnSaveStock.addEventListener("click", addStockItem);
 
   // ===== INIT =====
   renderMenu();
